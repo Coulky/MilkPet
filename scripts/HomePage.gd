@@ -50,7 +50,7 @@ func _on_continue_button_pressed():
 			get_tree().change_scene_to_file("res://scenes/games/sudoku/sudoku.tscn")
 
 func _on_achievements_button_pressed():
-	print("成就功能开发中")
+	get_tree().change_scene_to_file("res://scenes/Achievements.tscn")
 
 func _on_settings_button_pressed():
 	get_tree().change_scene_to_file("res://scenes/SettingsPage.tscn")

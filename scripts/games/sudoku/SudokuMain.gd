@@ -12,6 +12,7 @@ var note_mode: bool = false
 var is_running: bool = false
 var timer_seconds: int = 0
 var current_level: String = "easy"
+var current_puzzle_id: String = ""
 
 func _ready():
 	sudoku_grid = SudokuGridScript.new()
@@ -44,6 +45,8 @@ func start_new_game(level: String = "easy"):
 	var game_data = sudoku_generator.generate(level)
 	sudoku_grid.init()
 	sudoku_grid.load_game(game_data)
+	
+	current_puzzle_id = game_data.id
 
 	SaveData.init_game_cache("sudoku", level, {
 		"grid": game_data.grid.duplicate(true),
@@ -202,6 +205,10 @@ func _on_game_complete(message: String):
 	var sudoku_ui = $SudokuUI
 	sudoku_ui.set_buttons_enabled(false)
 	GameTimer.timer_clear()
+	
+	if current_puzzle_id != "":
+		sudoku_generator.mark_completed(current_puzzle_id, current_level)
+	
 	SaveData.clear_cached_game_on_disk("sudoku")
 	SaveData.clear_game_cache()
 	print(message)

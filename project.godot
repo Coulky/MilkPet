@@ -17,8 +17,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GlobalData="*res://scripts/common/GlobalData.gd"
 I18n="*res://scripts/conf/I18n.gd"
+GlobalData="*res://scripts/common/GlobalData.gd"
 Config="*res://scripts/conf/Config.gd"
 Theme="*res://scripts/conf/Theme.gd"
 SaveData="*res://scripts/common/SaveData.gd"

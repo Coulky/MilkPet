@@ -1,0 +1,191 @@
+[gd_scene format=3 uid="uid://achievements001"]
+
+[ext_resource type="Script" path="res://scripts/scenes/Achievements.gd" id="1_achievements"]
+
+[node name="Achievements" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_achievements")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.2, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 70.0
+text = "成就"
+horizontal_alignment = 1
+font_size = 32
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+text = "返回"
+font_size = 18
+
+[node name="AchievementList" type="VBoxContainer" parent="."]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="AchievementPanel1" type="PanelContainer" parent="."]
+layout_mode = 3
+custom_minimum_size = Vector2(800, 100)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 3
+theme_override_constants/separation = 20
+
+[node name="InfoContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "数独初级"
+font_size = 24
+
+[node name="DescLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "完成简单难度棋盘"
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="ProgressLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "进度: 0/50"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="StarsContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 2
+
+[node name="Star1" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="Star2" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="Star3" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="AchievementPanel2" type="PanelContainer" parent="."]
+layout_mode = 3
+custom_minimum_size = Vector2(800, 100)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 3
+theme_override_constants/separation = 20
+
+[node name="InfoContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "数独中级"
+font_size = 24
+
+[node name="DescLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "完成中等难度棋盘"
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="ProgressLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "进度: 0/50"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="StarsContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 2
+
+[node name="Star1" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="Star2" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="Star3" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="AchievementPanel3" type="PanelContainer" parent="."]
+layout_mode = 3
+custom_minimum_size = Vector2(800, 100)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 3
+theme_override_constants/separation = 20
+
+[node name="InfoContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "数独高级"
+font_size = 24
+
+[node name="DescLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "完成困难难度棋盘"
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="ProgressLabel" type="Label" parent="InfoContainer"]
+layout_mode = 2
+text = "进度: 0/50"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="StarsContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+alignment = 2
+
+[node name="Star1" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="Star2" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
+
+[node name="Star3" type="Label" parent="StarsContainer"]
+layout_mode = 2
+text = "*"
+font_size = 32
