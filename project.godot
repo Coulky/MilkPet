@@ -17,10 +17,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+GlobalData="*res://scripts/common/GlobalData.gd"
 I18n="*res://scripts/conf/I18n.gd"
 Config="*res://scripts/conf/Config.gd"
 Theme="*res://scripts/conf/Theme.gd"
-GlobalData="*res://scripts/common/GlobalData.gd"
 SaveData="*res://scripts/common/SaveData.gd"
 GameTimer="*res://scripts/common/GameTimer.gd"
 

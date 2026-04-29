@@ -28,7 +28,9 @@ var translations = {
 		"reset": "恢复默认",
 		"theme": "主题",
 		"theme_default": "默认",
-		"sudoku": "数独"
+		"sudoku": "数独",
+		"start_game": "开始游戏",
+		"continue": "继续"
 	},
 	"zh-TW": {
 		"lang_name": "繁體中文",
@@ -57,7 +59,9 @@ var translations = {
 		"reset": "恢復默認",
 		"theme": "主題",
 		"theme_default": "默認",
-		"sudoku": "數獨"
+		"sudoku": "數獨",
+		"start_game": "開始遊戲",
+		"continue": "繼續"
 	},
 	"en": {
 		"lang_name": "English",
@@ -86,7 +90,9 @@ var translations = {
 		"reset": "Reset",
 		"theme": "Theme",
 		"theme_default": "Default",
-		"sudoku": "Sudoku"
+		"sudoku": "Sudoku",
+		"start_game": "Start Game",
+		"continue": "Continue"
 	},
 	"ja": {
 		"lang_name": "日本語",
@@ -115,7 +121,9 @@ var translations = {
 		"reset": "リセット",
 		"theme": "テーマ",
 		"theme_default": "デフォルト",
-		"sudoku": "数独"
+		"sudoku": "数独",
+		"start_game": "ゲーム開始",
+		"continue": "続ける"
 	}
 }
 
