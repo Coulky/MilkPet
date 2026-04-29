@@ -22,7 +22,7 @@ anchors_preset = 8
 anchor_left = 0.0
 anchor_right = 1.0
 offset_top = 30.0
-offset_bottom = -400.0
+offset_bottom = -630.0
 text = "休闲游戏合集"
 horizontal_alignment = 1
 font_size = 32
@@ -35,9 +35,9 @@ anchor_right = 0.5
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = -130.0
+offset_top = -160.0
 offset_right = 100.0
-offset_bottom = -180.0
+offset_bottom = -210.0
 text = "游戏库"
 font_size = 20
 
@@ -49,11 +49,25 @@ anchor_right = 0.5
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = -60.0
+offset_top = -90.0
 offset_right = 100.0
-offset_bottom = -110.0
+offset_bottom = -140.0
 disabled = true
 text = "继续游戏"
+font_size = 20
+
+[node name="AchievementsButton" type="Button" parent="."]
+layout_mode = 3
+anchors_preset = 0
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = -70.0
+text = "成就"
 font_size = 20
 
 [node name="SettingsButton" type="Button" parent="."]
@@ -64,9 +78,9 @@ anchor_right = 0.5
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = 10.0
+offset_top = 50.0
 offset_right = 100.0
-offset_bottom = -40.0
+offset_bottom = 0.0
 text = "设置"
 font_size = 20
 
@@ -78,13 +92,14 @@ anchor_right = 0.5
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = 80.0
+offset_top = 120.0
 offset_right = 100.0
-offset_bottom = 30.0
+offset_bottom = 70.0
 text = "退出"
 font_size = 20
 
 [connection signal="pressed" from="GamesButton" to="." method="_on_games_button_pressed"]
 [connection signal="pressed" from="ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="AchievementsButton" to="." method="_on_achievements_button_pressed"]
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="QuitButton" to="." method="_on_quit_button_pressed"]

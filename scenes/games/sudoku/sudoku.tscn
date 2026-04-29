@@ -1,0 +1,163 @@
+[gd_scene format=3 uid="uid://sudoku001"]
+
+[ext_resource type="Script" path="res://scripts/games/sudoku/SudokuMain.gd" id="1_sudoku"]
+[ext_resource type="Script" path="res://scripts/games/sudoku/SudokuUI.gd" id="2_ui"]
+
+[node name="Sudoku" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_sudoku")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.2, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 60.0
+text = "数独"
+horizontal_alignment = 1
+font_size = 32
+
+[node name="SudokuUI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("2_ui")
+
+[node name="GridContainer" type="GridContainer" parent="SudokuUI"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -270.0
+offset_right = 270.0
+offset_bottom = 270.0
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 9
+
+[node name="TimerLabel" type="Label" parent="SudokuUI"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 620.0
+offset_bottom = 650.0
+text = "时间: 0:00"
+horizontal_alignment = 1
+font_size = 20
+
+[node name="MistakesLabel" type="Label" parent="SudokuUI"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 650.0
+offset_bottom = 680.0
+text = "错误: 0"
+horizontal_alignment = 1
+font_size = 20
+
+[node name="NumberButtons" type="HBoxContainer" parent="SudokuUI"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = 290.0
+offset_right = 270.0
+offset_bottom = 340.0
+alignment = 1
+
+[node name="Num1" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "1"
+font_size = 24
+
+[node name="Num2" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "2"
+font_size = 24
+
+[node name="Num3" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "3"
+font_size = 24
+
+[node name="Num4" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "4"
+font_size = 24
+
+[node name="Num5" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "5"
+font_size = 24
+
+[node name="Num6" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "6"
+font_size = 24
+
+[node name="Num7" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "7"
+font_size = 24
+
+[node name="Num8" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "8"
+font_size = 24
+
+[node name="Num9" type="Button" parent="SudokuUI/NumberButtons"]
+layout_mode = 1
+flexible_w = 1
+text = "9"
+font_size = 24
+
+[node name="NewGameButton" type="Button" parent="."]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = 360.0
+offset_right = 60.0
+offset_bottom = 400.0
+text = "新游戏"
+font_size = 20
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+text = "返回"
+font_size = 18

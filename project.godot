@@ -10,16 +10,27 @@ config_version=5
 
 [application]
 
-config/name="CasualGames"
+config/name="Casual Games"
 run/main_scene="res://scenes/HomePage.tscn"
 config/features=PackedStringArray("4.6")
 config/icon="res://icon.svg"
 
+[autoload]
+
+I18n="*res://scripts/conf/I18n.gd"
+Config="*res://scripts/conf/Config.gd"
+Theme="*res://scripts/conf/Theme.gd"
+GlobalData="*res://scripts/common/GlobalData.gd"
+SaveData="*res://scripts/common/SaveData.gd"
+GameTimer="*res://scripts/common/GameTimer.gd"
+
 [display]
 
 window/size/resizable=false
-window/size/width=640
-window/size/height=480
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/width=1280
+window/size/height=720
 window/title="休闲游戏合集"
 
 [physics]

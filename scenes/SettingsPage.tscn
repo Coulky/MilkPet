@@ -1,0 +1,156 @@
+[gd_scene format=3 uid="uid://b03j0vmee8acq"]
+
+[ext_resource type="Script" path="res://scripts/SettingsPage.gd" id="1_0"]
+
+[node name="SettingsPage" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_0")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.2, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.0
+anchor_right = 1.0
+offset_top = 30.0
+offset_bottom = -630.0
+text = "设置"
+horizontal_alignment = 1
+font_size = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+alignment = 1
+
+[node name="LanguageSection" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 1
+alignment = 1
+
+[node name="LanguageLabel" type="Label" parent="VBoxContainer/LanguageSection"]
+layout_mode = 1
+custom_minimum_size = Vector2(200, 0)
+text = "语言"
+font_size = 20
+
+[node name="LanguagePrev" type="Button" parent="VBoxContainer/LanguageSection"]
+layout_mode = 1
+text = "<"
+custom_minimum_size = Vector2(50, 40)
+
+[node name="LanguageValue" type="Label" parent="VBoxContainer/LanguageSection"]
+layout_mode = 1
+text = "简体中文"
+custom_minimum_size = Vector2(150, 0)
+horizontal_alignment = 1
+font_size = 20
+
+[node name="LanguageNext" type="Button" parent="VBoxContainer/LanguageSection"]
+layout_mode = 1
+text = ">"
+custom_minimum_size = Vector2(50, 40)
+
+[node name="ResolutionSection" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 1
+alignment = 1
+
+[node name="ResolutionLabel" type="Label" parent="VBoxContainer/ResolutionSection"]
+layout_mode = 1
+custom_minimum_size = Vector2(200, 0)
+text = "分辨率"
+font_size = 20
+
+[node name="ResolutionPrev" type="Button" parent="VBoxContainer/ResolutionSection"]
+layout_mode = 1
+text = "<"
+custom_minimum_size = Vector2(50, 40)
+
+[node name="ResolutionValue" type="Label" parent="VBoxContainer/ResolutionSection"]
+layout_mode = 1
+text = "1280x720"
+custom_minimum_size = Vector2(150, 0)
+horizontal_alignment = 1
+font_size = 20
+
+[node name="ResolutionNext" type="Button" parent="VBoxContainer/ResolutionSection"]
+layout_mode = 1
+text = ">"
+custom_minimum_size = Vector2(50, 40)
+
+[node name="WindowModeSection" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 1
+alignment = 1
+
+[node name="WindowModeLabel" type="Label" parent="VBoxContainer/WindowModeSection"]
+layout_mode = 1
+custom_minimum_size = Vector2(200, 0)
+text = "窗口模式"
+font_size = 20
+
+[node name="WindowModePrev" type="Button" parent="VBoxContainer/WindowModeSection"]
+layout_mode = 1
+text = "<"
+custom_minimum_size = Vector2(50, 40)
+
+[node name="WindowModeValue" type="Label" parent="VBoxContainer/WindowModeSection"]
+layout_mode = 1
+text = "窗口化"
+custom_minimum_size = Vector2(150, 0)
+horizontal_alignment = 1
+font_size = 20
+
+[node name="WindowModeNext" type="Button" parent="VBoxContainer/WindowModeSection"]
+layout_mode = 1
+text = ">"
+custom_minimum_size = Vector2(50, 40)
+
+[node name="ButtonContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -340.0
+offset_top = -70.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ResetButton" type="Button" parent="ButtonContainer"]
+layout_mode = 1
+text = "恢复默认"
+custom_minimum_size = Vector2(120, 50)
+font_size = 18
+
+[node name="BackButton" type="Button" parent="ButtonContainer"]
+layout_mode = 1
+text = "返回 (ESC)"
+custom_minimum_size = Vector2(120, 50)
+font_size = 18
+
+[node name="ApplyButton" type="Button" parent="ButtonContainer"]
+layout_mode = 1
+text = "应用 (Space)"
+custom_minimum_size = Vector2(120, 50)
+font_size = 18
+
+[connection signal="pressed" from="VBoxContainer/LanguageSection/LanguagePrev" to="." method="_on_language_prev_pressed"]
+[connection signal="pressed" from="VBoxContainer/LanguageSection/LanguageNext" to="." method="_on_language_next_pressed"]
+[connection signal="pressed" from="VBoxContainer/ResolutionSection/ResolutionPrev" to="." method="_on_resolution_prev_pressed"]
+[connection signal="pressed" from="VBoxContainer/ResolutionSection/ResolutionNext" to="." method="_on_resolution_next_pressed"]
+[connection signal="pressed" from="VBoxContainer/WindowModeSection/WindowModePrev" to="." method="_on_window_mode_prev_pressed"]
+[connection signal="pressed" from="VBoxContainer/WindowModeSection/WindowModeNext" to="." method="_on_window_mode_next_pressed"]
+[connection signal="pressed" from="ButtonContainer/ResetButton" to="." method="on_reset_pressed"]
+[connection signal="pressed" from="ButtonContainer/BackButton" to="." method="on_back_pressed"]
+[connection signal="pressed" from="ButtonContainer/ApplyButton" to="." method="on_apply_pressed"]
