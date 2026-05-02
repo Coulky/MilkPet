@@ -43,23 +43,23 @@ func _setup_buttons():
 	var left_panel = $SudokuUI/MainContainer/LeftPanel
 	var action_buttons = $SudokuUI/MainContainer/LeftPanel/ActionButtons
 	
-	if left_panel.has_node("BackButton"):
-		left_panel.get_node("BackButton").custom_minimum_size = Vector2(btn_size, btn_size)
+	GameButtonFactoryScript.create_simple_button(left_panel, "BackButton", "res://assets/images/back.png", _on_back)
+	left_panel.get_node("BackButton").custom_minimum_size = Vector2(btn_size, btn_size)
 	
-	if left_panel.has_node("RestartButtonContainer"):
-		left_panel.get_node("RestartButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
+	GameButtonFactoryScript.create_button(left_panel, "RestartButton", "res://assets/images/restart.png", "重开", _on_restart)
+	left_panel.get_node("RestartButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
 	
-	if action_buttons.has_node("NoteModeButtonContainer"):
-		action_buttons.get_node("NoteModeButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
+	GameButtonFactoryScript.create_button(action_buttons, "NoteModeButton", "res://assets/images/restart.png", "笔记", _on_note_mode_button)
+	action_buttons.get_node("NoteModeButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
 	
-	if action_buttons.has_node("HintButtonContainer"):
-		action_buttons.get_node("HintButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
+	GameButtonFactoryScript.create_button(action_buttons, "HintButton", "res://assets/images/restart.png", "提示", _on_hint_requested)
+	action_buttons.get_node("HintButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
 	
-	if action_buttons.has_node("AutoNotesButtonContainer"):
-		action_buttons.get_node("AutoNotesButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
+	GameButtonFactoryScript.create_button(action_buttons, "AutoNotesButton", "res://assets/images/restart.png", "自动笔记", _on_auto_notes_requested)
+	action_buttons.get_node("AutoNotesButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
 	
-	if action_buttons.has_node("NewGameButtonContainer"):
-		action_buttons.get_node("NewGameButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
+	GameButtonFactoryScript.create_button(action_buttons, "NewGameButton", "res://assets/images/restart.png", "新游戏", _on_new_game)
+	action_buttons.get_node("NewGameButtonContainer").custom_minimum_size = Vector2(btn_size, btn_size)
 
 func start_new_game(level: String = "easy"):
 	timer_seconds = 0
