@@ -104,11 +104,11 @@ func _input(event):
 			on_apply_pressed()
 
 func on_back_pressed():
-	get_tree().change_scene_to_file("res://scenes/HomePage.tscn")
+	get_tree().change_scene_to_file("res://scenes/GameIndex.tscn")
 
 func on_apply_pressed():
 	apply_settings()
-	get_tree().change_scene_to_file("res://scenes/HomePage.tscn")
+	get_tree().change_scene_to_file("res://scenes/GameIndex.tscn")
 
 func on_reset_pressed():
 	pending_settings = Config.get_default().duplicate(true)

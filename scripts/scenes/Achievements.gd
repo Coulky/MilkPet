@@ -100,4 +100,4 @@ func _get_panel_stylebox() -> StyleBoxFlat:
 	return style
 
 func _on_back_pressed():
-	get_tree().change_scene_to_file("res://scenes/HomePage.tscn")
+	get_tree().change_scene_to_file("res://scenes/GameIndex.tscn")

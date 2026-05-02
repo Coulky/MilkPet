@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://bqc2nkxlhtftn"]
+[gd_scene format=3 uid="uid://bpki7rjmnvwql"]
 
-[ext_resource type="Script" uid="uid://b2dfa48vo1m0i" path="res://scripts/HomePage.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://blv5fg3861rp1" path="res://scripts/GameIndex.gd" id="1_0"]
 
-[node name="HomePage" type="Control"]
+[node name="GameIndex" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

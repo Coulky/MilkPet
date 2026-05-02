@@ -260,7 +260,7 @@ func _on_restart():
 func _on_back():
 	save_game_state()
 	GameTimer.timer_clear()
-	get_tree().change_scene_to_file("res://scenes/HomePage.tscn")
+	get_tree().change_scene_to_file("res://scenes/GameIndex.tscn")
 
 func _on_game_complete(message: String):
 	is_running = false

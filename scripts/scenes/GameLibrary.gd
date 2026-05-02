@@ -2,7 +2,7 @@ extends Control
 
 var games: Array = [
 	{"id": "sudoku", "name_key": "sudoku", "scene_path": "res://scenes/games/sudoku/sudoku.tscn"},
-	{"id": "tilemap", "name_key": "safe_zone", "scene_path": "res://scenes/games/tilemap.tscn"}
+	{"id": "homepage", "name_key": "safe_zone", "scene_path": "res://scenes/games/HomePage.tscn"}
 ]
 
 func _ready():
@@ -77,7 +77,7 @@ func _on_continue_game(game_data: Dictionary):
 		get_tree().change_scene_to_file(game_data.scene_path)
 
 func _on_back_pressed():
-	get_tree().change_scene_to_file("res://scenes/HomePage.tscn")
+	get_tree().change_scene_to_file("res://scenes/GameIndex.tscn")
 
 func _on_language_changed():
 	update_ui()

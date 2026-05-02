@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Casual Games"
-run/main_scene="res://scenes/HomePage.tscn"
+run/main_scene="res://scenes/GameIndex.tscn"
 config/features=PackedStringArray("4.6")
 config/icon="res://icon.svg"
 
