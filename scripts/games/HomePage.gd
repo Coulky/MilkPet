@@ -3,11 +3,13 @@ extends Control
 const TileMapMapScript = preload("res://scripts/games/TileMapMap.gd")
 const TileMapConfigScript = preload("res://scripts/games/TileMapConfig.gd")
 const CircleSpriteScript = preload("res://scripts/games/CircleSprite.gd")
+const ExitDialogScript = preload("res://scripts/common/ExitDialog.gd")
 
 var tile_map_node: Node2D
 var player: CharacterBody2D
 var player_sprite: Node2D
 var camera: Camera2D
+var exit_dialog: Control
 
 var config: Node
 
@@ -35,6 +37,7 @@ func _ready():
 	_create_map()
 	_create_player()
 	_setup_camera()
+	_create_exit_dialog()
 
 func _ensure_background():
 	var bg = get_node_or_null("Background")
@@ -53,6 +56,13 @@ func _ensure_background():
 
 func _setup_ui():
 	_create_ladder_hint()
+
+func _create_exit_dialog():
+	exit_dialog = ExitDialogScript.new()
+	exit_dialog.name = "ExitDialog"
+	add_child(exit_dialog)
+	exit_dialog.connect("confirmed", _on_exit_to_home)
+	exit_dialog.connect("cancelled", _on_exit_cancelled)
 
 func _create_ladder_hint():
 	ladder_hint = Control.new()
@@ -149,9 +159,28 @@ func _physics_process(delta):
 	_apply_gravity(delta)
 	_apply_movement(delta)
 	_check_collisions()
+	_check_boundary()
 	_update_camera()
 	_update_ladder_hint_position()
 	keys_pressed.clear()
+
+func _check_boundary():
+	var map_width = config.MAP_WIDTH * config.TILE_SIZE
+	
+	if player.position.x <= 0 or player.position.x >= map_width - config.TILE_SIZE:
+		if not exit_dialog.visible:
+			exit_dialog.show_dialog("返回首页", "是否返回首页？", false)
+
+func _input(event: InputEvent):
+	if event is InputEventKey and event.keycode == KEY_ESCAPE:
+		if not exit_dialog.visible:
+			exit_dialog.show_dialog("返回首页", "是否返回首页？", false)
+
+func _on_exit_to_home():
+	get_tree().change_scene_to_file("res://scenes/GameIndex.tscn")
+
+func _on_exit_cancelled():
+	pass
 
 func _check_near_ladder():
 	var tile_x = int(player.position.x / config.TILE_SIZE)
