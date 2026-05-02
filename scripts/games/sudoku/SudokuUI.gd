@@ -34,22 +34,32 @@ func _notification(what):
 		call_deferred("_update_grid_size")
 
 func _load_number_textures():
-	pass
+	for i in range(1, 10):
+		var path = "res://assets/images/sudoku/" + str(i) + ".png"
+		var texture = load(path)
+		if texture:
+			number_textures[i] = texture
 
 func _setup_nodes():
-	grid_container = get_node("MainContainer/CenterArea/GridContainer")
-	timer_label = get_node("MainContainer/LeftPanel/TimerLabel")
-	lives_label = get_node("MainContainer/LeftPanel/LivesLabel")
-	number_buttons = get_node("MainContainer/CenterArea/NumberButtons")
-	message_dialog = get_node("MessageDialog")
+	grid_container = get_node_or_null("MainContainer/CenterArea/GridContainer")
+	timer_label = get_node_or_null("MainContainer/LeftPanel/TimerLabel")
+	lives_label = get_node_or_null("MainContainer/LeftPanel/LivesLabel")
+	number_buttons = get_node_or_null("MainContainer/CenterArea/NumberButtons")
+	message_dialog = get_node_or_null("MessageDialog")
 
-	message_dialog.visible = false
+	if message_dialog:
+		message_dialog.visible = false
 
 	if number_buttons and number_buttons.get_child_count() >= 9:
 		for i in range(9):
-			number_buttons.get_child(i).pressed.connect(_on_number_pressed.bind(i + 1))
+			var btn = number_buttons.get_child(i)
+			if btn:
+				btn.pressed.connect(_on_number_pressed.bind(i + 1))
 
 func _update_grid_size():
+	if not get_tree():
+		return
+	
 	var window_height = get_window().size.y
 	cell_size = int(window_height * 0.075)
 
@@ -59,9 +69,11 @@ func _update_grid_size():
 	for i in range(cells.size()):
 		cells[i].custom_minimum_size = Vector2(cell_size, cell_size)
 
-		var click_area = cells[i].get_node("ClickArea")
-		var number_texture = click_area.get_node("NumberTexture")
-		number_texture.custom_minimum_size = Vector2(cell_size - 10, cell_size - 10)
+		var click_area = cells[i].get_node_or_null("ClickArea")
+		if click_area:
+			var number_texture = click_area.get_node_or_null("NumberTexture")
+			if number_texture:
+				number_texture.custom_minimum_size = Vector2(cell_size - 10, cell_size - 10)
 
 		var style = StyleBoxFlat.new()
 		style.border_width_left = 1
@@ -85,10 +97,19 @@ func _update_grid_size():
 	if number_buttons and number_buttons.get_child_count() >= 9:
 		for i in range(9):
 			var btn = number_buttons.get_child(i)
-			btn.custom_minimum_size = Vector2(cell_size, cell_size)
-			btn.expand_icon = true
+			if btn:
+				btn.custom_minimum_size = Vector2(cell_size, cell_size)
+				btn.expand_icon = true
 
 func _create_grid_cells():
+	if not grid_container:
+		return
+	
+	# 清除现有单元格
+	for child in grid_container.get_children():
+		child.queue_free()
+	cells.clear()
+
 	for i in range(GRID_SIZE):
 		for j in range(GRID_SIZE):
 			var cell = PanelContainer.new()
@@ -166,82 +187,115 @@ func _create_grid_cells():
 			cells.append(cell)
 
 func update_display(grid: Node, selected: Vector2, note_mode_active: bool):
+	if cells.size() == 0:
+		return
+	
 	var hint_cell = grid.get_hint_cell()
 
 	for i in range(GRID_SIZE):
 		for j in range(GRID_SIZE):
 			var cell_index = i * GRID_SIZE + j
+			if cell_index >= cells.size():
+				continue
+			
 			var cell = cells[cell_index]
 			var value = grid.get_number(i, j)
 			var notes = grid.get_notes(i, j)
 			
-			var number_texture = cell.get_node("ClickArea/NumberTexture")
-			var note_grid = cell.get_node("ClickArea/NoteGrid")
-			var color_rect = cell.get_node("ClickArea/ColorRect")
+			var number_texture = cell.get_node_or_null("ClickArea/NumberTexture")
+			var note_grid = cell.get_node_or_null("ClickArea/NoteGrid")
+			var color_rect = cell.get_node_or_null("ClickArea/ColorRect")
 
-			color_rect.color = Color.TRANSPARENT
+			if color_rect:
+				color_rect.color = Color.TRANSPARENT
 
 			if selected == Vector2(i, j):
-				color_rect.color = Color(0.3, 0.5, 0.8, 0.3)
+				if color_rect:
+					color_rect.color = Color(0.3, 0.5, 0.8, 0.3)
 
 			if hint_cell and hint_cell.row == i and hint_cell.col == j:
-				color_rect.color = Color(1.0, 1.0, 0.5, 0.5)
+				if color_rect:
+					color_rect.color = Color(1.0, 1.0, 0.5, 0.5)
 
 			if _selected_number != -1 and value == _selected_number:
-				color_rect.color = Color(0.8, 0.8, 0.3, 0.4)
+				if color_rect:
+					color_rect.color = Color(0.8, 0.8, 0.3, 0.4)
 
 			if value == 0:
-				number_texture.visible = false
-				if notes.size() > 0 and note_mode_active:
-					note_grid.visible = true
-					for n in range(1, 10):
-						var note_texture = note_grid.get_node("Note" + str(n))
-						note_texture.visible = notes.has(n)
-				else:
-					note_grid.visible = false
-			else:
-				note_grid.visible = false
-				if value in number_textures:
-					number_texture.texture = number_textures[value]
-					number_texture.visible = true
-					if grid.is_original_cell(i, j):
-						number_texture.modulate = Color.WHITE
-					else:
-						number_texture.modulate = Color(0.2, 0.5, 0.8)
-				else:
+				if number_texture:
 					number_texture.visible = false
+				if notes.size() > 0 and note_mode_active:
+					if note_grid:
+						note_grid.visible = true
+						for n in range(1, 10):
+							var note_texture = note_grid.get_node_or_null("Note" + str(n))
+							if note_texture:
+								note_texture.visible = notes.has(n)
+				else:
+					if note_grid:
+						note_grid.visible = false
+			else:
+				if note_grid:
+					note_grid.visible = false
+				if number_texture:
+					if value in number_textures:
+						number_texture.texture = number_textures[value]
+						number_texture.visible = true
+						if grid.is_original_cell(i, j):
+							number_texture.modulate = Color.WHITE
+						else:
+							number_texture.modulate = Color(0.2, 0.5, 0.8)
+					else:
+						number_texture.visible = false
 
 func update_display_with_number_highlight():
 	for i in range(GRID_SIZE):
 		for j in range(GRID_SIZE):
 			var cell_index = i * GRID_SIZE + j
-			var cell = cells[cell_index]
-			var color_rect = cell.get_node("ClickArea/ColorRect")
+			if cell_index >= cells.size():
+				continue
 			
-			if _selected_number != -1:
-				color_rect.color = Color(0.8, 0.8, 0.3, 0.4)
-			else:
-				color_rect.color = Color.TRANSPARENT
+			var cell = cells[cell_index]
+			var color_rect = cell.get_node_or_null("ClickArea/ColorRect")
+			
+			if color_rect:
+				if _selected_number != -1:
+					color_rect.color = Color(0.8, 0.8, 0.3, 0.4)
+				else:
+					color_rect.color = Color.TRANSPARENT
 
 func update_timer(seconds: int):
+	if not timer_label:
+		return
 	var minutes = int(seconds / 60.0)
 	var secs = seconds % 60
 	timer_label.text = "时间: " + str(minutes).pad_zeros(2) + ":" + str(secs).pad_zeros(2)
 
 func update_lives(count: int):
+	if not lives_label:
+		return
 	lives_label.text = "生命: " + "x" + str(count)
 
 func set_buttons_enabled(enabled: bool):
 	if number_buttons and number_buttons.get_child_count() >= 9:
 		for i in range(9):
-			number_buttons.get_child(i).disabled = not enabled
+			var btn = number_buttons.get_child(i)
+			if btn:
+				btn.disabled = not enabled
 	
 	var note_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer/NoteModeButton")
 	var hint_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/HintButtonContainer/HintButton")
 	var auto_notes_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/AutoNotesButtonContainer/AutoNotesButton")
-	if note_btn: note_btn.disabled = not enabled
-	if hint_btn: hint_btn.disabled = not enabled
-	if auto_notes_btn: auto_notes_btn.disabled = not enabled
+	var new_game_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/NewGameButtonContainer/NewGameButton")
+	
+	if note_btn: 
+		note_btn.disabled = not enabled
+	if hint_btn: 
+		hint_btn.disabled = not enabled
+	if auto_notes_btn: 
+		auto_notes_btn.disabled = not enabled
+	if new_game_btn: 
+		new_game_btn.disabled = not enabled
 
 func set_note_mode_active(active: bool):
 	_note_mode_active = active
@@ -253,12 +307,15 @@ func set_note_mode_active(active: bool):
 			note_btn.remove_theme_color_override("background_color")
 
 func show_message(message: String):
+	if not message_dialog:
+		return
 	message_dialog.text = message
 	message_dialog.visible = true
 	get_tree().create_timer(3.0).timeout.connect(_hide_message)
 
 func _hide_message():
-	message_dialog.visible = false
+	if message_dialog:
+		message_dialog.visible = false
 
 func _on_cell_gui_input(event: InputEvent, row: int, col: int):
 	if event is InputEventMouseButton and event.pressed:

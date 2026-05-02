@@ -29,6 +29,8 @@ var translations = {
 		"theme": "主题",
 		"theme_default": "默认",
 		"sudoku": "数独",
+		"safe_zone": "安全区",
+		"new_game": "新游戏",
 		"start_game": "开始游戏",
 		"continue": "继续"
 	},
@@ -60,6 +62,8 @@ var translations = {
 		"theme": "主題",
 		"theme_default": "默認",
 		"sudoku": "數獨",
+		"safe_zone": "安全區",
+		"new_game": "新遊戲",
 		"start_game": "開始遊戲",
 		"continue": "繼續"
 	},
@@ -91,6 +95,8 @@ var translations = {
 		"theme": "Theme",
 		"theme_default": "Default",
 		"sudoku": "Sudoku",
+		"safe_zone": "Safe Zone",
+		"new_game": "New Game",
 		"start_game": "Start Game",
 		"continue": "Continue"
 	},
@@ -122,6 +128,8 @@ var translations = {
 		"theme": "テーマ",
 		"theme_default": "デフォルト",
 		"sudoku": "数独",
+		"safe_zone": "安全エリア",
+		"new_game": "新しいゲーム",
 		"start_game": "ゲーム開始",
 		"continue": "続ける"
 	}

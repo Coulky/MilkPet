@@ -1,7 +1,8 @@
 extends Control
 
 var games: Array = [
-	{"id": "sudoku", "name_key": "sudoku", "scene_path": "res://scenes/games/sudoku/sudoku.tscn"}
+	{"id": "sudoku", "name_key": "sudoku", "scene_path": "res://scenes/games/sudoku/sudoku.tscn"},
+	{"id": "tilemap", "name_key": "safe_zone", "scene_path": "res://scenes/games/tilemap.tscn"}
 ]
 
 func _ready():

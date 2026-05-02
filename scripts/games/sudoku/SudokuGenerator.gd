@@ -16,6 +16,7 @@ var current_cycle_completed: Array = []
 
 func _init():
 	rng = RandomNumberGenerator.new()
+	rng.randomize()
 	sudoku_puzzles = SudokuPuzzlesScript.new()
 	_load_progress()
 
@@ -133,17 +134,28 @@ func remove_numbers(grid: Array, level: String) -> Array:
 	var remove_count = 40
 
 	match level:
-		"easy": remove_count = 40
-		"medium": remove_count = 50
-		"hard": remove_count = 60
-		_: remove_count = 40
+		"easy": remove_count = 35
+		"medium": remove_count = 45
+		"hard": remove_count = 55
+		_: remove_count = 35
 
 	var count = 0
-	while count < remove_count:
-		var row = rng.randi_range(0, 8)
-		var col = rng.randi_range(0, 8)
-		if grid[row][col] != 0:
-			grid[row][col] = 0
+	var positions = []
+	
+	# 生成所有位置
+	for i in range(GRID_SIZE):
+		for j in range(GRID_SIZE):
+			positions.append(Vector2(i, j))
+	
+	# 随机打乱位置
+	positions.shuffle()
+	
+	# 按随机顺序移除数字
+	for pos in positions:
+		if count >= remove_count:
+			break
+		if grid[int(pos.x)][int(pos.y)] != 0:
+			grid[int(pos.x)][int(pos.y)] = 0
 			count += 1
 
 	return grid
@@ -157,22 +169,28 @@ func create_empty_grid() -> Array:
 	return grid
 
 func is_valid(grid: Array, row: int, col: int, num: int) -> bool:
+	# 检查行
 	for i in range(GRID_SIZE):
 		if grid[row][i] == num:
 			return false
 
+	# 检查列
 	for i in range(GRID_SIZE):
 		if grid[i][col] == num:
 			return false
 
-	var box_row = int(row / 3.0) * 3
-	var box_col = int(col / 3.0) * 3
+	# 检查3x3宫格
+	var box_row = int(row / 3) * 3
+	var box_col = int(col / 3) * 3
 	for i in range(3):
 		for j in range(3):
 			if grid[box_row + i][box_col + j] == num:
 				return false
 
 	return true
+
+func solve(grid: Array) -> bool:
+	return _solve_sudoku(grid)
 
 func _solve_sudoku(grid: Array) -> bool:
 	for row in range(GRID_SIZE):
@@ -203,4 +221,91 @@ func get_completion_stats() -> Dictionary:
 		"star2_count": star2_completed.size(),
 		"star3_count": star3_completed.size(),
 		"cycle_progress": current_cycle_completed.size()
+	}
+
+# 获取某个格子的所有可能数字
+func get_possible_numbers(grid: Array, row: int, col: int) -> Array:
+	if grid[row][col] != 0:
+		return []
+	
+	var used = {}
+	
+	# 检查行
+	for i in range(GRID_SIZE):
+		if grid[row][i] != 0:
+			used[grid[row][i]] = true
+	
+	# 检查列
+	for i in range(GRID_SIZE):
+		if grid[i][col] != 0:
+			used[grid[i][col]] = true
+	
+	# 检查宫格
+	var box_row = int(row / 3) * 3
+	var box_col = int(col / 3) * 3
+	for i in range(3):
+		for j in range(3):
+			if grid[box_row + i][box_col + j] != 0:
+				used[grid[box_row + i][box_col + j]] = true
+	
+	var possible = []
+	for num in range(1, 10):
+		if not used.has(num):
+			possible.append(num)
+	
+	return possible
+
+# 检查数独是否完成
+func is_complete(grid: Array) -> bool:
+	for row in range(GRID_SIZE):
+		for col in range(GRID_SIZE):
+			if grid[row][col] == 0:
+				return false
+	return true
+
+# 检查数独是否有效（不检查是否完成）
+func is_grid_valid(grid: Array) -> bool:
+	for row in range(GRID_SIZE):
+		var row_nums = {}
+		for col in range(GRID_SIZE):
+			var num = grid[row][col]
+			if num != 0:
+				if row_nums.has(num):
+					return false
+				row_nums[num] = true
+	
+	for col in range(GRID_SIZE):
+		var col_nums = {}
+		for row in range(GRID_SIZE):
+			var num = grid[row][col]
+			if num != 0:
+				if col_nums.has(num):
+					return false
+				col_nums[num] = true
+	
+	for box_row in range(3):
+		for box_col in range(3):
+			var box_nums = {}
+			for i in range(3):
+				for j in range(3):
+					var num = grid[box_row * 3 + i][box_col * 3 + j]
+					if num != 0:
+						if box_nums.has(num):
+							return false
+						box_nums[num] = true
+	
+	return true
+
+# 生成全新的数独谜题（不使用预设库）
+func generate_random_puzzle(level: String = "easy") -> Dictionary:
+	var grid = create_empty_grid()
+	generate_complete_sudoku(grid)
+	
+	var puzzle = remove_numbers(grid.duplicate(true), level)
+	
+	return {
+		"grid": puzzle,
+		"original": grid,
+		"id": "random_" + str(rng.randi()),
+		"star_level": get_star_level(level)
 	}

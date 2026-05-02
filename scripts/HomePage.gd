@@ -7,7 +7,7 @@ func _ready():
 
 func update_texts():
 	$TitleLabel.text = GlobalData.translate("game_collection")
-	$GamesButton.text = GlobalData.translate("game_library")
+	$NewGameButton.text = GlobalData.translate("new_game")
 	$ContinueButton.text = GlobalData.translate("continue_game")
 	$AchievementsButton.text = GlobalData.translate("achievements")
 	$SettingsButton.text = GlobalData.translate("settings")
@@ -28,7 +28,7 @@ func get_last_cached_game() -> Dictionary:
 	var last_game = null
 	var last_time = 0
 	var game_ids = SaveData.get_all_ids()
-	
+
 	for game_id in game_ids:
 		if SaveData.has_cached_game(game_id):
 			var game_data = SaveData.get_game(game_id)
@@ -36,11 +36,11 @@ func get_last_cached_game() -> Dictionary:
 			if cache_time > last_time:
 				last_time = cache_time
 				last_game = game_data.cached_game
-	
+
 	return last_game if last_game else {}
 
-func _on_games_button_pressed():
-	get_tree().change_scene_to_file("res://scenes/GameLibrary.tscn")
+func _on_new_game_button_pressed():
+	get_tree().change_scene_to_file("res://scenes/games/tilemap.tscn")
 
 func _on_continue_button_pressed():
 	var last_game = get_last_cached_game()
@@ -48,6 +48,8 @@ func _on_continue_button_pressed():
 		SaveData.load_game_cache(last_game.game_name)
 		if last_game.game_name == "sudoku":
 			get_tree().change_scene_to_file("res://scenes/games/sudoku/sudoku.tscn")
+		elif last_game.game_name == "tilemap":
+			get_tree().change_scene_to_file("res://scenes/games/tilemap.tscn")
 
 func _on_achievements_button_pressed():
 	get_tree().change_scene_to_file("res://scenes/Achievements.tscn")
