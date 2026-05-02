@@ -1,49 +1,21 @@
-[gd_scene load_steps=9 format=3 uid="uid://b5v0q1lq0j6x"]
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+content = '''[gd_scene load_steps=14 format=3 uid="uid://b5v0q1lq0j6x"]
 
 [ext_resource type="Script" path="res://scripts/games/sudoku/SudokuMain.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/games/sudoku/SudokuUI.gd" id="2"]
 [ext_resource type="Texture2D" path="res://assets/images/back.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/images/restart.png" id="4"]
-
-[sub_resource type="StyleBoxFlat" id="RestartLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="NoteModeLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="HintLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="AutoNotesLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="NewGameLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
+[ext_resource type="Texture2D" path="res://assets/images/1.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/images/2.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/images/3.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/images/4.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/images/5.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/images/6.png" id="10"]
+[ext_resource type="Texture2D" path="res://assets/images/7.png" id="11"]
+[ext_resource type="Texture2D" path="res://assets/images/8.png" id="12"]
+[ext_resource type="Texture2D" path="res://assets/images/9.png" id="13"]
 
 [node name="Sudoku" type="Control"]
 layout_mode = 3
@@ -80,11 +52,11 @@ flat = true
 expand_icon = true
 icon = ExtResource("3")
 
-[node name="RestartButtonContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel"]
+[node name="RestartContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel"]
 layout_mode = 1
 custom_minimum_size = Vector2(50, 50)
 
-[node name="RestartButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/RestartButtonContainer"]
+[node name="RestartButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/RestartContainer"]
 layout_mode = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -94,7 +66,7 @@ flat = true
 expand_icon = true
 icon = ExtResource("4")
 
-[node name="RestartLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/RestartButtonContainer"]
+[node name="RestartLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/RestartContainer"]
 layout_mode = 2
 anchors_preset = 0
 anchor_left = 0.15
@@ -104,9 +76,8 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("RestartLabelBgStyle")
 
-[node name="RestartLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/RestartButtonContainer/RestartLabelBg"]
+[node name="RestartLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/RestartContainer/RestartLabelBg"]
 layout_mode = 1
 text = "重开"
 horizontal_alignment = 1
@@ -126,18 +97,18 @@ layout_mode = 1
 text = "生命: x3"
 horizontal_alignment = 1
 font_size = 18
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 1)
 
 [node name="ActionButtons" type="VBoxContainer" parent="SudokuUI/MainContainer/LeftPanel"]
 layout_mode = 1
 alignment = 0
 theme_override_constants/v_separation = 2
 
-[node name="NoteModeButtonContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
+[node name="NoteModeContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
 layout_mode = 1
 custom_minimum_size = Vector2(50, 50)
 
-[node name="NoteModeButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer"]
+[node name="NoteModeButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeContainer"]
 layout_mode = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -147,7 +118,7 @@ flat = true
 expand_icon = true
 icon = ExtResource("4")
 
-[node name="NoteModeLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer"]
+[node name="NoteModeLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeContainer"]
 layout_mode = 2
 anchors_preset = 0
 anchor_left = 0.15
@@ -157,9 +128,8 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("NoteModeLabelBgStyle")
 
-[node name="NoteModeLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer/NoteModeLabelBg"]
+[node name="NoteModeLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeContainer/NoteModeLabelBg"]
 layout_mode = 1
 text = "笔记"
 horizontal_alignment = 1
@@ -167,11 +137,11 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 0)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 
-[node name="HintButtonContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
+[node name="HintContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
 layout_mode = 1
 custom_minimum_size = Vector2(50, 50)
 
-[node name="HintButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintButtonContainer"]
+[node name="HintButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintContainer"]
 layout_mode = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -181,7 +151,7 @@ flat = true
 expand_icon = true
 icon = ExtResource("4")
 
-[node name="HintLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintButtonContainer"]
+[node name="HintLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintContainer"]
 layout_mode = 2
 anchors_preset = 0
 anchor_left = 0.15
@@ -191,9 +161,8 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("HintLabelBgStyle")
 
-[node name="HintLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintButtonContainer/HintLabelBg"]
+[node name="HintLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintContainer/HintLabelBg"]
 layout_mode = 1
 text = "提示"
 horizontal_alignment = 1
@@ -201,11 +170,11 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 0)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 
-[node name="AutoNotesButtonContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
+[node name="AutoNotesContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
 layout_mode = 1
 custom_minimum_size = Vector2(50, 50)
 
-[node name="AutoNotesButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesButtonContainer"]
+[node name="AutoNotesButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesContainer"]
 layout_mode = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -215,7 +184,7 @@ flat = true
 expand_icon = true
 icon = ExtResource("4")
 
-[node name="AutoNotesLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesButtonContainer"]
+[node name="AutoNotesLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesContainer"]
 layout_mode = 2
 anchors_preset = 0
 anchor_left = 0.15
@@ -225,9 +194,8 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("AutoNotesLabelBgStyle")
 
-[node name="AutoNotesLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesButtonContainer/AutoNotesLabelBg"]
+[node name="AutoNotesLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesContainer/AutoNotesLabelBg"]
 layout_mode = 1
 text = "自动笔记"
 horizontal_alignment = 1
@@ -235,11 +203,11 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 0)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 
-[node name="NewGameButtonContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
+[node name="NewGameContainer" type="Control" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons"]
 layout_mode = 1
 custom_minimum_size = Vector2(50, 50)
 
-[node name="NewGameButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameButtonContainer"]
+[node name="NewGameButton" type="Button" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameContainer"]
 layout_mode = 2
 anchors_preset = 15
 anchor_right = 1.0
@@ -249,7 +217,7 @@ flat = true
 expand_icon = true
 icon = ExtResource("4")
 
-[node name="NewGameLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameButtonContainer"]
+[node name="NewGameLabelBg" type="PanelContainer" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameContainer"]
 layout_mode = 2
 anchors_preset = 0
 anchor_left = 0.15
@@ -259,9 +227,8 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("NewGameLabelBgStyle")
 
-[node name="NewGameLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameButtonContainer/NewGameLabelBg"]
+[node name="NewGameLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameContainer/NewGameLabelBg"]
 layout_mode = 1
 text = "新游戏"
 horizontal_alignment = 1
@@ -296,72 +263,72 @@ layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "1"
-font_size = 24
+expand_icon = true
+icon = ExtResource("5")
 
 [node name="Num2" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "2"
-font_size = 24
+expand_icon = true
+icon = ExtResource("6")
 
 [node name="Num3" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "3"
-font_size = 24
+expand_icon = true
+icon = ExtResource("7")
 
 [node name="Num4" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "4"
-font_size = 24
+expand_icon = true
+icon = ExtResource("8")
 
 [node name="Num5" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "5"
-font_size = 24
+expand_icon = true
+icon = ExtResource("9")
 
 [node name="Num6" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "6"
-font_size = 24
+expand_icon = true
+icon = ExtResource("10")
 
 [node name="Num7" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "7"
-font_size = 24
+expand_icon = true
+icon = ExtResource("11")
 
 [node name="Num8" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "8"
-font_size = 24
+expand_icon = true
+icon = ExtResource("12")
 
 [node name="Num9" type="Button" parent="SudokuUI/MainContainer/CenterArea/NumberButtons"]
 layout_mode = 1
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 1.0
 custom_minimum_size = Vector2(50, 50)
-text = "9"
-font_size = 24
+expand_icon = true
+icon = ExtResource("13")
 
 [node name="MessageDialog" type="Label" parent="SudokuUI"]
 layout_mode = 3
@@ -381,3 +348,16 @@ font_size = 28
 theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_colors/background_color = Color(0, 0, 0, 0.8)
 visible = false
+
+[connection signal="pressed" from="SudokuUI/MainContainer/LeftPanel/BackButton" to="." callable="_on_back"]
+[connection signal="pressed" from="SudokuUI/MainContainer/LeftPanel/RestartContainer/RestartButton" to="." callable="_on_restart"]
+[connection signal="pressed" from="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeContainer/NoteModeButton" to="." callable="_on_note_mode_button"]
+[connection signal="pressed" from="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintContainer/HintButton" to="." callable="_on_hint_requested"]
+[connection signal="pressed" from="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesContainer/AutoNotesButton" to="." callable="_on_auto_notes_requested"]
+[connection signal="pressed" from="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameContainer/NewGameButton" to="." callable="_on_new_game"]
+'''
+
+with open('e:\\TraeProject\\CasualGames\\scenes\\games\\sudoku\\sudoku.tscn', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("File updated successfully!")

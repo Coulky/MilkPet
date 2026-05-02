@@ -1,49 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://b5v0q1lq0j6x"]
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+content = '''[gd_scene load_steps=4 format=3 uid="uid://b5v0q1lq0j6x"]
 
 [ext_resource type="Script" path="res://scripts/games/sudoku/SudokuMain.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/games/sudoku/SudokuUI.gd" id="2"]
 [ext_resource type="Texture2D" path="res://assets/images/back.png" id="3"]
 [ext_resource type="Texture2D" path="res://assets/images/restart.png" id="4"]
-
-[sub_resource type="StyleBoxFlat" id="RestartLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="NoteModeLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="HintLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="AutoNotesLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-
-[sub_resource type="StyleBoxFlat" id="NewGameLabelBgStyle"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
 
 [node name="Sudoku" type="Control"]
 layout_mode = 3
@@ -104,7 +67,6 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("RestartLabelBgStyle")
 
 [node name="RestartLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/RestartButtonContainer/RestartLabelBg"]
 layout_mode = 1
@@ -157,7 +119,6 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("NoteModeLabelBgStyle")
 
 [node name="NoteModeLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer/NoteModeLabelBg"]
 layout_mode = 1
@@ -191,7 +152,6 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("HintLabelBgStyle")
 
 [node name="HintLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/HintButtonContainer/HintLabelBg"]
 layout_mode = 1
@@ -225,7 +185,6 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("AutoNotesLabelBgStyle")
 
 [node name="AutoNotesLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/AutoNotesButtonContainer/AutoNotesLabelBg"]
 layout_mode = 1
@@ -259,7 +218,6 @@ anchor_bottom = 0.9
 custom_minimum_size = Vector2(0, 0)
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_styles/normal = SubResource("NewGameLabelBgStyle")
 
 [node name="NewGameLabel" type="Label" parent="SudokuUI/MainContainer/LeftPanel/ActionButtons/NewGameButtonContainer/NewGameLabelBg"]
 layout_mode = 1
@@ -381,3 +339,9 @@ font_size = 28
 theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_colors/background_color = Color(0, 0, 0, 0.8)
 visible = false
+'''
+
+with open('e:\\TraeProject\\CasualGames\\scenes\\games\\sudoku\\sudoku.tscn', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("File updated successfully!")

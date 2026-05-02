@@ -7,13 +7,11 @@ var grid_container: GridContainer
 var timer_label: Label
 var lives_label: Label
 var number_buttons: HBoxContainer
-var new_game_button: Button
-var note_mode_button: Button
-var hint_button: Button
-var auto_notes_button: Button
 var message_dialog: Label
 
 var cells: Array = []
+var _note_mode_active: bool = false
+var _selected_number: int = -1
 
 # 数字图片资源
 var number_textures: Dictionary = {}
@@ -36,36 +34,27 @@ func _notification(what):
 		call_deferred("_update_grid_size")
 
 func _load_number_textures():
-	for i in range(1, 10):
-		var path = "res://assets/images/sudoku/" + str(i) + ".png"
-		var texture = load(path)
-		if texture:
-			number_textures[i] = texture
+	pass
 
 func _setup_nodes():
 	grid_container = get_node("MainContainer/CenterArea/GridContainer")
 	timer_label = get_node("MainContainer/LeftPanel/TimerLabel")
 	lives_label = get_node("MainContainer/LeftPanel/LivesLabel")
 	number_buttons = get_node("MainContainer/CenterArea/NumberButtons")
-	new_game_button = get_node("MainContainer/LeftPanel/ActionButtons/NewGameButton")
-	note_mode_button = get_node("MainContainer/LeftPanel/ActionButtons/NoteModeButton")
-	hint_button = get_node("MainContainer/LeftPanel/ActionButtons/HintButton")
-	auto_notes_button = get_node("MainContainer/LeftPanel/ActionButtons/AutoNotesButton")
 	message_dialog = get_node("MessageDialog")
 
 	message_dialog.visible = false
 
-	for i in range(9):
-		number_buttons.get_child(i).pressed.connect(_on_number_pressed.bind(i + 1))
-
-	new_game_button.pressed.connect(_on_new_game_pressed)
-	note_mode_button.pressed.connect(_on_note_mode_pressed)
-	hint_button.pressed.connect(_on_hint_pressed)
-	auto_notes_button.pressed.connect(_on_auto_notes_requested)
+	if number_buttons and number_buttons.get_child_count() >= 9:
+		for i in range(9):
+			number_buttons.get_child(i).pressed.connect(_on_number_pressed.bind(i + 1))
 
 func _update_grid_size():
 	var window_height = get_window().size.y
 	cell_size = int(window_height * 0.075)
+
+	if cells.size() == 0:
+		return
 
 	for i in range(cells.size()):
 		cells[i].custom_minimum_size = Vector2(cell_size, cell_size)
@@ -93,16 +82,18 @@ func _update_grid_size():
 		style.bg_color = Color.WHITE
 		cells[i].add_theme_stylebox_override("panel", style)
 
-	for i in range(9):
-		var btn = number_buttons.get_child(i)
-		btn.custom_minimum_size = Vector2(cell_size, cell_size)
-		btn.expand_icon = true
+	if number_buttons and number_buttons.get_child_count() >= 9:
+		for i in range(9):
+			var btn = number_buttons.get_child(i)
+			btn.custom_minimum_size = Vector2(cell_size, cell_size)
+			btn.expand_icon = true
 
 func _create_grid_cells():
 	for i in range(GRID_SIZE):
 		for j in range(GRID_SIZE):
 			var cell = PanelContainer.new()
 			cell.custom_minimum_size = Vector2(cell_size, cell_size)
+			cell.mouse_filter = Control.MOUSE_FILTER_STOP
 			
 			var style = StyleBoxFlat.new()
 			style.border_width_left = 1
@@ -124,7 +115,7 @@ func _create_grid_cells():
 			var area = Control.new()
 			area.name = "ClickArea"
 			area.mouse_filter = Control.MOUSE_FILTER_STOP
-			area.layout_mode = 2
+			area.layout_mode = 1
 			area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			area.gui_input.connect(_on_cell_gui_input.bind(i, j))
@@ -133,17 +124,18 @@ func _create_grid_cells():
 			var texture_rect = TextureRect.new()
 			texture_rect.name = "NumberTexture"
 			texture_rect.layout_mode = 1
-			texture_rect.anchors_preset = 8
+			texture_rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			texture_rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			texture_rect.custom_minimum_size = Vector2(cell_size - 10, cell_size - 10)
 			texture_rect.visible = false
-			area.add_child(texture_rect)
-			
+
 			var note_grid = GridContainer.new()
 			note_grid.name = "NoteGrid"
 			note_grid.layout_mode = 1
-			note_grid.anchors_preset = 8
+			note_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			note_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			note_grid.columns = 3
 			note_grid.custom_minimum_size = Vector2(cell_size - 6, cell_size - 6)
 			note_grid.visible = false
@@ -158,16 +150,17 @@ func _create_grid_cells():
 				if note_texture.texture:
 					note_texture.modulate = Color(0.5, 0.5, 0.5)
 				note_grid.add_child(note_texture)
-			area.add_child(note_grid)
-			
+
 			var color_rect = ColorRect.new()
 			color_rect.name = "ColorRect"
 			color_rect.layout_mode = 1
-			color_rect.anchors_preset = 15
-			color_rect.anchor_right = 1.0
-			color_rect.anchor_bottom = 1.0
+			color_rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			color_rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			color_rect.color = Color.TRANSPARENT
+
 			area.add_child(color_rect)
+			area.add_child(texture_rect)
+			area.add_child(note_grid)
 			
 			grid_container.add_child(cell)
 			cells.append(cell)
@@ -194,6 +187,9 @@ func update_display(grid: Node, selected: Vector2, note_mode_active: bool):
 			if hint_cell and hint_cell.row == i and hint_cell.col == j:
 				color_rect.color = Color(1.0, 1.0, 0.5, 0.5)
 
+			if _selected_number != -1 and value == _selected_number:
+				color_rect.color = Color(0.8, 0.8, 0.3, 0.4)
+
 			if value == 0:
 				number_texture.visible = false
 				if notes.size() > 0 and note_mode_active:
@@ -215,6 +211,18 @@ func update_display(grid: Node, selected: Vector2, note_mode_active: bool):
 				else:
 					number_texture.visible = false
 
+func update_display_with_number_highlight():
+	for i in range(GRID_SIZE):
+		for j in range(GRID_SIZE):
+			var cell_index = i * GRID_SIZE + j
+			var cell = cells[cell_index]
+			var color_rect = cell.get_node("ClickArea/ColorRect")
+			
+			if _selected_number != -1:
+				color_rect.color = Color(0.8, 0.8, 0.3, 0.4)
+			else:
+				color_rect.color = Color.TRANSPARENT
+
 func update_timer(seconds: int):
 	var minutes = int(seconds / 60.0)
 	var secs = seconds % 60
@@ -224,17 +232,25 @@ func update_lives(count: int):
 	lives_label.text = "生命: " + "x" + str(count)
 
 func set_buttons_enabled(enabled: bool):
-	for i in range(9):
-		number_buttons.get_child(i).disabled = not enabled
-	note_mode_button.disabled = not enabled
-	hint_button.disabled = not enabled
-	auto_notes_button.disabled = not enabled
+	if number_buttons and number_buttons.get_child_count() >= 9:
+		for i in range(9):
+			number_buttons.get_child(i).disabled = not enabled
+	
+	var note_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer/NoteModeButton")
+	var hint_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/HintButtonContainer/HintButton")
+	var auto_notes_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/AutoNotesButtonContainer/AutoNotesButton")
+	if note_btn: note_btn.disabled = not enabled
+	if hint_btn: hint_btn.disabled = not enabled
+	if auto_notes_btn: auto_notes_btn.disabled = not enabled
 
 func set_note_mode_active(active: bool):
-	if active:
-		note_mode_button.add_theme_color_override("background_color", Color(0.8, 0.6, 0.2))
-	else:
-		note_mode_button.remove_theme_color_override("background_color")
+	_note_mode_active = active
+	var note_btn = get_node_or_null("MainContainer/LeftPanel/ActionButtons/NoteModeButtonContainer/NoteModeButton")
+	if note_btn:
+		if active:
+			note_btn.add_theme_color_override("background_color", Color(0.8, 0.6, 0.2))
+		else:
+			note_btn.remove_theme_color_override("background_color")
 
 func show_message(message: String):
 	message_dialog.text = message
@@ -246,16 +262,20 @@ func _hide_message():
 
 func _on_cell_gui_input(event: InputEvent, row: int, col: int):
 	if event is InputEventMouseButton and event.pressed:
+		_selected_number = -1
 		cell_selected.emit(row, col)
 
 func _on_number_pressed(number: int):
+	_selected_number = number
 	number_input.emit(number)
+	update_display_with_number_highlight()
 
 func _on_new_game_pressed():
 	new_game_requested.emit()
 
 func _on_note_mode_pressed():
-	note_mode_toggled.emit(not note_mode_button.has_theme_color_override("background_color"))
+	_note_mode_active = not _note_mode_active
+	note_mode_toggled.emit(_note_mode_active)
 
 func _on_hint_pressed():
 	hint_requested.emit()

@@ -1,4 +1,7 @@
-[gd_scene load_steps=9 format=3 uid="uid://b5v0q1lq0j6x"]
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+content = '''[gd_scene load_steps=9 format=3 uid="uid://b5v0q1lq0j6x"]
 
 [ext_resource type="Script" path="res://scripts/games/sudoku/SudokuMain.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/games/sudoku/SudokuUI.gd" id="2"]
@@ -381,3 +384,9 @@ font_size = 28
 theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_colors/background_color = Color(0, 0, 0, 0.8)
 visible = false
+'''
+
+with open('e:\\TraeProject\\CasualGames\\scenes\\games\\sudoku\\sudoku.tscn', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("File updated successfully!")
