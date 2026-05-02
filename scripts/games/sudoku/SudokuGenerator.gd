@@ -20,21 +20,21 @@ func _init():
 	_load_progress()
 
 func _load_progress():
-	if SaveData.has_key("sudoku_star1_completed"):
-		star1_completed = SaveData.get_value("sudoku_star1_completed", [])
-	if SaveData.has_key("sudoku_star2_completed"):
-		star2_completed = SaveData.get_value("sudoku_star2_completed", [])
-	if SaveData.has_key("sudoku_star3_completed"):
-		star3_completed = SaveData.get_value("sudoku_star3_completed", [])
-	if SaveData.has_key("sudoku_cycle_completed"):
-		current_cycle_completed = SaveData.get_value("sudoku_cycle_completed", [])
+	if "sudoku_star1_completed" in GlobalData.save_data:
+		star1_completed = GlobalData.save_data.sudoku_star1_completed
+	if "sudoku_star2_completed" in GlobalData.save_data:
+		star2_completed = GlobalData.save_data.sudoku_star2_completed
+	if "sudoku_star3_completed" in GlobalData.save_data:
+		star3_completed = GlobalData.save_data.sudoku_star3_completed
+	if "sudoku_cycle_completed" in GlobalData.save_data:
+		current_cycle_completed = GlobalData.save_data.sudoku_cycle_completed
 
 func _save_progress():
-	SaveData.set_value("sudoku_star1_completed", star1_completed)
-	SaveData.set_value("sudoku_star2_completed", star2_completed)
-	SaveData.set_value("sudoku_star3_completed", star3_completed)
-	SaveData.set_value("sudoku_cycle_completed", current_cycle_completed)
-	SaveData.save()
+	GlobalData.save_data.sudoku_star1_completed = star1_completed
+	GlobalData.save_data.sudoku_star2_completed = star2_completed
+	GlobalData.save_data.sudoku_star3_completed = star3_completed
+	GlobalData.save_data.sudoku_cycle_completed = current_cycle_completed
+	GlobalData.save_save_data()
 
 func get_star_level(level: String) -> int:
 	match level:
@@ -74,23 +74,21 @@ func get_completed_count_by_level(level: String) -> int:
 func generate(level: String = "easy") -> Dictionary:
 	var puzzle_ids = sudoku_puzzles.get_all_puzzle_ids()
 	var star_level = get_star_level(level)
-	
+
 	# 获取当前难度已完成的列表
 	var completed_list = []
 	match star_level:
 		1: completed_list = star1_completed
 		2: completed_list = star2_completed
 		3: completed_list = star3_completed
-	
+
 	# 过滤可用棋盘：不在当前难度已完成列表中，且不在本轮循环完成列表中
 	var available_ids = puzzle_ids.filter(func(id):
-		var cycle_key = id + "_" + str(star_level)
-		return not completed_list.has(id) and not current_cycle_completed.has(cycle_key)
+		var ck = id + "_" + str(star_level)
+		return not completed_list.has(id) and not current_cycle_completed.has(ck)
 	)
-	
-	# 如果没有可用的，检查是否需要重置循环
+
 	if available_ids.size() == 0:
-		# 检查是否所有难度都完成了一次
 		var all_difficulties_completed = true
 		for id in puzzle_ids:
 			var has_easy = current_cycle_completed.has(id + "_1")
@@ -99,34 +97,31 @@ func generate(level: String = "easy") -> Dictionary:
 			if not (has_easy or has_medium or has_hard):
 				all_difficulties_completed = false
 				break
-		
+
 		if all_difficulties_completed:
-			# 重置循环
 			current_cycle_completed = []
 			_save_progress()
-			# 重新获取可用棋盘
 			available_ids = puzzle_ids.filter(func(id):
-				var cycle_key = id + "_" + str(star_level)
-				return not completed_list.has(id) and not current_cycle_completed.has(cycle_key)
+				var ck = id + "_" + str(star_level)
+				return not completed_list.has(id) and not current_cycle_completed.has(ck)
 			)
 		else:
-			# 仍然没有可用的，说明该难度所有棋盘都已完成，随机选择一个
 			available_ids = puzzle_ids
-	
+
 	# 按顺序选择第一个可用的棋盘
 	var selected_id = available_ids[0]
-	
+
 	var one_d_grid = sudoku_puzzles.get_puzzle(selected_id)
 	var complete_grid = sudoku_puzzles.convert_to_2d(one_d_grid)
-	
+
 	# 标记为本轮循环已使用
 	var cycle_key = selected_id + "_" + str(star_level)
 	if not current_cycle_completed.has(cycle_key):
 		current_cycle_completed.append(cycle_key)
 		_save_progress()
-	
+
 	var puzzle = remove_numbers(complete_grid.duplicate(true), level)
-	
+
 	return {
 		"grid": puzzle,
 		"original": complete_grid,

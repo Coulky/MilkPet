@@ -125,10 +125,10 @@ func apply_settings():
 
 	GlobalData.set_language(pending_settings.language)
 
-	var res = pending_settings.resolution
-	DisplayServer.window_set_size(Vector2i(res.width, res.height))
-
 	if pending_settings.window_mode == 0:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		var res = pending_settings.resolution
+		get_tree().root.content_scale_size = Vector2i(res.width, res.height)
+		DisplayServer.window_set_size(Vector2i(res.width, res.height))
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)

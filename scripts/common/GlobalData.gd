@@ -30,6 +30,7 @@ var sudoku_achievements_def = {
 
 func _ready():
 	load_save_data()
+	apply_window_settings()
 
 func translate(key: String) -> String:
 	return I18n.translate(key)
@@ -68,6 +69,17 @@ func save_save_data():
 	if file:
 		file.store_line(JSON.stringify(save_data))
 		file.close()
+
+func apply_window_settings():
+	if "settings" in save_data and "window_mode" in save_data.settings:
+		if save_data.settings.window_mode == 0:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		else:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	if "settings" in save_data and "resolution" in save_data.settings:
+		var res = save_data.settings.resolution
+		get_tree().root.content_scale_size = Vector2i(res.width, res.height)
+		DisplayServer.window_set_size(Vector2i(res.width, res.height))
 
 func init_default_data():
 	save_data = {

@@ -20,19 +20,33 @@ func _ready():
 	add_child(sudoku_grid)
 	add_child(sudoku_generator)
 
+	_setup_buttons()
+
 	var sudoku_ui = $SudokuUI
 	sudoku_ui.cell_selected.connect(_on_cell_selected)
 	sudoku_ui.number_input.connect(_on_number_input)
 	sudoku_ui.new_game_requested.connect(_on_new_game)
-	sudoku_ui.back_requested.connect(_on_back)
 	sudoku_ui.note_mode_toggled.connect(_on_note_mode_toggled)
 	sudoku_ui.hint_requested.connect(_on_hint_requested)
 	sudoku_ui.auto_notes_requested.connect(_on_auto_notes_requested)
+
+	$SudokuUI/MainContainer/LeftPanel/BackButton.pressed.connect(_on_back)
+	$SudokuUI/MainContainer/LeftPanel/RestartButton.pressed.connect(_on_restart)
 
 	if SaveData.has_cached_game("sudoku"):
 		load_cached_game()
 	else:
 		start_new_game()
+
+func _setup_buttons():
+	var window_height = get_window().size.y
+	var btn_size = int(window_height * 0.1)
+
+	$SudokuUI/MainContainer/LeftPanel/BackButton.custom_minimum_size = Vector2(btn_size, btn_size)
+	$SudokuUI/MainContainer/LeftPanel/BackButton.expand_icon = true
+
+	$SudokuUI/MainContainer/LeftPanel/RestartButton.custom_minimum_size = Vector2(btn_size, btn_size)
+	$SudokuUI/MainContainer/LeftPanel/RestartButton.expand_icon = true
 
 func start_new_game(level: String = "easy"):
 	timer_seconds = 0
@@ -45,7 +59,7 @@ func start_new_game(level: String = "easy"):
 	var game_data = sudoku_generator.generate(level)
 	sudoku_grid.init()
 	sudoku_grid.load_game(game_data)
-	
+
 	current_puzzle_id = game_data.id
 
 	SaveData.init_game_cache("sudoku", level, {
@@ -195,6 +209,9 @@ func _on_new_game():
 	GameTimer.timer_clear()
 	start_new_game(current_level)
 
+func _on_restart():
+	_on_new_game()
+
 func _on_back():
 	save_game_state()
 	GameTimer.timer_clear()
@@ -205,10 +222,10 @@ func _on_game_complete(message: String):
 	var sudoku_ui = $SudokuUI
 	sudoku_ui.set_buttons_enabled(false)
 	GameTimer.timer_clear()
-	
+
 	if current_puzzle_id != "":
 		sudoku_generator.mark_completed(current_puzzle_id, current_level)
-	
+
 	SaveData.clear_cached_game_on_disk("sudoku")
 	SaveData.clear_game_cache()
 	print(message)

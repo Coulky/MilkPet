@@ -1,14 +1,13 @@
 extends Control
 
 const GRID_SIZE = 9
-const CELL_SIZE = 60
+var cell_size: int = 50
 
 var grid_container: GridContainer
 var timer_label: Label
 var lives_label: Label
 var number_buttons: HBoxContainer
 var new_game_button: Button
-var back_button: Button
 var note_mode_button: Button
 var hint_button: Button
 var auto_notes_button: Button
@@ -16,28 +15,42 @@ var message_dialog: Label
 
 var cells: Array = []
 
+# 数字图片资源
+var number_textures: Dictionary = {}
+
 signal cell_selected(row, col)
 signal number_input(number)
 signal new_game_requested
-signal back_requested
 signal note_mode_toggled(active)
 signal hint_requested
 signal auto_notes_requested
 
 func _ready():
+	_load_number_textures()
 	_setup_nodes()
 	_create_grid_cells()
+	_update_grid_size()
+
+func _notification(what):
+	if what == NOTIFICATION_RESIZED:
+		call_deferred("_update_grid_size")
+
+func _load_number_textures():
+	for i in range(1, 10):
+		var path = "res://assets/images/sudoku/" + str(i) + ".png"
+		var texture = load(path)
+		if texture:
+			number_textures[i] = texture
 
 func _setup_nodes():
-	grid_container = get_node("GridContainer")
-	timer_label = get_node("TimerLabel")
-	lives_label = get_node("LivesLabel")
-	number_buttons = get_node("NumberButtons")
-	new_game_button = get_node("NewGameButton")
-	back_button = get_node("BackButton")
-	note_mode_button = get_node("ActionButtons/NoteModeButton")
-	hint_button = get_node("ActionButtons/HintButton")
-	auto_notes_button = get_node("ActionButtons/AutoNotesButton")
+	grid_container = get_node("MainContainer/CenterArea/GridContainer")
+	timer_label = get_node("MainContainer/LeftPanel/TimerLabel")
+	lives_label = get_node("MainContainer/LeftPanel/LivesLabel")
+	number_buttons = get_node("MainContainer/CenterArea/NumberButtons")
+	new_game_button = get_node("MainContainer/LeftPanel/ActionButtons/NewGameButton")
+	note_mode_button = get_node("MainContainer/LeftPanel/ActionButtons/NoteModeButton")
+	hint_button = get_node("MainContainer/LeftPanel/ActionButtons/HintButton")
+	auto_notes_button = get_node("MainContainer/LeftPanel/ActionButtons/AutoNotesButton")
 	message_dialog = get_node("MessageDialog")
 
 	message_dialog.visible = false
@@ -46,32 +59,116 @@ func _setup_nodes():
 		number_buttons.get_child(i).pressed.connect(_on_number_pressed.bind(i + 1))
 
 	new_game_button.pressed.connect(_on_new_game_pressed)
-	back_button.pressed.connect(_on_back_pressed)
 	note_mode_button.pressed.connect(_on_note_mode_pressed)
 	hint_button.pressed.connect(_on_hint_pressed)
-	auto_notes_button.pressed.connect(_on_auto_notes_pressed)
+	auto_notes_button.pressed.connect(_on_auto_notes_requested)
+
+func _update_grid_size():
+	var window_height = get_window().size.y
+	cell_size = int(window_height * 0.075)
+
+	for i in range(cells.size()):
+		cells[i].custom_minimum_size = Vector2(cell_size, cell_size)
+
+		var click_area = cells[i].get_node("ClickArea")
+		var number_texture = click_area.get_node("NumberTexture")
+		number_texture.custom_minimum_size = Vector2(cell_size - 10, cell_size - 10)
+
+		var style = StyleBoxFlat.new()
+		style.border_width_left = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+		style.border_width_top = 1
+		var row = int(i / float(GRID_SIZE))
+		var col = i % GRID_SIZE
+		if row % 3 == 0:
+			style.border_width_top = max(2, int(cell_size * 0.05))
+		if col % 3 == 0:
+			style.border_width_left = max(2, int(cell_size * 0.05))
+		if row == 8:
+			style.border_width_bottom = max(2, int(cell_size * 0.05))
+		if col == 8:
+			style.border_width_right = max(2, int(cell_size * 0.05))
+		style.border_color = Color.BLACK
+		style.bg_color = Color.WHITE
+		cells[i].add_theme_stylebox_override("panel", style)
+
+	for i in range(9):
+		var btn = number_buttons.get_child(i)
+		btn.custom_minimum_size = Vector2(cell_size, cell_size)
+		btn.expand_icon = true
 
 func _create_grid_cells():
 	for i in range(GRID_SIZE):
 		for j in range(GRID_SIZE):
-			var cell = Button.new()
-			cell.custom_minimum_size = Vector2(CELL_SIZE, CELL_SIZE)
-			cell.add_theme_font_size_override("font_size", 24)
-			cell.pressed.connect(_on_cell_pressed.bind(i, j))
-
+			var cell = PanelContainer.new()
+			cell.custom_minimum_size = Vector2(cell_size, cell_size)
+			
+			var style = StyleBoxFlat.new()
+			style.border_width_left = 1
+			style.border_width_right = 1
+			style.border_width_bottom = 1
+			style.border_width_top = 1
 			if i % 3 == 0:
-				cell.add_theme_color_override("border_top_color", Color.BLACK)
-				cell.add_theme_constant_override("border_top_width", 3)
+				style.border_width_top = 3
 			if j % 3 == 0:
-				cell.add_theme_color_override("border_left_color", Color.BLACK)
-				cell.add_theme_constant_override("border_left_width", 3)
+				style.border_width_left = 3
 			if i == 8:
-				cell.add_theme_color_override("border_bottom_color", Color.BLACK)
-				cell.add_theme_constant_override("border_bottom_width", 3)
+				style.border_width_bottom = 3
 			if j == 8:
-				cell.add_theme_color_override("border_right_color", Color.BLACK)
-				cell.add_theme_constant_override("border_right_width", 3)
-
+				style.border_width_right = 3
+			style.border_color = Color.BLACK
+			style.bg_color = Color.WHITE
+			cell.add_theme_stylebox_override("panel", style)
+			
+			var area = Control.new()
+			area.name = "ClickArea"
+			area.mouse_filter = Control.MOUSE_FILTER_STOP
+			area.layout_mode = 2
+			area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			area.gui_input.connect(_on_cell_gui_input.bind(i, j))
+			cell.add_child(area)
+			
+			var texture_rect = TextureRect.new()
+			texture_rect.name = "NumberTexture"
+			texture_rect.layout_mode = 1
+			texture_rect.anchors_preset = 8
+			texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			texture_rect.custom_minimum_size = Vector2(cell_size - 10, cell_size - 10)
+			texture_rect.visible = false
+			area.add_child(texture_rect)
+			
+			var note_grid = GridContainer.new()
+			note_grid.name = "NoteGrid"
+			note_grid.layout_mode = 1
+			note_grid.anchors_preset = 8
+			note_grid.columns = 3
+			note_grid.custom_minimum_size = Vector2(cell_size - 6, cell_size - 6)
+			note_grid.visible = false
+			for n in range(1, 10):
+				var note_texture = TextureRect.new()
+				note_texture.name = "Note" + str(n)
+				note_texture.layout_mode = 1
+				note_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				note_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				note_texture.custom_minimum_size = Vector2(20, 20)
+				note_texture.texture = number_textures.get(n)
+				if note_texture.texture:
+					note_texture.modulate = Color(0.5, 0.5, 0.5)
+				note_grid.add_child(note_texture)
+			area.add_child(note_grid)
+			
+			var color_rect = ColorRect.new()
+			color_rect.name = "ColorRect"
+			color_rect.layout_mode = 1
+			color_rect.anchors_preset = 15
+			color_rect.anchor_right = 1.0
+			color_rect.anchor_bottom = 1.0
+			color_rect.color = Color.TRANSPARENT
+			area.add_child(color_rect)
+			
 			grid_container.add_child(cell)
 			cells.append(cell)
 
@@ -84,33 +181,39 @@ func update_display(grid: Node, selected: Vector2, note_mode_active: bool):
 			var cell = cells[cell_index]
 			var value = grid.get_number(i, j)
 			var notes = grid.get_notes(i, j)
+			
+			var number_texture = cell.get_node("ClickArea/NumberTexture")
+			var note_grid = cell.get_node("ClickArea/NoteGrid")
+			var color_rect = cell.get_node("ClickArea/ColorRect")
 
-			cell.remove_theme_color_override("font_color")
-			cell.remove_theme_color_override("custom_colors/font_color")
-			cell.remove_theme_color_override("background_color")
-			cell.remove_theme_color_override("custom_colors/background_color")
+			color_rect.color = Color.TRANSPARENT
 
 			if selected == Vector2(i, j):
-				cell.add_theme_color_override("background_color", Color(0.3, 0.5, 0.8))
+				color_rect.color = Color(0.3, 0.5, 0.8, 0.3)
 
 			if hint_cell and hint_cell.row == i and hint_cell.col == j:
-				cell.add_theme_color_override("background_color", Color(1.0, 1.0, 0.5))
+				color_rect.color = Color(1.0, 1.0, 0.5, 0.5)
 
 			if value == 0:
+				number_texture.visible = false
 				if notes.size() > 0 and note_mode_active:
-					cell.text = notes.map(func(n): return str(n)).join(", ")
-					cell.add_theme_font_size_override("font_size", 12)
-					cell.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+					note_grid.visible = true
+					for n in range(1, 10):
+						var note_texture = note_grid.get_node("Note" + str(n))
+						note_texture.visible = notes.has(n)
 				else:
-					cell.text = ""
-					cell.add_theme_font_size_override("font_size", 24)
+					note_grid.visible = false
 			else:
-				cell.text = str(value)
-				cell.add_theme_font_size_override("font_size", 24)
-				if grid.is_original_cell(i, j):
-					cell.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
+				note_grid.visible = false
+				if value in number_textures:
+					number_texture.texture = number_textures[value]
+					number_texture.visible = true
+					if grid.is_original_cell(i, j):
+						number_texture.modulate = Color.WHITE
+					else:
+						number_texture.modulate = Color(0.2, 0.5, 0.8)
 				else:
-					cell.add_theme_color_override("font_color", Color(0.2, 0.5, 0.8))
+					number_texture.visible = false
 
 func update_timer(seconds: int):
 	var minutes = int(seconds / 60.0)
@@ -141,8 +244,9 @@ func show_message(message: String):
 func _hide_message():
 	message_dialog.visible = false
 
-func _on_cell_pressed(row: int, col: int):
-	cell_selected.emit(row, col)
+func _on_cell_gui_input(event: InputEvent, row: int, col: int):
+	if event is InputEventMouseButton and event.pressed:
+		cell_selected.emit(row, col)
 
 func _on_number_pressed(number: int):
 	number_input.emit(number)
@@ -150,14 +254,11 @@ func _on_number_pressed(number: int):
 func _on_new_game_pressed():
 	new_game_requested.emit()
 
-func _on_back_pressed():
-	back_requested.emit()
-
 func _on_note_mode_pressed():
 	note_mode_toggled.emit(not note_mode_button.has_theme_color_override("background_color"))
 
 func _on_hint_pressed():
 	hint_requested.emit()
 
-func _on_auto_notes_pressed():
+func _on_auto_notes_requested():
 	auto_notes_requested.emit()
