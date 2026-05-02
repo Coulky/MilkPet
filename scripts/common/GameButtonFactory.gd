@@ -31,11 +31,6 @@ static func create_button(parent: Node, button_name: String, icon_path: String, 
 	var label_bg = PanelContainer.new()
 	label_bg.name = button_name + "LabelBg"
 	label_bg.layout_mode = 2
-	label_bg.anchors_preset = 0
-	label_bg.anchor_left = 0.12
-	label_bg.anchor_right = 0.88
-	label_bg.anchor_top = 0.67
-	label_bg.anchor_bottom = 0.83
 	
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(1, 1, 1, 1)
@@ -44,9 +39,8 @@ static func create_button(parent: Node, button_name: String, icon_path: String, 
 	style.border_width_right = 1
 	style.border_width_bottom = 1
 	style.border_color = Color(0, 0, 0, 1)
-	style.set_content_margin_all(3)
+	style.set_content_margin_all(4)
 	label_bg.add_theme_stylebox_override("panel", style)
-	inner.add_child(label_bg)
 	
 	var label_node = Label.new()
 	label_node.text = label
@@ -55,6 +49,13 @@ static func create_button(parent: Node, button_name: String, icon_path: String, 
 	label_node.add_theme_color_override("font_color", Color(0, 0, 0, 1))
 	label_node.add_theme_font_size_override("font_size", 10)
 	label_bg.add_child(label_node)
+	
+	inner.add_child(label_bg)
+	await inner.get_tree().process_frame
+	
+	var label_width = label_bg.size.x
+	var label_height = label_bg.size.y
+	label_bg.position = Vector2((105 - label_width) / 2, 76)
 	
 	if callback != null:
 		icon_btn.connect("pressed", callback)
