@@ -2,7 +2,7 @@ extends Node
 
 signal game_selected(game_name: String)
 
-var current_game: Node2D = null
+var current_game: Node2D
 
 func select_game(game_name: String):
     emit_signal("game_selected", game_name)

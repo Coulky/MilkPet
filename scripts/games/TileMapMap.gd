@@ -83,7 +83,7 @@ func _create_ground_tile(x: int, y: int, tile_id: int):
 		var shape = RectangleShape2D.new()
 		shape.size = Vector2(tile_size, tile_size)
 		collision.shape = shape
-		collision.position = Vector2(tile_size / 2, tile_size / 2)
+		collision.position = Vector2(float(tile_size) / 2.0, float(tile_size) / 2.0)
 		tile_node.add_child(collision)
 	
 	ground_container.add_child(tile_node)
@@ -149,7 +149,7 @@ func _create_upper_tile(x: int, y: int, tile_id: int):
 		var shape = RectangleShape2D.new()
 		shape.size = Vector2(tile_size, tile_size)
 		collision.shape = shape
-		collision.position = Vector2(tile_size / 2, tile_size / 2)
+		collision.position = Vector2(float(tile_size) / 2.0, float(tile_size) / 2.0)
 		tile_node.add_child(collision)
 	
 	upper_container.add_child(tile_node)

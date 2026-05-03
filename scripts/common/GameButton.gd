@@ -4,7 +4,7 @@ extends Button
 @export var icon_path: String = ""
 @export var label_font_size: int = 5
 
-var on_click_callback: Callable = null
+var on_click_callback = null
 
 func _ready():
 	if icon_path != "":

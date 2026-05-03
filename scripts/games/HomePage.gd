@@ -10,6 +10,9 @@ var player: CharacterBody2D
 var player_sprite: Node2D
 var camera: Camera2D
 var exit_dialog: Control
+var game_layer: Node2D
+var ui_layer: CanvasLayer
+var ui_control: Control
 
 var config: Node
 
@@ -33,11 +36,34 @@ var keys_pressed: Dictionary = {}
 
 func _ready():
 	_ensure_background()
+	_create_layers()
 	_setup_ui()
 	_create_map()
 	_create_player()
 	_setup_camera()
 	_create_exit_dialog()
+
+func _create_layers():
+	game_layer = Node2D.new()
+	game_layer.name = "GameLayer"
+	game_layer.z_index = 0
+	add_child(game_layer)
+	
+	ui_layer = CanvasLayer.new()
+	ui_layer.name = "UiLayer"
+	ui_layer.layer = 100
+	add_child(ui_layer)
+	
+	ui_control = Control.new()
+	ui_control.name = "UiControl"
+	ui_control.position = Vector2.ZERO
+	ui_control.size = get_viewport().get_visible_rect().size
+	ui_control.mouse_filter = MOUSE_FILTER_IGNORE
+	ui_layer.add_child(ui_control)
+	
+	var viewport = get_viewport()
+	if viewport:
+		viewport.size_changed.connect(_on_viewport_resized)
 
 func _ensure_background():
 	var bg = get_node_or_null("Background")
@@ -60,33 +86,24 @@ func _setup_ui():
 func _create_exit_dialog():
 	exit_dialog = ExitDialogScript.new()
 	exit_dialog.name = "ExitDialog"
-	add_child(exit_dialog)
+	ui_control.add_child(exit_dialog)
 	exit_dialog.connect("confirmed", _on_exit_to_home)
 	exit_dialog.connect("cancelled", _on_exit_cancelled)
 
 func _create_ladder_hint():
 	ladder_hint = Control.new()
 	ladder_hint.name = "LadderHint"
-	ladder_hint.anchors_preset = Control.PRESET_CENTER
-	ladder_hint.anchor_left = 0.5
-	ladder_hint.anchor_top = 0.5
-	ladder_hint.anchor_right = 0.5
-	ladder_hint.anchor_bottom = 0.5
-	ladder_hint.offset_left = -25.0
-	ladder_hint.offset_top = -25.0
-	ladder_hint.offset_right = 25.0
-	ladder_hint.offset_bottom = 25.0
 	ladder_hint.modulate = Color(1, 1, 1, 0)
 
 	var hint_bg = ColorRect.new()
 	hint_bg.name = "HintBg"
-	hint_bg.anchors_preset = Control.PRESET_FULL_RECT
+	hint_bg.anchors_preset = PRESET_FULL_RECT
 	hint_bg.color = Color(0, 0, 0, 0.7)
 	ladder_hint.add_child(hint_bg)
 
 	ladder_hint_label = Label.new()
 	ladder_hint_label.name = "HintLabel"
-	ladder_hint_label.anchors_preset = Control.PRESET_FULL_RECT
+	ladder_hint_label.anchors_preset = PRESET_FULL_RECT
 	ladder_hint_label.text = "W"
 	ladder_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ladder_hint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -94,7 +111,7 @@ func _create_ladder_hint():
 	ladder_hint_label.add_theme_color_override("font_color", Color.WHITE)
 	ladder_hint.add_child(ladder_hint_label)
 
-	add_child(ladder_hint)
+	game_layer.add_child(ladder_hint)
 
 func _show_ladder_hint():
 	if not ladder_hint_visible:
@@ -109,13 +126,12 @@ func _hide_ladder_hint():
 		tween.tween_property(ladder_hint, "modulate", Color(1, 1, 1, 0), 0.2)
 
 func _update_ladder_hint_position():
-	var player_screen_pos = player.position + Vector2(0, -40)
-	ladder_hint.position = player_screen_pos
+	ladder_hint.position = player.position + Vector2(0, -40)
 
 func _create_map():
 	tile_map_node = TileMapMapScript.new()
 	tile_map_node.name = "TileMap"
-	add_child(tile_map_node)
+	game_layer.add_child(tile_map_node)
 	config = tile_map_node.config
 
 func _create_player():
@@ -136,7 +152,7 @@ func _create_player():
 	player_sprite.color = Color(1.0, 0.2, 0.2, 1.0)
 	player.add_child(player_sprite)
 
-	add_child(player)
+	game_layer.add_child(player)
 
 func _setup_camera():
 	camera = Camera2D.new()
@@ -197,6 +213,10 @@ func _check_near_ladder():
 		_show_ladder_hint()
 	else:
 		_hide_ladder_hint()
+
+func _on_viewport_resized():
+	if ui_control:
+		ui_control.size = get_viewport().get_visible_rect().size
 
 func _handle_input():
 	var move_dir = 0.0

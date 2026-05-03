@@ -15,21 +15,24 @@ func _ready():
 
 func _initialize_dialog():
 	visible = false
-	anchors_preset = PRESET_FULL_RECT
+	mouse_filter = MOUSE_FILTER_STOP
+	
+	var viewport_size = get_viewport().get_visible_rect().size
+	size = viewport_size
 	
 	var modal_bg = ColorRect.new()
 	modal_bg.name = "ModalBg"
-	modal_bg.anchors_preset = PRESET_FULL_RECT
+	modal_bg.size = viewport_size
 	modal_bg.color = Color(0, 0, 0, 0.6)
 	add_child(modal_bg)
 	
 	var dialog_panel = PanelContainer.new()
 	dialog_panel.name = "DialogPanel"
-	dialog_panel.anchors_preset = PRESET_CENTER
-	dialog_panel.offset_left = -180
-	dialog_panel.offset_top = -120
-	dialog_panel.offset_right = 180
-	dialog_panel.offset_bottom = 120
+	dialog_panel.size = Vector2(360, 240)
+	dialog_panel.position = Vector2(
+		(viewport_size.x - 360) / 2,
+		(viewport_size.y - 240) / 2
+	)
 	
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.95, 0.95, 0.95, 1)
@@ -139,9 +142,37 @@ func show_dialog(title: String = "退出确认", message: String = "确定要退
 	title_label.text = title
 	message_label.text = message
 	home_button.visible = show_home_button
+	
+	var viewport_size = get_viewport().get_visible_rect().size
+	size = viewport_size
+	
+	var modal_bg = get_node_or_null("ModalBg")
+	if modal_bg:
+		modal_bg.size = viewport_size
+	
+	var dialog_panel = get_node_or_null("DialogPanel")
+	if dialog_panel:
+		dialog_panel.position = Vector2(
+			(viewport_size.x - 360) / 2,
+			(viewport_size.y - 240) / 2
+		)
+	
 	visible = true
-	grab_focus()
-
+	
+	var window_size = DisplayServer.window_get_size()
+	var content_scale = get_tree().root.content_scale_size
+	var panel_pos = dialog_panel.position if dialog_panel else Vector2.ZERO
+	var panel_size = dialog_panel.size if dialog_panel else Vector2.ZERO
+	
+	print("=== ExitDialog Debug ===")
+	print("  窗口大小: ", window_size)
+	print("  内容缩放大小(content_scale_size): ", content_scale)
+	print("  视口大小(visible_rect): ", viewport_size)
+	print("  弹框位置: ", panel_pos)
+	print("  弹框大小: ", panel_size)
+	print("  弹框父节点大小: ", size)
+	print("========================")
+	
 func hide_dialog():
 	visible = false
 
