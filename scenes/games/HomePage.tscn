@@ -1,8 +1,10 @@
-[gd_scene format=3 uid="uid://cnewgamehome01"]
+[gd_scene format=3 uid="uid://d3q1hh0gekvuq"]
 
-[ext_resource type="Script" uid="uid://bhomepage01new" path="res://scripts/games/HomePage.gd" id="1_home"]
+[ext_resource type="Script" uid="uid://c1joso8vd0vta" path="res://scripts/games/HomePage.gd" id="1_home"]
+[ext_resource type="Texture2D" uid="uid://d0tdwm2imbppb" path="res://assets/images/home_map.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://bqsl4203grw23" path="res://assets/images/yongbing.png" id="3_yb"]
 
-[node name="HomePage" type="Control"]
+[node name="HomePage" type="Control" unique_id=1977768371]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,12 +12,76 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_home")
+background_texture = ExtResource("2_bg")
 
-[node name="Background" type="ColorRect" parent="."]
-layout_mode = 3
+[node name="Background" type="ColorRect" parent="." unique_id=1399541159]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 1, 1, 1)
+color = Color(0.3, 0.25, 0.2, 1)
+
+[node name="Buildings" type="Node2D" parent="." unique_id=1908287947]
+
+[node name="Building_MiniGame" type="Sprite2D" parent="Buildings" unique_id=2015324143]
+position = Vector2(350, 250)
+texture = ExtResource("3_yb")
+centered = false
+metadata/_building_id = "mini_game"
+
+[node name="InteractionPoint" type="Marker2D" parent="Buildings/Building_MiniGame" unique_id=1541958712]
+position = Vector2(75, 150)
+
+[node name="Building_House2" type="Sprite2D" parent="Buildings" unique_id=371123485]
+position = Vector2(650, 360)
+metadata/_building_id = "sliding_puzzle"
+
+[node name="ColorRect" type="ColorRect" parent="Buildings/Building_House2" unique_id=1227121270]
+offset_left = -30.0
+offset_top = -60.0
+offset_right = 30.0
+color = Color(0.2, 0.6, 0.3, 1)
+
+[node name="InteractionPoint" type="Marker2D" parent="Buildings/Building_House2" unique_id=569776623]
+position = Vector2(0, 5)
+
+[node name="Building_House3" type="Sprite2D" parent="Buildings" unique_id=1355615954]
+position = Vector2(950, 360)
+metadata/_building_id = "house_3"
+
+[node name="ColorRect" type="ColorRect" parent="Buildings/Building_House3" unique_id=1690979926]
+offset_left = -30.0
+offset_top = -65.0
+offset_right = 30.0
+color = Color(0.2, 0.65, 0.35, 1)
+
+[node name="InteractionPoint" type="Marker2D" parent="Buildings/Building_House3" unique_id=60819382]
+position = Vector2(0, 5)
+
+[node name="Building_House4" type="Sprite2D" parent="Buildings" unique_id=992055421]
+position = Vector2(1300, 360)
+metadata/_building_id = "house_4"
+
+[node name="ColorRect" type="ColorRect" parent="Buildings/Building_House4" unique_id=1689895071]
+offset_left = -32.0
+offset_top = -62.0
+offset_right = 32.0
+color = Color(0.25, 0.55, 0.3, 1)
+
+[node name="InteractionPoint" type="Marker2D" parent="Buildings/Building_House4" unique_id=922283488]
+position = Vector2(0, 5)
+
+[node name="Building_House5" type="Sprite2D" parent="Buildings" unique_id=2036540117]
+position = Vector2(1650, 360)
+metadata/_building_id = "house_5"
+
+[node name="ColorRect" type="ColorRect" parent="Buildings/Building_House5" unique_id=1629692002]
+offset_left = -37.0
+offset_top = -70.0
+offset_right = 37.0
+color = Color(0.18, 0.58, 0.28, 1)
+
+[node name="InteractionPoint" type="Marker2D" parent="Buildings/Building_House5" unique_id=1837204070]
+position = Vector2(0, 5)

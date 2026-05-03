@@ -40,10 +40,10 @@ func _initialize_dialog():
 	panel_style.corner_radius_top_right = 12
 	panel_style.corner_radius_bottom_left = 12
 	panel_style.corner_radius_bottom_right = 12
-	panel_style.set_border_width(0, 2)
-	panel_style.set_border_width(1, 2)
-	panel_style.set_border_width(2, 2)
-	panel_style.set_border_width(3, 2)
+	panel_style.set_border_width(0 as Side, 2)
+	panel_style.set_border_width(1 as Side, 2)
+	panel_style.set_border_width(2 as Side, 2)
+	panel_style.set_border_width(3 as Side, 2)
 	panel_style.border_color = Color(0.3, 0.3, 0.3, 1)
 	dialog_panel.add_theme_stylebox_override("panel", panel_style)
 	add_child(dialog_panel)
@@ -187,8 +187,3 @@ func _on_cancel():
 func _on_go_home():
 	hide_dialog()
 	emit_signal("go_home")
-
-func _input(event: InputEvent):
-	if event is InputEventKey and event.keycode == KEY_ESCAPE:
-		if visible:
-			_on_cancel()

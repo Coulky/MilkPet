@@ -6,28 +6,20 @@ const MAP_HEIGHT = 15
 
 const TILE_EMPTY = 0
 const TILE_GROUND = 1
-const TILE_PLATFORM = 2
-const TILE_BRICK = 3
-const TILE_LADDER = 4
-const TILE_PIPE = 5
-const TILE_TREE = 6
-const TILE_FLOWER = 7
-const TILE_GRASS = 8
-const TILE_PATH = 9
+const TILE_PATH = 2
+const TILE_HOUSE = 3
+const TILE_SLOPE_UP_RIGHT = 4
+const TILE_SLOPE_DOWN_LEFT = 5
 
 var tile_colors: Dictionary = {}
 
 var tile_names = {
 	TILE_EMPTY: "empty",
 	TILE_GROUND: "ground",
-	TILE_PLATFORM: "platform",
-	TILE_BRICK: "brick",
-	TILE_LADDER: "ladder",
-	TILE_PIPE: "pipe",
-	TILE_TREE: "tree",
-	TILE_FLOWER: "flower",
-	TILE_GRASS: "grass",
-	TILE_PATH: "path"
+	TILE_PATH: "path",
+	TILE_HOUSE: "house",
+	TILE_SLOPE_UP_RIGHT: "slope_up_right",
+	TILE_SLOPE_DOWN_LEFT: "slope_down_left"
 }
 
 var current_map: Array = []
@@ -73,14 +65,10 @@ func _init_default_colors():
 	tile_colors = {
 		TILE_EMPTY: Color.TRANSPARENT,
 		TILE_GROUND: Color(0.35, 0.55, 0.25, 1.0),
-		TILE_PLATFORM: Color(0.55, 0.35, 0.15, 1.0),
-		TILE_BRICK: Color(0.65, 0.45, 0.25, 1.0),
-		TILE_LADDER: Color(0.55, 0.35, 0.15, 1.0),
-		TILE_PIPE: Color(0.0, 0.6, 0.0, 1.0),
-		TILE_TREE: Color(0.0, 0.5, 0.0, 1.0),
-		TILE_FLOWER: Color(1.0, 0.3, 0.5, 1.0),
-		TILE_GRASS: Color(0.45, 0.65, 0.3, 1.0),
-		TILE_PATH: Color(0.7, 0.6, 0.4, 1.0)
+		TILE_PATH: Color(0.6, 0.6, 0.6, 1.0),
+		TILE_HOUSE: Color(0.55, 0.35, 0.15, 1.0),
+		TILE_SLOPE_UP_RIGHT: Color(0.5, 0.5, 0.5, 1.0),
+		TILE_SLOPE_DOWN_LEFT: Color(0.5, 0.5, 0.5, 1.0)
 	}
 
 func _generate_default_map() -> Array:
@@ -105,13 +93,14 @@ func set_tile(x: int, y: int, tile_type: int):
 
 func is_solid(x: int, y: int) -> bool:
 	var tile = get_tile(x, y)
-	return tile in [TILE_GROUND, TILE_PLATFORM, TILE_BRICK, TILE_PIPE, TILE_TREE]
+	return tile in [TILE_GROUND, TILE_HOUSE]
 
-func is_ladder(x: int, y: int) -> bool:
-	return get_tile(x, y) == TILE_LADDER
-
-func is_collectible(_x: int, _y: int) -> bool:
+func is_ladder(_x: int, _y: int) -> bool:
 	return false
 
-func is_hazard(_x: int, _y: int) -> bool:
-	return false
+func is_slope(x: int, y: int) -> bool:
+	var tile = get_tile(x, y)
+	return tile in [TILE_SLOPE_UP_RIGHT, TILE_SLOPE_DOWN_LEFT]
+
+func is_path(x: int, y: int) -> bool:
+	return get_tile(x, y) == TILE_PATH
