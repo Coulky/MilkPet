@@ -48,6 +48,8 @@ func _on_continue_button_pressed():
 		SaveData.load_game_cache(last_game.game_name)
 		if last_game.game_name == "sudoku":
 			get_tree().change_scene_to_file("res://scenes/games/sudoku/sudoku.tscn")
+		elif last_game.game_name == "sliding_puzzle":
+			get_tree().change_scene_to_file("res://scenes/games/sliding_puzzle/sliding_puzzle.tscn")
 		elif last_game.game_name == "homepage":
 			get_tree().change_scene_to_file("res://scenes/games/HomePage.tscn")
 

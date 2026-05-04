@@ -72,6 +72,27 @@ func get_completed_count_by_level(level: String) -> int:
 		"hard": return star3_completed.size()
 		_: return 0
 
+func get_all_puzzle_ids() -> Array:
+	return sudoku_puzzles.get_all_puzzle_ids()
+
+func generate_with_id(puzzle_id: String, level: String = "easy") -> Dictionary:
+	var one_d_grid = sudoku_puzzles.get_puzzle(puzzle_id)
+	if one_d_grid.size() == 0:
+		return {}
+	
+	var complete_grid = sudoku_puzzles.convert_to_2d(one_d_grid)
+	
+	var puzzle_grid = remove_numbers(complete_grid.duplicate(true), level)
+	var star_level = get_star_level(level)
+	
+	return {
+		"id": puzzle_id,
+		"grid": puzzle_grid,
+		"original": complete_grid,
+		"level": level,
+		"star_level": star_level
+	}
+
 func generate(level: String = "easy") -> Dictionary:
 	var puzzle_ids = sudoku_puzzles.get_all_puzzle_ids()
 	var star_level = get_star_level(level)

@@ -22,6 +22,7 @@ signal new_game_requested
 signal note_mode_toggled(active)
 signal hint_requested
 signal auto_notes_requested
+signal message_dialog_clicked
 
 func _ready():
 	_load_number_textures()
@@ -49,6 +50,7 @@ func _setup_nodes():
 
 	if message_dialog:
 		message_dialog.visible = false
+		message_dialog.gui_input.connect(_on_message_dialog_input)
 
 	if number_buttons and number_buttons.get_child_count() >= 9:
 		for i in range(9):
@@ -311,11 +313,14 @@ func show_message(message: String):
 		return
 	message_dialog.text = message
 	message_dialog.visible = true
-	get_tree().create_timer(3.0).timeout.connect(_hide_message)
 
 func _hide_message():
 	if message_dialog:
 		message_dialog.visible = false
+
+func _on_message_dialog_input(event: InputEvent):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		message_dialog_clicked.emit()
 
 func _on_cell_gui_input(event: InputEvent, row: int, col: int):
 	if event is InputEventMouseButton and event.pressed:

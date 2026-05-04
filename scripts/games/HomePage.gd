@@ -244,10 +244,17 @@ func _on_interact_with_building():
 	var building_id = current_building.get("id", "未知")
 	print("进入建筑: ", building_id, " - ", current_building.get("name", ""))
 	
-	if building_id == "mini_game":
+	var is_last_building = (building_id == buildings_data[buildings_data.size() - 1].get("id", "")) if buildings_data.size() > 0 else false
+	
+	if is_last_building:
+		_show_achievements()
+	elif building_id == "mini_game":
 		get_tree().change_scene_to_file("res://scenes/games/sudoku/sudoku.tscn")
 	elif building_id == "sliding_puzzle":
 		get_tree().change_scene_to_file("res://scenes/games/sliding_puzzle/sliding_puzzle.tscn")
+
+func _show_achievements():
+	get_tree().change_scene_to_file("res://scenes/Achievements.tscn")
 
 func _check_boundary():
 	var at_left_boundary = player.position.x <= 30

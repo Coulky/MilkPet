@@ -92,8 +92,8 @@ func move_tile(row: int, col: int) -> bool:
 	var dy = abs(row - empty_pos.y)
 	
 	if (dx == 1 and dy == 0) or (dx == 0 and dy == 1):
-		var move_dx = empty_pos.x - col
-		var move_dy = empty_pos.y - row
+		var move_dx = col - empty_pos.x
+		var move_dy = row - empty_pos.y
 		return move_empty(move_dx, move_dy)
 	
 	return false
@@ -133,3 +133,11 @@ func reset():
 
 func get_grid() -> Array:
 	return grid
+
+func set_move_count(count: int):
+	move_count = count
+
+func load_state(saved_grid: Array, saved_empty_pos: Vector2i):
+	grid = saved_grid
+	empty_pos = saved_empty_pos
+	is_solved = false

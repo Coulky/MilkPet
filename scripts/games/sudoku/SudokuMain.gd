@@ -3,9 +3,11 @@ extends Control
 const SudokuGridScript = preload("res://scripts/games/sudoku/SudokuGrid.gd")
 const SudokuGeneratorScript = preload("res://scripts/games/sudoku/SudokuGenerator.gd")
 const GameButtonFactoryScript = preload("res://scripts/common/GameButtonFactory.gd")
+const SudokuStatsScript = preload("res://scripts/games/sudoku/SudokuStats.gd")
 
 var sudoku_grid: Node
 var sudoku_generator: Node
+var sudoku_stats: Node
 
 var selected_cell: Vector2 = Vector2(-1, -1)
 var selected_number: int = 0
@@ -18,8 +20,10 @@ var current_puzzle_id: String = ""
 func _ready():
 	sudoku_grid = SudokuGridScript.new()
 	sudoku_generator = SudokuGeneratorScript.new()
+	sudoku_stats = SudokuStatsScript.new()
 	add_child(sudoku_grid)
 	add_child(sudoku_generator)
+	add_child(sudoku_stats)
 
 	_setup_buttons()
 
@@ -31,6 +35,7 @@ func _ready():
 		sudoku_ui.note_mode_toggled.connect(_on_note_mode_toggled)
 		sudoku_ui.hint_requested.connect(_on_hint_requested)
 		sudoku_ui.auto_notes_requested.connect(_on_auto_notes_requested)
+		sudoku_ui.message_dialog_clicked.connect(_on_message_dialog_clicked)
 
 	if SaveData.has_cached_game("sudoku"):
 		load_cached_game()
@@ -84,7 +89,18 @@ func start_new_game(level: String = "easy"):
 	is_running = true
 	current_level = level
 
-	var game_data = sudoku_generator.generate(level)
+	var all_puzzle_ids = sudoku_generator.get_all_puzzle_ids()
+	var next_id = sudoku_stats.get_next_puzzle_id(all_puzzle_ids)
+	
+	if next_id == "":
+		next_id = all_puzzle_ids[0] if all_puzzle_ids.size() > 0 else ""
+	
+	sudoku_stats.record_new_game(next_id)
+	
+	var game_data = sudoku_generator.generate_with_id(next_id, level)
+	if not game_data:
+		game_data = sudoku_generator.generate(level)
+	
 	sudoku_grid.init()
 	sudoku_grid.load_game(game_data)
 
@@ -271,6 +287,7 @@ func _on_game_complete(message: String):
 
 	if current_puzzle_id != "":
 		sudoku_generator.mark_completed(current_puzzle_id, current_level)
+		sudoku_stats.record_game_complete(current_puzzle_id, current_level)
 
 	SaveData.clear_cached_game_on_disk("sudoku")
 	SaveData.clear_game_cache()
@@ -289,6 +306,18 @@ func _on_game_over():
 	print("游戏结束！")
 	if sudoku_ui:
 		sudoku_ui.show_message("游戏结束！")
+
+func _on_message_dialog_clicked():
+	var sudoku_ui = get_node_or_null("SudokuUI")
+	if sudoku_ui:
+		sudoku_ui.hide_message()
+	_clear_saved_game()
+	GameTimer.timer_clear()
+	get_tree().change_scene_to_file("res://scenes/games/HomePage.tscn")
+
+func _clear_saved_game():
+	SaveData.clear_cached_game_on_disk("sudoku")
+	SaveData.clear_game_cache()
 
 func _exit_tree():
 	if is_running:
