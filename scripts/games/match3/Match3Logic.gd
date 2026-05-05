@@ -35,9 +35,10 @@ func init():
 		grid.append([])
 		for col in range(GRID_SIZE):
 			var gem_type
-			repeat:
+			while true:
 				gem_type = randi() % 6
-			until not _would_create_match(row, col, gem_type)
+				if not _would_create_match(row, col, gem_type):
+					break
 			grid[row].append(gem_type)
 
 func _would_create_match(row: int, col: int, gem_type: int) -> bool:

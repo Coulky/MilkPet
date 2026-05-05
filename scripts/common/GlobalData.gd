@@ -71,15 +71,7 @@ func save_save_data():
 		file.close()
 
 func apply_window_settings():
-	if "settings" in save_data and "window_mode" in save_data.settings:
-		if save_data.settings.window_mode == 0:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		else:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	if "settings" in save_data and "resolution" in save_data.settings:
-		var res = save_data.settings.resolution
-		get_tree().root.content_scale_size = Vector2i(res.width, res.height)
-		DisplayServer.window_set_size(Vector2i(res.width, res.height))
+	pass
 
 func init_default_data():
 	save_data = {
