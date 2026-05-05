@@ -11,33 +11,30 @@ config_version=5
 [application]
 
 config/name="Casual Games"
-run/main_scene="res://scenes/games/SimplePet.tscn"
+run/main_scene="res://scenes/games/TestScene.tscn"
 config/features=PackedStringArray("4.6")
 config/icon="res://icon.svg"
 
 [autoload]
 
-I18n="*res://scripts/conf/I18n.gd"
-Config="*res://scripts/conf/Config.gd"
-Theme="*res://scripts/conf/Theme.gd"
-GlobalData="*res://scripts/common/GlobalData.gd"
-SaveData="*res://scripts/common/SaveData.gd"
-GameTimer="*res://scripts/common/GameTimer.gd"
+; 完全禁用所有自动加载脚本
+;I18n="*res://scripts/conf/I18n.gd"
+;Config="*res://scripts/conf/Config.gd"
+;Theme="*res://scripts/conf/Theme.gd"
+;GlobalData="*res://scripts/common/GlobalData.gd"
+;SaveData="*res://scripts/common/SaveData.gd"
+;GameTimer="*res://scripts/common/GameTimer.gd"
 
 [display]
 
-window/size/viewport_width=200
-window/size/viewport_height=200
+window/size/viewport_width=300
+window/size/viewport_height=300
 window/stretch/mode="canvas_items"
-window/size/width=200
-window/size/height=200
+window/size/width=300
+window/size/height=300
 window/size/resizable=false
-window/size/borderless=true
-window/size/always_on_top=true
-;window/size/transparent=true  # 临时禁用透明测试
-;window/size/no_focus=true     # 临时禁用无焦点测试
-;window/per_pixel_transparency/allowed=true  # 临时禁用
-window/title="桌面宠物测试"
+window/borderless=true
+window/title="测试0 - 纯净版(无任何脚本)"
 
 [input]
 
