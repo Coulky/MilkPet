@@ -136,7 +136,7 @@ var translations = {
 }
 
 func translate(key, lang_code = ""):
-	var lang = lang_code if lang_code != "" else GlobalData.current_language
+	var lang = lang_code if lang_code != "" else (GlobalData.current_language if GlobalData else "zh-CN")
 	if lang in translations and key in translations[lang]:
 		return translations[lang][key]
 	return key

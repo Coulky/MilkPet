@@ -33,13 +33,13 @@ func _ready():
 	apply_window_settings()
 
 func translate(key: String) -> String:
-	return I18n.translate(key)
+	return I18n.translate(key) if I18n else key
 
 func get_lang_display_name(lang_code: String) -> String:
-	return I18n.get_display_name(lang_code)
+	return I18n.get_display_name(lang_code) if I18n else lang_code
 
 func set_language(lang: String):
-	if lang in I18n.get_all_codes():
+	if I18n and lang in I18n.get_all_codes():
 		current_language = lang
 		save_data.settings.language = lang
 		save_save_data()
@@ -74,8 +74,18 @@ func apply_window_settings():
 	pass
 
 func init_default_data():
+	var default_settings = {
+		"language": "zh-CN",
+		"resolution": { "width": 1280, "height": 720 },
+		"window_mode": 0,
+		"sound_volume": 1.0,
+		"music_volume": 1.0,
+		"theme_id": "default"
+	}
+	if Config:
+		default_settings = Config.get_default()
 	save_data = {
-		"settings": Config.get_default(),
+		"settings": default_settings,
 		"achievements": {},
 		"games": {}
 	}

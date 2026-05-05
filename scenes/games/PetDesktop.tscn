@@ -1,10 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://c0d1e2f3g4h5i6j7"]
 
 [ext_resource type="Script" path="res://scripts/games/PetController.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/images/yongbing.png" id="2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D"]
-size = Vector2(100, 100)
+size = Vector2(512, 512)
 
 [sub_resource type="StyleBoxFlat" id="MenuPanel"]
 bg_color = Color(0.15, 0.15, 0.18, 0.95)
@@ -12,11 +12,15 @@ border_width_left = 2
 border_width_right = 2
 border_width_top = 2
 border_width_bottom = 2
-border_color = Color(0.4, 0.4, 0.5)
+border_color = Color(0.4, 0.4, 0.5, 1.0)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_left = 10
 corner_radius_bottom_right = 10
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="ButtonStyle"]
 bg_color = Color(0.25, 0.25, 0.3, 0.9)
@@ -24,27 +28,32 @@ border_width_left = 1
 border_width_right = 1
 border_width_top = 1
 border_width_bottom = 1
-border_color = Color(0.3, 0.3, 0.35)
+border_color = Color(0.3, 0.3, 0.35, 1.0)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_left = 6
 corner_radius_bottom_right = 6
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
 
 [node name="PetDesktop" type="Area2D"]
 script = ExtResource("1")
 
 [node name="PetSprite" type="Sprite2D" parent="."]
 texture = ExtResource("2")
-scale = Vector2(0.4, 0.4)
-position = Vector2(50, 50)
+scale = Vector2(0.5, 0.5)
+position = Vector2(256, 256)
+centered = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D")
 
 [node name="RightClickMenu" type="Control" parent="."]
 visible = false
-position = Vector2(-180, -60)
-size = Vector2(160, 280)
+position = Vector2(20, 20)
+size = Vector2(160, 320)
 theme_override_styles/panel = SubResource("MenuPanel")
 
 [node name="BtnBag" type="Button" parent="RightClickMenu"]
@@ -52,11 +61,11 @@ layout_mode = 2
 anchors_preset = 8
 anchor_left = 0.05
 anchor_right = 0.95
-anchor_top = 0.05
-anchor_bottom = 0.16
+anchor_top = 0.03
+anchor_bottom = 0.13
 text = "🎒 背包"
 theme_override_styles/normal = SubResource("ButtonStyle")
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1.0)
 custom_font_size = 14
 
 [node name="BtnShop" type="Button" parent="RightClickMenu"]
@@ -64,11 +73,11 @@ layout_mode = 2
 anchors_preset = 8
 anchor_left = 0.05
 anchor_right = 0.95
-anchor_top = 0.19
-anchor_bottom = 0.30
+anchor_top = 0.16
+anchor_bottom = 0.26
 text = "🛒 商店"
 theme_override_styles/normal = SubResource("ButtonStyle")
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1.0)
 custom_font_size = 14
 
 [node name="BtnSettings" type="Button" parent="RightClickMenu"]
@@ -76,11 +85,11 @@ layout_mode = 2
 anchors_preset = 8
 anchor_left = 0.05
 anchor_right = 0.95
-anchor_top = 0.33
-anchor_bottom = 0.44
+anchor_top = 0.29
+anchor_bottom = 0.39
 text = "⚙️ 设置"
 theme_override_styles/normal = SubResource("ButtonStyle")
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1.0)
 custom_font_size = 14
 
 [node name="BtnAbout" type="Button" parent="RightClickMenu"]
@@ -88,28 +97,45 @@ layout_mode = 2
 anchors_preset = 8
 anchor_left = 0.05
 anchor_right = 0.95
-anchor_top = 0.47
-anchor_bottom = 0.58
+anchor_top = 0.42
+anchor_bottom = 0.52
 text = "ℹ️ 关于"
 theme_override_styles/normal = SubResource("ButtonStyle")
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9)
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1.0)
+custom_font_size = 14
+
+[node name="BtnAlwaysOnTop" type="Button" parent="RightClickMenu"]
+layout_mode = 2
+anchors_preset = 8
+anchor_left = 0.05
+anchor_right = 0.95
+anchor_top = 0.55
+anchor_bottom = 0.65
+text = "📌 置顶"
+theme_override_styles/normal = SubResource("ButtonStyle")
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1.0)
 custom_font_size = 14
 
 [node name="Separator" type="HSeparator" parent="RightClickMenu"]
 layout_mode = 2
 anchors_preset = 10
 anchor_right = 1.0
-anchor_top = 0.62
-anchor_bottom = 0.63
+anchor_top = 0.69
+anchor_bottom = 0.70
 
 [node name="CheckBoxAllowClick" type="CheckBox" parent="RightClickMenu"]
 layout_mode = 2
 anchors_preset = 8
 anchor_left = 0.05
 anchor_right = 0.95
-anchor_top = 0.67
-anchor_bottom = 0.80
+anchor_top = 0.73
+anchor_bottom = 0.85
 text = "允许点击交互"
 button_pressed = true
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85)
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1.0)
 custom_font_size = 12
+
+[connection signal="pressed" from="RightClickMenu/BtnBag" to="." method="_on_menu_button_pressed" binds=PackedStringArray("BtnBag")]
+[connection signal="pressed" from="RightClickMenu/BtnShop" to="." method="_on_menu_button_pressed" binds=PackedStringArray("BtnShop")]
+[connection signal="pressed" from="RightClickMenu/BtnSettings" to="." method="_on_menu_button_pressed" binds=PackedStringArray("BtnSettings")]
+[connection signal="pressed" from="RightClickMenu/BtnAbout" to="." method="_on_menu_button_pressed" binds=PackedStringArray("BtnAbout")]

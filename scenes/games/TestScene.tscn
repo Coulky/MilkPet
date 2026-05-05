@@ -1,10 +1,62 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://8f5d27qlhlva"]
 
-[ext_resource type="Texture2D" path="res://assets/images/yongbing.png" id="1"]
+[ext_resource type="Script" uid="uid://dedo1810mrvwh" path="res://scripts/games/PetControllerSimple.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bqsl4203grw23" path="res://assets/images/yongbing.png" id="2"]
 
-[node name="TestScene" type="Node2D"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D"]
+size = Vector2(248, 248)
 
-[node name="PetSprite" type="Sprite2D" parent="."]
-texture = ExtResource("1")
-scale = Vector2(0.5, 0.5)
-position = Vector2(150, 150)
+[sub_resource type="StyleBoxFlat" id="ButtonStyle"]
+bg_color = Color(0.25, 0.25, 0.3, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="TestPet" type="Area2D" unique_id=1051470932]
+script = ExtResource("1")
+
+[node name="PetSprite" type="Sprite2D" parent="." unique_id=1128804591]
+position = Vector2(103, 100)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=892526812]
+position = Vector2(95, 95)
+shape = SubResource("RectangleShape2D")
+
+[node name="RightClickMenu" type="Control" parent="." unique_id=1001244039]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = -170.0
+offset_top = -80.0
+offset_right = -10.0
+offset_bottom = 120.0
+
+[node name="BtnBag" type="Button" parent="RightClickMenu" unique_id=1105873013]
+layout_mode = 0
+anchor_left = 0.05
+anchor_top = 0.1
+anchor_right = 0.95
+anchor_bottom = 0.28
+theme_override_styles/normal = SubResource("ButtonStyle")
+text = "🎒 背包"
+
+[node name="BtnShop" type="Button" parent="RightClickMenu" unique_id=454956263]
+layout_mode = 0
+anchor_left = 0.05
+anchor_top = 0.35
+anchor_right = 0.95
+anchor_bottom = 0.53
+theme_override_styles/normal = SubResource("ButtonStyle")
+text = "🛒 商店"
+
+[node name="BtnSettings" type="Button" parent="RightClickMenu" unique_id=1570183311]
+layout_mode = 0
+anchor_left = 0.05
+anchor_top = 0.6
+anchor_right = 0.95
+anchor_bottom = 0.78
+theme_override_styles/normal = SubResource("ButtonStyle")
+text = "⚙️ 设置"
