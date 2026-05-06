@@ -1,19 +1,12 @@
 ; Engine configuration file.
-; It's best edited using the editor UI and not directly,
-; since the parameters that go here are not all obvious.
-;
-; Format:
-;   [section] ; section goes between []
-;   param=value ; assign values to parameters
 
 config_version=5
 
 [application]
 
 config/name="桌面宠物"
-run/main_scene="res://scenes/games/PetDesktop.tscn"
+run/main_scene="res://scenes/games/PetMain.tscn"
 config/features=PackedStringArray("4.6")
-config/icon="res://icon.svg"
 
 [autoload]
 
@@ -34,7 +27,6 @@ window/size/width=512
 window/size/height=512
 window/borderless=true
 window/title="桌面宠物"
-window/transparent=true
 window/per_pixel_transparency/allowed=true
 window/per_pixel_transparency/enabled=true
 window/always_on_top=false
@@ -52,3 +44,9 @@ click={
 [physics]
 
 2d/enable=true
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="forward_plus"
+environment/defaults/default_clear_color=Color(0, 0, 0, 0)
