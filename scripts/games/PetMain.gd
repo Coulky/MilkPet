@@ -8,6 +8,7 @@ var _menu: Control
 var _btn_top: Button
 var _chk_click: CheckBox
 var _win_size: Vector2i
+var _container: Control
 
 func _ready():
 	print("✅ PetMain ready!")
@@ -15,26 +16,29 @@ func _ready():
 	var win = get_window()
 	
 	RenderingServer.set_default_clear_color(Color(0, 0, 0, 0))
-	get_viewport().transparent_bg = true
 	
 	await get_tree().process_frame
 	
 	win.borderless = true
 	win.transparent = true
 	win.transparent_bg = true
-	win.unresizable = true
 	win.always_on_top = true
+	win.unresizable = true
 	
-	var img = Image.load_from_file("res://assets/images/yongbing.png")
-	if img:
-		DisplayServer.set_icon(img)
-		print("🪪 Taskbar icon set")
+	get_viewport().transparent_bg = true
+	get_viewport().set_transparent_background(true)
 	
 	var tex = load("res://assets/images/yongbing.png")
 	if not tex:
 		print("❌ Texture load failed!")
 		return
 	print("✅ Texture: ", tex.get_size())
+	
+	if tex is Texture2D:
+		var img = tex.get_image()
+		if img:
+			DisplayServer.set_icon(img)
+			print("🪟 Taskbar icon set")
 	
 	var ts = tex.get_size()
 	var scale = 0.5
@@ -43,30 +47,32 @@ func _ready():
 	_win_size = Vector2i(int(ss.x) + pad * 2, int(ss.y) + pad * 2)
 	win.size = _win_size
 	
-	var area = Area2D.new()
-	area.connect("input_event", _on_area_input)
-	add_child(area)
+	_container = Control.new()
+	_container.name = "PetContainer"
+	_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_container.offset_right = _win_size.x
+	_container.offset_bottom = _win_size.y
+	_container.gui_input.connect(_on_gui_input)
+	add_child(_container)
 	
-	var sprite = Sprite2D.new()
-	sprite.texture = tex
-	sprite.scale = Vector2(scale, scale)
-	sprite.position = Vector2(_win_size.x / 2.0, _win_size.y / 2.0)
-	sprite.centered = true
-	sprite.z_index = 10
-	area.add_child(sprite)
-	print("✅ Sprite at ", sprite.position, " scale=", sprite.scale)
-	
-	var col = CollisionShape2D.new()
-	var rect = RectangleShape2D.new()
-	rect.size = Vector2(_win_size.x, _win_size.y)
-	col.shape = rect
-	area.add_child(col)
+	var texture_rect = TextureRect.new()
+	texture_rect.name = "PetSprite"
+	texture_rect.texture = tex
+	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	texture_rect.size = ss
+	texture_rect.position = Vector2(pad, pad)
+	texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_container.add_child(texture_rect)
+	print("✅ TextureRect at ", texture_rect.position, " size=", texture_rect.size)
 	
 	_menu = Control.new()
+	_menu.name = "PopupMenu"
 	_menu.visible = false
 	_menu.position = Vector2(20, 20)
 	_menu.size = Vector2(160, 260)
 	_menu.z_index = 100
+	_menu.mouse_filter = Control.MOUSE_FILTER_STOP
 	var ms = StyleBoxFlat.new()
 	ms.bg_color = Color(0.15, 0.15, 0.18, 0.95)
 	ms.set_corner_radius_all(10)
@@ -76,7 +82,7 @@ func _ready():
 	ms.border_width_bottom = 2
 	ms.border_color = Color(0.4, 0.4, 0.5, 1.0)
 	_menu.add_theme_stylebox_override("panel", ms)
-	area.add_child(_menu)
+	_container.add_child(_menu)
 	
 	_add_btn("BtnBag", "🎒 背包", 0.02, 0.14, "bag")
 	_add_btn("BtnShop", "🛒 商店", 0.17, 0.29, "shop")
@@ -128,20 +134,25 @@ func _add_btn(p_name: String, p_text: String, p_top: float, p_bot: float, p_tag:
 	_menu.add_child(btn)
 	return btn
 
-func _on_area_input(_vp, event, _idx):
+func _on_gui_input(event):
 	if not _allow_click:
 		return
+		
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_menu.visible = !_menu.visible
-			print("📋 menu=", _menu.visible)
+			print("🖱️ Right click! Menu visible: ", _menu.visible)
+			get_viewport().set_input_as_handled()
+			
 		elif event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				_dragging = true
 				_snapshot = Vector2(DisplayServer.mouse_get_position()) - Vector2(get_window().position)
 				_menu.visible = false
+				print("🖱️ Left down - start drag")
 			else:
 				_dragging = false
+				print("🖱️ Left up - stop drag")
 
 func _input(event):
 	if _dragging and event is InputEventMouseMotion:
