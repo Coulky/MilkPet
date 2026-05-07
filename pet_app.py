@@ -278,10 +278,11 @@ class DesktopPet(QWidget):
     
     def _update_window_flags(self):
         flags = (Qt.FramelessWindowHint | 
-                Qt.Tool |
-                Qt.WindowTransparentForInput)
+                Qt.Tool)
         if self.is_on_top:
             flags |= Qt.WindowStaysOnTopHint
+        if not self.allow_click:
+            flags |= Qt.WindowTransparentForInput
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.show()
