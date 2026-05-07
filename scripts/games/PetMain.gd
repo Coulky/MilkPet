@@ -3,7 +3,7 @@ extends Node
 var _dragging: bool = false
 var _snapshot: Vector2
 var _allow_click: bool = true
-var _on_top: bool = false
+var _on_top: bool = true
 var _menu: Control
 var _btn_top: Button
 var _chk_click: CheckBox
@@ -13,17 +13,28 @@ func _ready():
 	print("✅ PetMain ready!")
 	
 	var win = get_window()
+	
+	RenderingServer.set_default_clear_color(Color(0, 0, 0, 0))
+	get_viewport().transparent_bg = true
+	
+	await get_tree().process_frame
+	
 	win.borderless = true
 	win.transparent = true
 	win.transparent_bg = true
 	win.unresizable = true
-	win.always_on_top = false
+	win.always_on_top = true
+	
+	var img = Image.load_from_file("res://assets/images/yongbing.png")
+	if img:
+		DisplayServer.set_icon(img)
+		print("🪪 Taskbar icon set")
 	
 	var tex = load("res://assets/images/yongbing.png")
 	if not tex:
-		print("❌ Failed to load texture!")
+		print("❌ Texture load failed!")
 		return
-	print("✅ Texture loaded: ", tex.get_size())
+	print("✅ Texture: ", tex.get_size())
 	
 	var ts = tex.get_size()
 	var scale = 0.5
@@ -41,7 +52,6 @@ func _ready():
 	sprite.scale = Vector2(scale, scale)
 	sprite.position = Vector2(_win_size.x / 2.0, _win_size.y / 2.0)
 	sprite.centered = true
-	sprite.visible = true
 	sprite.z_index = 10
 	area.add_child(sprite)
 	print("✅ Sprite at ", sprite.position, " scale=", sprite.scale)
@@ -73,7 +83,7 @@ func _ready():
 	_add_btn("BtnSettings", "⚙️ 设置", 0.32, 0.44, "settings")
 	_add_btn("BtnAbout", "ℹ️ 关于", 0.47, 0.59, "about")
 	
-	_btn_top = _add_btn("BtnTop", "📌 置顶", 0.62, 0.74, "top")
+	_btn_top = _add_btn("BtnTop", "📌 取消置顶", 0.62, 0.74, "top")
 	_btn_top.pressed.connect(_on_top_toggle)
 	
 	_chk_click = CheckBox.new()
@@ -94,7 +104,7 @@ func _ready():
 	var scr = DisplayServer.screen_get_size()
 	win.position = Vector2i(scr.x - _win_size.x - 20, scr.y - _win_size.y - 80)
 	
-	print("🪟 borderless=", win.borderless, " transparent=", win.transparent, " transparent_bg=", win.transparent_bg)
+	print("🪟 borderless=", win.borderless, " transparent=", win.transparent, " transparent_bg=", win.transparent_bg, " always_on_top=", win.always_on_top)
 	print("🖼️ tex=", ts, " scaled=", ss, " win=", _win_size)
 	print("📍 pos=", win.position)
 
@@ -137,8 +147,6 @@ func _input(event):
 	if _dragging and event is InputEventMouseMotion:
 		var mp = DisplayServer.mouse_get_position()
 		var np = Vector2(mp) - _snapshot
-		np.x = clamp(np.x, 0, DisplayServer.screen_get_size().x - _win_size.x)
-		np.y = clamp(np.y, 0, DisplayServer.screen_get_size().y - _win_size.y)
 		get_window().position = Vector2i(np)
 	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

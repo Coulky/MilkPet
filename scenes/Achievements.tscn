@@ -56,44 +56,44 @@ theme_override_constants/separation = 20
 layout_mode = 3
 custom_minimum_size = Vector2(800, 100)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBox1" type="HBoxContainer" parent="AchievementPanel1"]
 layout_mode = 3
 theme_override_constants/separation = 20
 
-[node name="InfoContainer" type="VBoxContainer" parent="."]
+[node name="Info1" type="VBoxContainer" parent="AchievementPanel1/HBox1"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="NameLabel" type="Label" parent="InfoContainer"]
+[node name="NameLabel" type="Label" parent="AchievementPanel1/HBox1/Info1"]
 layout_mode = 2
 text = "数独初级"
 font_size = 24
 
-[node name="DescLabel" type="Label" parent="InfoContainer"]
+[node name="DescLabel" type="Label" parent="AchievementPanel1/HBox1/Info1"]
 layout_mode = 2
 text = "完成简单难度棋盘"
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 
-[node name="ProgressLabel" type="Label" parent="InfoContainer"]
+[node name="ProgressLabel" type="Label" parent="AchievementPanel1/HBox1/Info1"]
 layout_mode = 2
 text = "进度: 0/50"
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 
-[node name="StarsContainer" type="HBoxContainer" parent="."]
+[node name="Stars1" type="HBoxContainer" parent="AchievementPanel1/HBox1"]
 layout_mode = 2
 alignment = 2
 
-[node name="Star1" type="Label" parent="StarsContainer"]
+[node name="Star1" type="Label" parent="AchievementPanel1/HBox1/Stars1"]
 layout_mode = 2
 text = "*"
 font_size = 32
 
-[node name="Star2" type="Label" parent="StarsContainer"]
+[node name="Star2" type="Label" parent="AchievementPanel1/HBox1/Stars1"]
 layout_mode = 2
 text = "*"
 font_size = 32
 
-[node name="Star3" type="Label" parent="StarsContainer"]
+[node name="Star3" type="Label" parent="AchievementPanel1/HBox1/Stars1"]
 layout_mode = 2
 text = "*"
 font_size = 32
@@ -102,44 +102,44 @@ font_size = 32
 layout_mode = 3
 custom_minimum_size = Vector2(800, 100)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBox2" type="HBoxContainer" parent="AchievementPanel2"]
 layout_mode = 3
 theme_override_constants/separation = 20
 
-[node name="InfoContainer" type="VBoxContainer" parent="."]
+[node name="Info2" type="VBoxContainer" parent="AchievementPanel2/HBox2"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="NameLabel" type="Label" parent="InfoContainer"]
+[node name="NameLabel" type="Label" parent="AchievementPanel2/HBox2/Info2"]
 layout_mode = 2
 text = "数独中级"
 font_size = 24
 
-[node name="DescLabel" type="Label" parent="InfoContainer"]
+[node name="DescLabel" type="Label" parent="AchievementPanel2/HBox2/Info2"]
 layout_mode = 2
 text = "完成中等难度棋盘"
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 
-[node name="ProgressLabel" type="Label" parent="InfoContainer"]
+[node name="ProgressLabel" type="Label" parent="AchievementPanel2/HBox2/Info2"]
 layout_mode = 2
 text = "进度: 0/50"
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 
-[node name="StarsContainer" type="HBoxContainer" parent="."]
+[node name="Stars2" type="HBoxContainer" parent="AchievementPanel2/HBox2"]
 layout_mode = 2
 alignment = 2
 
-[node name="Star1" type="Label" parent="StarsContainer"]
+[node name="Star1" type="Label" parent="AchievementPanel2/HBox2/Stars2"]
 layout_mode = 2
 text = "*"
 font_size = 32
 
-[node name="Star2" type="Label" parent="StarsContainer"]
+[node name="Star2" type="Label" parent="AchievementPanel2/HBox2/Stars2"]
 layout_mode = 2
 text = "*"
 font_size = 32
 
-[node name="Star3" type="Label" parent="StarsContainer"]
+[node name="Star3" type="Label" parent="AchievementPanel2/HBox2/Stars2"]
 layout_mode = 2
 text = "*"
 font_size = 32
@@ -148,44 +148,44 @@ font_size = 32
 layout_mode = 3
 custom_minimum_size = Vector2(800, 100)
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBox3" type="HBoxContainer" parent="AchievementPanel3"]
 layout_mode = 3
 theme_override_constants/separation = 20
 
-[node name="InfoContainer" type="VBoxContainer" parent="."]
+[node name="Info3" type="VBoxContainer" parent="AchievementPanel3/HBox3"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="NameLabel" type="Label" parent="InfoContainer"]
+[node name="NameLabel" type="Label" parent="AchievementPanel3/HBox3/Info3"]
 layout_mode = 2
 text = "数独高级"
 font_size = 24
 
-[node name="DescLabel" type="Label" parent="InfoContainer"]
+[node name="DescLabel" type="Label" parent="AchievementPanel3/HBox3/Info3"]
 layout_mode = 2
 text = "完成困难难度棋盘"
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 
-[node name="ProgressLabel" type="Label" parent="InfoContainer"]
+[node name="ProgressLabel" type="Label" parent="AchievementPanel3/HBox3/Info3"]
 layout_mode = 2
 text = "进度: 0/50"
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 
-[node name="StarsContainer" type="HBoxContainer" parent="."]
+[node name="Stars3" type="HBoxContainer" parent="AchievementPanel3/HBox3"]
 layout_mode = 2
 alignment = 2
 
-[node name="Star1" type="Label" parent="StarsContainer"]
+[node name="Star1" type="Label" parent="AchievementPanel3/HBox3/Stars3"]
 layout_mode = 2
 text = "*"
 font_size = 32
 
-[node name="Star2" type="Label" parent="StarsContainer"]
+[node name="Star2" type="Label" parent="AchievementPanel3/HBox3/Stars3"]
 layout_mode = 2
 text = "*"
 font_size = 32
 
-[node name="Star3" type="Label" parent="StarsContainer"]
+[node name="Star3" type="Label" parent="AchievementPanel3/HBox3/Stars3"]
 layout_mode = 2
 text = "*"
 font_size = 32
