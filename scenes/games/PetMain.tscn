@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://cvvksjtvusqay"]
-
-[ext_resource type="Script" uid="uid://b4k3v1vkojvy3" path="res://scripts/games/PetMain.gd" id="1_main"]
-
-[node name="PetMain" type="Node" unique_id=1081969284]
-script = ExtResource("1_main")

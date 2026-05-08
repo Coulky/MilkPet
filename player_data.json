@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "last_saved": "2026-05-08 19:47:14",
+  "game_stats": {
+    "huarongdao": {
+      "game_id": "huarongdao",
+      "game_name": "数字华容道",
+      "total_games": 0,
+      "wins": 0,
+      "losses": 0,
+      "best_score": 0,
+      "best_time": 0,
+      "total_play_time": 0,
+      "perfect_games": 0,
+      "current_streak": 0,
+      "best_streak": 0,
+      "average_moves": 0.0
+    },
+    "sudoku": {
+      "game_id": "sudoku",
+      "game_name": "数独",
+      "total_games": 0,
+      "wins": 0,
+      "losses": 0,
+      "best_score": 0,
+      "best_time": 0,
+      "total_play_time": 0,
+      "perfect_games": 0,
+      "current_streak": 0,
+      "best_streak": 0,
+      "average_moves": 0.0
+    }
+  },
+  "player_stats": {
+    "total_session_time": 0,
+    "sessions_count": 1,
+    "pet_interactions": 0,
+    "menu_opens": 0,
+    "items_used": 0,
+    "items_collected": 0,
+    "unique_items": 0,
+    "gold_earned": 0,
+    "gold_spent": 0,
+    "achievements_unlocked": 0,
+    "first_login_date": "2026-05-08 19:46:24",
+    "last_login_date": "2026-05-08 19:46:24"
+  },
+  "achievements": {
+    "hr_first_win": {
+      "id": "hr_first_win",
+      "name": "🎮 初次胜利",
+      "description": "完成第一局数字华容道",
+      "achievement_type": 
