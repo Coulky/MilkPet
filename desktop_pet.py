@@ -99,7 +99,7 @@ class DesktopPet(PetDisplay):
         self.scroll_area.setMaximumHeight(800)
         self.scroll_area.hide()
         
-        # 滚动区域样式
+        # 滚动区域样式（隐藏滚动条）
         self.scroll_area.setStyleSheet("""
             QScrollArea {
                 background-color: rgba(43, 43, 54, 0.95);
@@ -107,20 +107,9 @@ class DesktopPet(PetDisplay):
                 border-radius: 10px;
             }
             QScrollBar:vertical {
-                background-color: rgba(74, 74, 94, 0.8);
-                width: 12px;
-                border-radius: 6px;
+                width: 0px;
             }
-            QScrollBar::handle:vertical {
-                background-color: rgba(106, 106, 126, 0.9);
-                border-radius: 5px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background-color: rgba(130, 130, 150, 0.9);
-            }
-            QScrollBar::add-line:vertical,
-            QScrollBar::sub-line:vertical {
+            QScrollBar:horizontal {
                 height: 0px;
             }
         """)
@@ -132,24 +121,32 @@ class DesktopPet(PetDisplay):
 
         menu_style = """
             QPushButton {
-                background-color: rgba(74, 74, 94, 0.95);
-                color: white;
+                background-color: #fad8d1;
+                color: #8a8070;
                 border: none;
                 border-radius: 6px;
-                padding: 12px;
-                font-size: 14px;
+                padding: 8px 10px;
+                font-size: 13px;
+                font-weight: bold;
                 text-align: left;
             }
             QPushButton:hover {
-                background-color: rgba(90, 90, 110, 0.95);
+                background-color: #FFE4E9;
             }
             QPushButton:pressed {
-                background-color: rgba(58, 58, 78, 0.95);
+                background-color: #FFC0CB;
             }
             QWidget#menu_container {
                 background-color: rgba(43, 43, 54, 0.95);
                 border: 2px solid rgba(106, 106, 126, 0.95);
                 border-radius: 10px;
+            }
+            QLabel#category_label {
+                color: #8a8070;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 5px 0px 2px 5px;
+                margin-top: 8px;
             }
             QCheckBox {
                 color: white;
@@ -167,82 +164,120 @@ class DesktopPet(PetDisplay):
                 background-color: #5a9a5a;
                 border-color: #7aba7a;
             }
-            QLabel#menu_title {
-                color: #FFD700;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 5px;
-            }
         """
         self.menu_widget.setStyleSheet(menu_style)
         self.menu_widget.setObjectName("menu_container")
-        # 娱乐区域
+        
+        # 设置主布局间距
+        menu_layout.setSpacing(4)  # 分类内按钮间距4px
+        
+        # ========== 娱乐区域 ==========
+        # 第一行：标题 + 按钮水平对齐（高度相同）
+        game_row = QHBoxLayout()
+        game_row.setSpacing(5)
+        game_row.setContentsMargins(0, 0, 0, 0)  # 无边距
+        
         game_label = QLabel("娱乐")
-        game_label.setStyleSheet("color: #87CEEB; font-size: 13px; font-weight: bold; margin-top: 5px;")
-        menu_layout.addWidget(game_label)
+        game_label.setObjectName("category_label")
+        game_label.setFixedHeight(32)  # 与按钮高度一致
+        game_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 垂直居中
+        game_row.addWidget(game_label)
 
         huarong_btn = QPushButton("数字华容道")
+        huarong_btn.setFixedWidth(150)  # 统一宽度
+        huarong_btn.setFixedHeight(32)  # 统一高度
         huarong_btn.clicked.connect(self._on_huarong)
-        menu_layout.addWidget(huarong_btn)
+        game_row.addWidget(huarong_btn)
+        
+        menu_layout.addLayout(game_row)
 
+        # 后续按钮（与第一行按钮左对齐）
         sudoku_btn = QPushButton("数独")
+        sudoku_btn.setFixedWidth(150)  # 统一宽度
+        sudoku_btn.setFixedHeight(32)  # 统一高度
         sudoku_btn.clicked.connect(self._on_sudoku)
         menu_layout.addWidget(sudoku_btn)
         
-        line_games = QWidget()
-        line_games.setFixedHeight(1)
-        line_games.setStyleSheet("background-color: rgba(106, 106, 126, 0.3);")
-        menu_layout.addWidget(line_games)
+        # 粉色分隔线（娱乐与功能之间）
+        line1 = QWidget()
+        line1.setFixedHeight(2)
+        line1.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
+        menu_layout.addWidget(line1)
         
-        # 功能区域"
+        # ========== 功能区域 ==========
+        # 第一行：标题 + 按钮水平对齐（高度相同）
+        func_row = QHBoxLayout()
+        func_row.setSpacing(5)
+        func_row.setContentsMargins(0, 0, 0, 0)  # 无边距
+        
         func_label = QLabel("功能")
-        func_label.setStyleSheet("color: #98FB98; font-size: 13px; font-weight: bold; margin-top: 5px;")
-        menu_layout.addWidget(func_label)
+        func_label.setObjectName("category_label")
+        func_label.setFixedHeight(32)  # 与按钮高度一致
+        func_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 垂直居中
+        func_row.addWidget(func_label)
 
         backpack_btn = QPushButton("背包")
+        backpack_btn.setFixedWidth(150)  # 统一宽度
+        backpack_btn.setFixedHeight(32)  # 统一高度
         backpack_btn.clicked.connect(self._on_backpack)
-        menu_layout.addWidget(backpack_btn)
+        func_row.addWidget(backpack_btn)
+        
+        menu_layout.addLayout(func_row)
 
-        shop_btn = QPushButton("商店")
+        # 后续按钮（与第一行按钮左对齐）
+        shop_btn = QPushButton("商城")
+        shop_btn.setFixedWidth(150)  # 统一宽度
+        shop_btn.setFixedHeight(32)  # 统一高度
         shop_btn.clicked.connect(self._on_shop)
         menu_layout.addWidget(shop_btn)
 
-        line_func = QWidget()
-        line_func.setFixedHeight(1)
-        line_func.setStyleSheet("background-color: rgba(106, 106, 126, 0.3);")
-        menu_layout.addWidget(line_func)
+        # 粉色分隔线（功能与系统之间）
+        line2 = QWidget()
+        line2.setFixedHeight(2)
+        line2.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
+        menu_layout.addWidget(line2)
         
-        # 系统区域"
+        # ========== 系统区域 ==========
+        # 第一行：标题 + 按钮水平对齐（高度相同）
+        sys_row = QHBoxLayout()
+        sys_row.setSpacing(5)
+        sys_row.setContentsMargins(0, 0, 0, 0)  # 无边距
+        
         sys_label = QLabel("系统")
-        sys_label.setStyleSheet("color: #DDA0DD; font-size: 13px; font-weight: bold; margin-top: 5px;")
-        menu_layout.addWidget(sys_label)
+        sys_label.setObjectName("category_label")
+        sys_label.setFixedHeight(32)  # 与按钮高度一致
+        sys_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 垂直居中
+        sys_row.addWidget(sys_label)
 
         self.top_btn = QPushButton("取消置顶" if self.is_on_top else "置顶")
+        self.top_btn.setFixedWidth(150)  # 统一宽度
+        self.top_btn.setFixedHeight(32)  # 统一高度
         self.top_btn.clicked.connect(self._toggle_top)
-        menu_layout.addWidget(self.top_btn)
+        sys_row.addWidget(self.top_btn)
+        
+        menu_layout.addLayout(sys_row)
 
         click_checkbox = QCheckBox("允许点击交互")
         click_checkbox.setChecked(True)
         click_checkbox.stateChanged.connect(self._on_click_toggle)
         menu_layout.addWidget(click_checkbox)
         
-        line_sys = QWidget()
-        line_sys.setFixedHeight(1)
-        line_sys.setStyleSheet("background-color: rgba(106, 106, 126, 0.3);")
-        menu_layout.addWidget(line_sys)
-
         quit_btn = QPushButton("退出")
+        quit_btn.setFixedWidth(150)  # 统一宽度
+        quit_btn.setFixedHeight(32)  # 统一高度
         quit_btn.clicked.connect(self._on_quit)
         quit_btn.setStyleSheet("""
             QPushButton {
-                background-color: #8a4a4a;
-                color: white;
+                background-color: #d4a5a5;
+                color: #8a4a4a;
                 border: none;
-                padding: 8px;
+                padding: 8px 10px;
+                font-weight: bold;
+                font-size: 13px;
                 border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #aa5a5a;
+                background-color: #e4b5b5;
             }
         """)
         menu_layout.addWidget(quit_btn)

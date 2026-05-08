@@ -173,6 +173,13 @@ class ResourceManager:
             }}
         """)
         
+        # 强制设置字体为粗体（CSS可能不生效）
+        from PyQt5.QtGui import QFont
+        font = text_label.font()
+        font.setBold(True)
+        font.setPointSize(font_size)
+        text_label.setFont(font)
+        
         # 绝对定位：文字完全居中显示在图标上
         text_label.setGeometry(0, 0, size.width(), size.height())
         text_label.setAlignment(Qt.AlignCenter)  # 水平和垂直都居中

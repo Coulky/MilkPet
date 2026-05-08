@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_saved": "2026-05-08 19:47:14",
+  "last_saved": "2026-05-08 20:05:33",
   "game_stats": {
     "huarongdao": {
       "game_id": "huarongdao",
@@ -32,18 +32,18 @@
     }
   },
   "player_stats": {
-    "total_session_time": 0,
+    "total_session_time": 120,
     "sessions_count": 1,
     "pet_interactions": 0,
-    "menu_opens": 0,
+    "menu_opens": 2,
     "items_used": 0,
     "items_collected": 0,
     "unique_items": 0,
     "gold_earned": 0,
     "gold_spent": 0,
     "achievements_unlocked": 0,
-    "first_login_date": "2026-05-08 19:46:24",
-    "last_login_date": "2026-05-08 19:46:24"
+    "first_login_date": "2026-05-08 20:03:26",
+    "last_login_date": "2026-05-08 20:03:26"
   },
   "achievements": {
     "hr_first_win": {

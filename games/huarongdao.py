@@ -191,12 +191,17 @@ class HuaRongDao(QWidget):
         )
         button_layout.addWidget(new_game_btn)
 
-        # 难度选择区域（水平布局：难度标签 + 下拉框）
-        difficulty_h_layout = QHBoxLayout()
-        difficulty_h_layout.setSpacing(2)  # 间距2px
+        # 难度选择区域（使用容器包裹，去掉隐藏间隔）
+        from PyQt5.QtWidgets import QWidget
+        difficulty_container = QWidget()
+        difficulty_container.setStyleSheet("background: transparent;")
+        
+        difficulty_h_layout = QHBoxLayout(difficulty_container)
+        difficulty_h_layout.setContentsMargins(0, 0, 0, 0)  # 去掉容器边距
+        difficulty_h_layout.setSpacing(2)  # 标签与下拉框间距
         
         diff_label = QLabel("难度:")
-        diff_label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
+        diff_label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent; padding-right: 0px; margin-right: 0px;")
         difficulty_h_layout.addWidget(diff_label)
 
         self.difficulty_combo = QComboBox()
@@ -243,7 +248,8 @@ class HuaRongDao(QWidget):
         """)
         difficulty_h_layout.addWidget(self.difficulty_combo)
         
-        button_layout.addLayout(difficulty_h_layout)
+        # 将容器添加到按钮布局
+        button_layout.addWidget(difficulty_container)
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",
