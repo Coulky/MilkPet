@@ -18,6 +18,14 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
+from games.secure_storage import SecureStorage
+
+# 导入 PyQt5 用于消息框
+try:
+    from PyQt5.QtWidgets import QMessageBox
+except ImportError:
+    QMessageBox = None
+
 
 class AchievementType(Enum):
     """成就类型"""
@@ -57,11 +65,18 @@ class Achievement:
     
     def to_dict(self) -> Dict:
         """转换为字典"""
-        return asdict(self)
+        data = asdict(self)
+        # 枚举转换为字符串
+        if 'achievement_type' in data and data['achievement_type']:
+            data['achievement_type'] = data['achievement_type'].value
+        return data
     
     @classmethod
     def from_dict(cls, data: Dict) -> 'Achievement':
         """从字典创建"""
+        # 字符串转换回枚举
+        if 'achievement_type' in data and data['achievement_type']:
+            data['achievement_type'] = AchievementType(data['achievement_type'])
         return cls(**data)
 
 
@@ -168,14 +183,19 @@ class PlayerStats:
 
 
 class StatisticsManager:
-    """统计数据管理器"""
+    """统计数据管理器（包含背包和分数）"""
     
-    SAVE_FILE = "player_data.json"
+    SAVE_FILE = "player_data.dat"
     
     def __init__(self):
         self.game_stats: Dict[str, GameStats] = {}
         self.player_stats = PlayerStats()
         self.achievements: Dict[str, Achievement] = {}
+        self.storage = SecureStorage(app_name="MilkPet", data_file=self.SAVE_FILE)
+        
+        # 背包和分数数据
+        self.inventory_data: Dict[str, int] = {}
+        self.player_score: int = 0
         
         self._initialize_default_stats()
         self._initialize_achievements()
@@ -465,36 +485,31 @@ class StatisticsManager:
         }
     
     def save_data(self):
-        """保存数据到文件"""
+        """保存数据到文件（加密）"""
         try:
             data = {
                 'version': '1.0',
                 'last_saved': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'game_stats': {k: v.to_dict() for k, v in self.game_stats.items()},
                 'player_stats': self.player_stats.to_dict(),
-                'achievements': {k: v.to_dict() for k, v in self.achievements.items()}
+                'achievements': {k: v.to_dict() for k, v in self.achievements.items()},
+                'inventory': dict(self.inventory_data),
+                'player_score': self.player_score
             }
             
-            save_path = self._get_save_path()
-            with open(save_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            
-            print(f"[OK] 数据已保存到: {save_path}")
+            self.storage.save_encrypted_data(data)
             
         except Exception as e:
             print(f"[ERROR] 保存数据失败: {e}")
     
     def load_data(self):
-        """从文件加载数据"""
+        """从文件加载数据（解密）"""
         try:
-            save_path = self._get_save_path()
+            data = self.storage.load_encrypted_data()
             
-            if not os.path.exists(save_path):
-                print("[INFO] 未找到存档文件，使用默认数据")
+            if data is None:
+                print("[INFO] 使用默认数据")
                 return
-            
-            with open(save_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
             
             # 加载游戏统计
             if 'game_stats' in data:
@@ -511,19 +526,42 @@ class StatisticsManager:
                     if ach_id in self.achievements:
                         self.achievements[ach_id] = Achievement.from_dict(ach_data)
             
-            print(f"[OK] 数据已加载: {save_path}")
+            # 加载背包数据
+            if 'inventory' in data:
+                self.inventory_data = data['inventory']
+                print(f"[OK] 背包数据已加载: {len(self.inventory_data)} 种道具")
+            
+            # 加载分数数据
+            if 'player_score' in data:
+                self.player_score = data['player_score']
+                print(f"[OK] 分数已加载: {self.player_score} 分")
             
         except Exception as e:
             print(f"[ERROR] 加载数据失败: {e}")
     
-    def _get_save_path(self) -> str:
-        """获取保存文件路径"""
-        if getattr(sys, 'frozen', False):
-            base_path = os.path.dirname(sys.executable)
-        else:
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
-        return os.path.join(base_path, self.SAVE_FILE)
+    def get_inventory_data(self) -> Dict[str, int]:
+        """获取背包数据"""
+        return dict(self.inventory_data)
+    
+    def set_inventory_data(self, data: Dict[str, int]):
+        """设置背包数据"""
+        self.inventory_data = dict(data)
+        self.save_data()
+    
+    def get_player_score(self) -> int:
+        """获取玩家分数"""
+        return self.player_score
+    
+    def set_player_score(self, score: int):
+        """设置玩家分数"""
+        self.player_score = score
+        self.save_data()
+    
+    def add_player_score(self, amount: int) -> int:
+        """增加玩家分数"""
+        self.player_score += amount
+        self.save_data()
+        return self.player_score
     
     def reset_all_data(self):
         """重置所有数据"""

@@ -182,7 +182,8 @@ class HuaRongDao(QWidget):
 
         # 按钮区域放在上面（新游戏、难度选择、关闭）
         button_layout = QHBoxLayout()
-        button_layout.setSpacing(15)
+        button_layout.setSpacing(8)
+        button_layout.addStretch(1)  # 左侧拉伸，让内容居中
 
         new_game_btn = self.resource_manager.create_styled_button(
             text="新游戏",
@@ -191,17 +192,20 @@ class HuaRongDao(QWidget):
         )
         button_layout.addWidget(new_game_btn)
 
-        # 难度选择区域（使用容器包裹，去掉隐藏间隔）
+        # 难度选择区域（使用容器包裹，设置固定宽度，内容居中）
         from PyQt5.QtWidgets import QWidget
         difficulty_container = QWidget()
         difficulty_container.setStyleSheet("background: transparent;")
+        difficulty_container.setFixedWidth(180)  # 设置固定宽度
         
         difficulty_h_layout = QHBoxLayout(difficulty_container)
         difficulty_h_layout.setContentsMargins(0, 0, 0, 0)  # 去掉容器边距
         difficulty_h_layout.setSpacing(2)  # 标签与下拉框间距
         
+        difficulty_h_layout.addStretch(1)  # 左侧拉伸
+        
         diff_label = QLabel("难度:")
-        diff_label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent; padding-right: 0px; margin-right: 0px;")
+        diff_label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
         difficulty_h_layout.addWidget(diff_label)
 
         self.difficulty_combo = QComboBox()
@@ -210,8 +214,8 @@ class HuaRongDao(QWidget):
         self.difficulty_combo.addItem("5x5", 5)
         self.difficulty_combo.setCurrentIndex(1)
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
-        self.difficulty_combo.setFixedWidth(65)  # 缩小宽度
-        self.difficulty_combo.setFixedHeight(30)  # 缩小高度
+        self.difficulty_combo.setFixedWidth(45)  # 固定宽度
+        self.difficulty_combo.setFixedHeight(30)  # 固定高度
         # 浅粉色主题样式（更浅的粉色）
         self.difficulty_combo.setStyleSheet("""
             QComboBox {
@@ -248,6 +252,8 @@ class HuaRongDao(QWidget):
         """)
         difficulty_h_layout.addWidget(self.difficulty_combo)
         
+        difficulty_h_layout.addStretch(1)  # 右侧拉伸，让内容居中
+        
         # 将容器添加到按钮布局
         button_layout.addWidget(difficulty_container)
 
@@ -257,6 +263,8 @@ class HuaRongDao(QWidget):
             size=QSize(100, 100)  # 放大一倍
         )
         button_layout.addWidget(close_btn)
+        
+        button_layout.addStretch(1)  # 右侧拉伸，让左右边距相等
 
         main_layout.addLayout(button_layout)
 

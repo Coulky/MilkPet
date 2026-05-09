@@ -16,7 +16,7 @@ import sys
 from PyQt5.QtWidgets import (QWidget, QLabel, QMenu, QAction,
                              QVBoxLayout, QHBoxLayout, QPushButton, 
                              QCheckBox, QMessageBox, QApplication, 
-                             QScrollArea)
+                             QScrollArea, QSizePolicy)
 from PyQt5.QtCore import Qt, QPoint, QTimer
 
 from games.pet_display import PetDisplay
@@ -59,8 +59,8 @@ class DesktopPet(PetDisplay):
         self.shop_window: ShopWindow = None
         self.stats_manager = StatisticsManager()
         
-        # 玩家分数
-        self.player_score = 0
+        # 玩家分数（从统计管理器获取）
+        self.player_score = self.stats_manager.get_player_score()
         
         # 定时器：用于统计在线时间
         self.session_timer = QTimer()
@@ -119,168 +119,196 @@ class DesktopPet(PetDisplay):
         menu_layout.setContentsMargins(10, 10, 10, 10)
         self.menu_widget.setLayout(menu_layout)
 
+        # 布局常量（改为实例属性）
+        self._title_container_width = 50  # 标题容器宽度
+        self._title_container_height = 32  # 标题容器高度
+        self._title_spacing = 0  # 标题容器内部间距
+        self._title_font_size = 18  # 标题字号
+        self._button_container_width = 100  # 按钮容器宽度
+        self._category_top_margin = 0  # 分类容器上边界间距
+        self._category_left_margin = 0  # 分类容器左边界间距
+
         menu_style = """
-            QPushButton {
+            QPushButton {{
                 background-color: #fad8d1;
                 color: #8a8070;
-                border: none;
+                border: 1px solid #FFB6C1;
                 border-radius: 6px;
                 padding: 8px 10px;
                 font-size: 13px;
                 font-weight: bold;
-                text-align: left;
-            }
-            QPushButton:hover {
+                text-align: center;
+            }}
+            QPushButton:hover {{
                 background-color: #FFE4E9;
-            }
-            QPushButton:pressed {
+                border-color: #FFC0CB;
+            }}
+            QPushButton:pressed {{
                 background-color: #FFC0CB;
-            }
-            QWidget#menu_container {
+                border-color: #FFB6C1;
+            }}
+            QWidget#menu_container {{
                 background-color: rgba(43, 43, 54, 0.95);
                 border: 2px solid rgba(106, 106, 126, 0.95);
                 border-radius: 10px;
-            }
-            QLabel#category_label {
+            }}
+            QLabel#category_label {{
                 color: #8a8070;
-                font-size: 15px;
+                font-size: {0}px;
                 font-weight: bold;
-                padding: 5px 0px 2px 5px;
-                margin-top: 8px;
-            }
-            QCheckBox {
+                padding: 0px;
+                margin: 0px;
+                min-height: {1}px;
+            }}
+            QCheckBox {{
                 color: white;
                 font-size: 13px;
                 spacing: 8px;
-            }
-            QCheckBox::indicator {
+            }}
+            QCheckBox::indicator {{
                 width: 18px;
                 height: 18px;
                 border-radius: 4px;
                 border: 2px solid #888;
                 background-color: #333;
-            }
-            QCheckBox::indicator:checked {
+            }}
+            QCheckBox::indicator:checked {{
                 background-color: #5a9a5a;
                 border-color: #7aba7a;
-            }
-        """
+            }}
+            QWidget#category_container {{
+                background: transparent;
+            }}
+        """.format(self._title_font_size, self._title_container_height)
         self.menu_widget.setStyleSheet(menu_style)
         self.menu_widget.setObjectName("menu_container")
         
-        # 设置主布局间距
-        menu_layout.setSpacing(4)  # 分类内按钮间距4px
+        # ========== 分类数据 ==========
+        # 按钮项格式: {"name": "按钮名称", "callback": 触发方法, "special_style": 特殊样式(可选)}
+        # 特殊组件格式: {"type": "checkbox", "name": "复选框名称", "callback": 触发方法, "checked": 默认状态}
         
-        # ========== 娱乐区域 ==========
-        # 第一行：标题 + 按钮水平对齐（高度相同）
-        game_row = QHBoxLayout()
-        game_row.setSpacing(5)
-        game_row.setContentsMargins(0, 0, 0, 0)  # 无边距
+        categories = [
+            {
+                "label": "娱乐",
+                "items": [
+                    {"name": "数字华容道", "callback": self._on_huarong},
+                    {"name": "数独", "callback": self._on_sudoku},
+                ]
+            },
+            {
+                "label": "功能",
+                "items": [
+                    {"name": "背包", "callback": self._on_backpack},
+                    {"name": "商城", "callback": self._on_shop},
+                ]
+            },
+            {
+                "label": "系统",
+                "items": [
+                    {"name": "取消置顶" if self.is_on_top else "置顶", "callback": self._toggle_top, "ref": "top_btn"},
+                    {"type": "checkbox", "name": "允许点击交互", "callback": self._on_click_toggle, "checked": True},
+                    {"name": "退出", "callback": self._on_quit, "special_style": "warning"},
+                ]
+            },
+        ]
         
-        game_label = QLabel("娱乐")
-        game_label.setObjectName("category_label")
-        game_label.setFixedHeight(32)  # 与按钮高度一致
-        game_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 垂直居中
-        game_row.addWidget(game_label)
-
-        huarong_btn = QPushButton("数字华容道")
-        huarong_btn.setFixedWidth(150)  # 统一宽度
-        huarong_btn.setFixedHeight(32)  # 统一高度
-        huarong_btn.clicked.connect(self._on_huarong)
-        game_row.addWidget(huarong_btn)
+        # ========== 渲染分类 ==========
+        for i, category in enumerate(categories):
+            category_widget = self._create_category(category["label"], category["items"])
+            menu_layout.addWidget(category_widget)
+            
+            # 添加分隔线（最后一个分类不加）
+            if i < len(categories) - 1:
+                line = self._create_divider()
+                menu_layout.addWidget(line)
         
-        menu_layout.addLayout(game_row)
-
-        # 后续按钮（与第一行按钮左对齐）
-        sudoku_btn = QPushButton("数独")
-        sudoku_btn.setFixedWidth(150)  # 统一宽度
-        sudoku_btn.setFixedHeight(32)  # 统一高度
-        sudoku_btn.clicked.connect(self._on_sudoku)
-        menu_layout.addWidget(sudoku_btn)
+        # 设置菜单最小宽度，避免右侧出现深色背景
+        self.menu_widget.adjustSize()
+        self.menu_widget.setMinimumWidth(self.menu_widget.sizeHint().width())
+    
+    def _create_category(self, label, items):
+        """创建分类组件"""
+        # 分类容器（标题容器 + 按钮容器，左右排列）
+        category = QWidget()
+        category.setObjectName("category_container")
+        # 设置动态高度：内容决定高度，不扩展
+        category.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         
-        # 粉色分隔线（娱乐与功能之间）
-        line1 = QWidget()
-        line1.setFixedHeight(2)
-        line1.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
-        menu_layout.addWidget(line1)
+        category_layout = QHBoxLayout(category)
+        category_layout.setSpacing(3)
+        category_layout.setContentsMargins(self._category_left_margin, self._category_top_margin, 0, 0)
         
-        # ========== 功能区域 ==========
-        # 第一行：标题 + 按钮水平对齐（高度相同）
-        func_row = QHBoxLayout()
-        func_row.setSpacing(5)
-        func_row.setContentsMargins(0, 0, 0, 0)  # 无边距
+        # 标题容器（左侧）- 设置固定高度等于按钮高度，避免空白
+        title_container = QWidget()
+        title_container.setFixedWidth(self._title_container_width)
+        title_container.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        title_layout = QVBoxLayout(title_container)
+        title_layout.setSpacing(self._title_spacing)
+        title_layout.setContentsMargins(0, 0, 0, 0)
         
-        func_label = QLabel("功能")
-        func_label.setObjectName("category_label")
-        func_label.setFixedHeight(32)  # 与按钮高度一致
-        func_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 垂直居中
-        func_row.addWidget(func_label)
-
-        backpack_btn = QPushButton("背包")
-        backpack_btn.setFixedWidth(150)  # 统一宽度
-        backpack_btn.setFixedHeight(32)  # 统一高度
-        backpack_btn.clicked.connect(self._on_backpack)
-        func_row.addWidget(backpack_btn)
+        label_widget = QLabel(label)
+        label_widget.setObjectName("category_label")
+        # 设置标题高度等于按钮高度，保持一致
+        label_widget.setFixedHeight(32)
+        label_widget.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        title_layout.addWidget(label_widget)
         
-        menu_layout.addLayout(func_row)
-
-        # 后续按钮（与第一行按钮左对齐）
-        shop_btn = QPushButton("商城")
-        shop_btn.setFixedWidth(150)  # 统一宽度
-        shop_btn.setFixedHeight(32)  # 统一高度
-        shop_btn.clicked.connect(self._on_shop)
-        menu_layout.addWidget(shop_btn)
-
-        # 粉色分隔线（功能与系统之间）
-        line2 = QWidget()
-        line2.setFixedHeight(2)
-        line2.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
-        menu_layout.addWidget(line2)
+        category_layout.addWidget(title_container, alignment=Qt.AlignTop)
         
-        # ========== 系统区域 ==========
-        # 第一行：标题 + 按钮水平对齐（高度相同）
-        sys_row = QHBoxLayout()
-        sys_row.setSpacing(5)
-        sys_row.setContentsMargins(0, 0, 0, 0)  # 无边距
+        # 按钮容器（右侧，垂直排列）
+        btn_container = QWidget()
+        btn_layout = QVBoxLayout(btn_container)
+        btn_layout.setSpacing(4)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
         
-        sys_label = QLabel("系统")
-        sys_label.setObjectName("category_label")
-        sys_label.setFixedHeight(32)  # 与按钮高度一致
-        sys_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # 垂直居中
-        sys_row.addWidget(sys_label)
-
-        self.top_btn = QPushButton("取消置顶" if self.is_on_top else "置顶")
-        self.top_btn.setFixedWidth(150)  # 统一宽度
-        self.top_btn.setFixedHeight(32)  # 统一高度
-        self.top_btn.clicked.connect(self._toggle_top)
-        sys_row.addWidget(self.top_btn)
+        # 渲染按钮和特殊组件
+        for item in items:
+            if item.get("type") == "checkbox":
+                # 复选框
+                checkbox = QCheckBox(item["name"])
+                checkbox.setChecked(item.get("checked", False))
+                checkbox.stateChanged.connect(item["callback"])
+                btn_layout.addWidget(checkbox)
+            else:
+                # 普通按钮
+                btn = QPushButton(item["name"])
+                btn.setFixedWidth(self._button_container_width)
+                btn.setFixedHeight(32)
+                btn.clicked.connect(item["callback"])
+                
+                # 特殊样式
+                if item.get("special_style") == "warning":
+                    btn.setStyleSheet("""
+                        QPushButton {
+                            background-color: #d4a5a5;
+                            color: #8a4a4a;
+                            border: none;
+                            padding: 8px 10px;
+                            font-weight: bold;
+                            font-size: 13px;
+                            border-radius: 6px;
+                        }
+                        QPushButton:hover {
+                            background-color: #e4b5b5;
+                        }
+                    """)
+                
+                btn_layout.addWidget(btn)
+                
+                # 保存引用
+                if item.get("ref"):
+                    setattr(self, item["ref"], btn)
         
-        menu_layout.addLayout(sys_row)
-
-        click_checkbox = QCheckBox("允许点击交互")
-        click_checkbox.setChecked(True)
-        click_checkbox.stateChanged.connect(self._on_click_toggle)
-        menu_layout.addWidget(click_checkbox)
+        category_layout.addWidget(btn_container, alignment=Qt.AlignTop)
         
-        quit_btn = QPushButton("退出")
-        quit_btn.setFixedWidth(150)  # 统一宽度
-        quit_btn.setFixedHeight(32)  # 统一高度
-        quit_btn.clicked.connect(self._on_quit)
-        quit_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #d4a5a5;
-                color: #8a4a4a;
-                border: none;
-                padding: 8px 10px;
-                font-weight: bold;
-                font-size: 13px;
-                border-radius: 6px;
-            }
-            QPushButton:hover {
-                background-color: #e4b5b5;
-            }
-        """)
-        menu_layout.addWidget(quit_btn)
+        return category
+    
+    def _create_divider(self):
+        """创建粉色分隔线"""
+        line = QWidget()
+        line.setFixedHeight(2)
+        line.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
+        return line
     
     def _give_starter_pack(self):
         """赠送新手礼包"""
@@ -539,7 +567,7 @@ class DesktopPet(PetDisplay):
             
             # 增加玩家分数
             if score > 0:
-                self.player_score += score
+                self.player_score = self.stats_manager.add_player_score(score)
                 print(f"💰 获得分数: {score} 分, 总分: {self.player_score} 分")
             
                 QMessageBox.information(
@@ -572,6 +600,11 @@ class DesktopPet(PetDisplay):
         if not self.inventory_window or not self.inventory_window.isVisible():
             self._close_all_windows()
             self.inventory_window = InventoryWindow(parent=None)
+
+            # 加载背包数据
+            saved_inventory = self.stats_manager.get_inventory_data()
+            if saved_inventory:
+                self.inventory_window.load_inventory_data(saved_inventory)
 
             # 连接信号
             self.inventory_window.item_used.connect(self._on_item_used)
@@ -623,8 +656,9 @@ class DesktopPet(PetDisplay):
     def _on_inventory_closed(self):
         """背包关闭时保存数据"""
         if self.inventory_window:
-            # 可以在这里保存背包数据
-            pass
+            # 保存背包数据
+            inventory_data = self.inventory_window.get_inventory_data()
+            self.stats_manager.set_inventory_data(inventory_data)
     
     def _on_shop(self):
         """打开商店"""
@@ -659,6 +693,12 @@ class DesktopPet(PetDisplay):
     def _on_item_purchased(self, item_id: str, price: int):
         """物品购买成功"""
         print(f"🛒 购买物品: {item_id}, 价格: {price}")
+        
+        # 扣除分数（负数表示扣除）
+        self.player_score = self.stats_manager.add_player_score(-price)
+        
+        # 记录消费
+        self.stats_manager.player_stats.gold_spent += price
         
         # 添加到背包
         if self.inventory_window:
