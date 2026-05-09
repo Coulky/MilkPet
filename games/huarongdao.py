@@ -9,6 +9,9 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QSize, QTimer
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 
+from config.styles import Colors
+from widgets import GameSuccessWindow
+
 
 class HuaRongDao(QWidget):
     """数字华容道游戏 - 独立窗口
@@ -216,39 +219,40 @@ class HuaRongDao(QWidget):
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
         self.difficulty_combo.setFixedWidth(45)  # 固定宽度
         self.difficulty_combo.setFixedHeight(30)  # 固定高度
-        # 浅粉色主题样式（更浅的粉色）
-        self.difficulty_combo.setStyleSheet("""
-            QComboBox {
-                background-color: #fad8d1;  /* 更浅的粉色 */
-                color: #8a8070;
-                border: 1px solid #FFB6C1;  /* 柔和粉色边框 */
+        # 浅粉色主题样式（使用通用样式配置）
+        pink_text = Colors.PINK_TEXT
+        self.difficulty_combo.setStyleSheet(f"""
+            QComboBox {{
+                background-color: #fad8d1;
+                color: {pink_text};
+                border: 1px solid #FFB6C1;
                 border-radius: 4px;
                 padding: 2px;
                 font-weight: bold;
                 font-size: 13px;
-            }
-            QComboBox:hover {
+            }}
+            QComboBox:hover {{
                 background-color: #FFE8EC;
                 border-color: #FFC0CB;
-            }
-            QComboBox::drop-down {
+            }}
+            QComboBox::drop-down {{
                 border: none;
                 width: 20px;
-            }
-            QComboBox::down-arrow {
+            }}
+            QComboBox::down-arrow {{
                 image: none;
                 border-left: 4px solid transparent;
                 border-right: 4px solid transparent;
-                border-top: 6px solid #8a8070;
+                border-top: 6px solid {pink_text};
                 margin-right: 8px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #FFF5F7;  /* 非常浅的粉色背景 */
-                color: #8a8070;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: #FFF5F7;
+                color: {pink_text};
                 selection-background-color: #fad8d1;
-                selection-color: #8a8070;
+                selection-color: {pink_text};
                 font-weight: bold;
-            }
+            }}
         """)
         difficulty_h_layout.addWidget(self.difficulty_combo)
         
@@ -400,10 +404,11 @@ class HuaRongDao(QWidget):
         self.timer.stop()
         self.is_timer_running = False
         
-        # 计算分数
+        # 计算分数（喵币）
         difficulty_config = self.difficulty_settings.get(self.grid_size, {})
         base_score = difficulty_config.get("base_score", 100)
         time_bonus = difficulty_config.get("time_bonus", 1.0)
+        difficulty_name = difficulty_config.get("name", "普通")
         
         # 时间奖励：越快完成分数越高（基于时间奖励系数）
         time_score = max(0, int(base_score * time_bonus * (1 - self.elapsed_time / 600)))  # 10分钟内完成有奖励
@@ -414,30 +419,30 @@ class HuaRongDao(QWidget):
         
         total_score = int((base_score + time_score) * move_efficiency)
         
-        minutes = self.elapsed_time // 60
-        seconds = self.elapsed_time % 60
-        time_str = f"{minutes:02d}:{seconds:02d}"
-        
-        msg = QMessageBox(self)
-        msg.setIcon(QMessageBox.Information)
-        msg.setWindowTitle("恭喜！")
-        msg.setText(
-            f"你赢了！\n\n"
-            f"用时: {time_str}\n"
-            f"步数: {self.move_count}\n"
-            f"难度: {difficulty_config.get('name', '普通')}\n\n"
-            f"获得分数: {total_score} 分"
+        # 创建游戏成功窗口
+        self.success_window = GameSuccessWindow(
+            game_name="数字华容道",
+            difficulty=difficulty_name,
+            time_seconds=self.elapsed_time,
+            score=total_score
         )
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Retry)
-        msg.button(QMessageBox.Retry).setText("再来一局")
+        self.success_window.confirmed.connect(self._on_game_success_confirmed)
+        self.success_window.show()
         
-        result = msg.exec_()
-        
-        if result == QMessageBox.Retry:
-            self._new_game()
-        
-        # 发出得分信号
+        # 发送游戏胜利信号
         self.game_won.emit(total_score, self.elapsed_time)
+    
+    def _on_game_success_confirmed(self):
+        """游戏成功窗口确认处理"""
+        # 关闭除桌宠以外的所有窗口
+        app = QApplication.instance()
+        for window in app.topLevelWidgets():
+            # 保留桌宠主窗口，关闭其他窗口
+            if window != self.parent() and not hasattr(window, 'is_pet_main'):
+                window.close()
+        
+        # 关闭当前游戏窗口
+        self.close()
     
     def _show_hint(self):
         QMessageBox.information(

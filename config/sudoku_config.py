@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-数独谜题配置
+数独游戏配置文件
+
+存放数独游戏的所有配置项，包括难度设置、谜题模板等
 从 GD 文件 scripts/games/sudoku/SudokuPuzzles.gd 转换
 """
 
+# ===== 网格配置 =====
 GRID_SIZE = 9
 
+# ===== 预设谜题 =====
+# 格式：谜题ID -> 一维数组（81个数字，对应9x9网格）
 puzzles = {
     "1": [4, 8, 3, 9, 2, 1, 6, 5, 7, 9, 6, 7, 3, 4, 5, 8, 2, 1, 2, 5, 1, 8, 7, 6, 4, 9, 3, 5, 4, 8, 1, 3, 2, 9, 7, 6, 7, 2, 9, 5, 6, 4, 1, 3, 8, 1, 3, 6, 7, 9, 8, 2, 4, 5, 3, 7, 2, 6, 8, 9, 5, 1, 4, 8, 1, 4, 2, 5, 3, 7, 6, 9, 6, 9, 5, 4, 1, 7, 3, 8, 2],
     "2": [2, 4, 5, 9, 8, 1, 3, 7, 6, 1, 6, 9, 2, 7, 3, 5, 8, 4, 8, 3, 7, 5, 6, 4, 2, 1, 9, 9, 7, 6, 1, 2, 5, 4, 3, 8, 5, 1, 3, 4, 9, 8, 6, 2, 7, 4, 8, 2, 7, 3, 6, 9, 5, 1, 3, 9, 1, 6, 5, 7, 8, 4, 2, 7, 2, 8, 3, 4, 9, 1, 6, 5, 6, 5, 4, 8, 1, 2, 7, 9, 3],
@@ -30,6 +35,53 @@ puzzles = {
 }
 
 
+# ===== 难度配置 =====
+class DifficultyConfig:
+    """难度配置"""
+    
+    EASY = {
+        "name": "简单",
+        "cells_to_remove": 35,
+        "time_limit": 300,
+        "score_multiplier": 1.0
+    }
+    
+    MEDIUM = {
+        "name": "普通",
+        "cells_to_remove": 45,
+        "time_limit": 450,
+        "score_multiplier": 1.5
+    }
+    
+    HARD = {
+        "name": "困难",
+        "cells_to_remove": 55,
+        "time_limit": 600,
+        "score_multiplier": 2.0
+    }
+
+
+# ===== 游戏配置 =====
+class GameConfig:
+    """游戏配置"""
+    
+    # 是否允许提示
+    ALLOW_HINTS = True
+    
+    # 是否显示计时器
+    SHOW_TIMER = True
+    
+    # 是否显示错误高亮
+    SHOW_ERRORS = True
+    
+    # 错误惩罚分数
+    ERROR_PENALTY = 10
+    
+    # 时间奖励分数（每秒）
+    TIME_BONUS = 1
+
+
+# ===== 工具函数 =====
 def get_puzzle(puzzle_id: str):
     """获取指定谜题"""
     return puzzles.get(puzzle_id, [])

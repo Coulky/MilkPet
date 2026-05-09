@@ -12,6 +12,7 @@
 """
 
 import sys
+import os
 
 from PyQt5.QtWidgets import (QWidget, QLabel, QMenu, QAction,
                              QVBoxLayout, QHBoxLayout, QPushButton, 
@@ -87,36 +88,15 @@ class DesktopPet(PetDisplay):
     
     def _setup_menu(self):
         """设置右键菜单"""
-        self.menu_widget = QWidget(self)
-        self.menu_widget.setFixedWidth(220)
-
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
-        self.scroll_area.setWidget(self.menu_widget)
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setFixedWidth(250)
-        self.scroll_area.setMinimumHeight(500)
-        self.scroll_area.setMaximumHeight(800)
-        self.scroll_area.hide()
-        
-        # 滚动区域样式（隐藏滚动条）
-        self.scroll_area.setStyleSheet("""
-            QScrollArea {
-                background-color: rgba(43, 43, 54, 0.95);
-                border: 2px solid rgba(106, 106, 126, 0.95);
-                border-radius: 10px;
-            }
-            QScrollBar:vertical {
-                width: 0px;
-            }
-            QScrollBar:horizontal {
-                height: 0px;
-            }
-        """)
+        self.menu_widget = QWidget()
+        self.menu_widget.setFixedWidth(190)
+        self.menu_widget.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
+        self.menu_widget.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
+        self.menu_widget.hide()
         
         menu_layout = QVBoxLayout()
         menu_layout.setSpacing(8)
-        menu_layout.setContentsMargins(10, 10, 10, 10)
+        menu_layout.setContentsMargins(10, 4, 10, 10)
         self.menu_widget.setLayout(menu_layout)
 
         # 布局常量（改为实例属性）
@@ -125,9 +105,12 @@ class DesktopPet(PetDisplay):
         self._title_spacing = 0  # 标题容器内部间距
         self._title_font_size = 18  # 标题字号
         self._button_container_width = 100  # 按钮容器宽度
-        self._category_top_margin = 0  # 分类容器上边界间距
+        self._category_top_margin = 4  # 分类容器上边界间距
         self._category_left_margin = 0  # 分类容器左边界间距
 
+        # 获取背景图路径
+        bg_path = self._get_bg_path()
+        
         menu_style = """
             QPushButton {{
                 background-color: #fad8d1;
@@ -148,9 +131,10 @@ class DesktopPet(PetDisplay):
                 border-color: #FFB6C1;
             }}
             QWidget#menu_container {{
+                background-image: url("{2}");
                 background-color: rgba(43, 43, 54, 0.95);
-                border: 2px solid rgba(106, 106, 126, 0.95);
-                border-radius: 10px;
+                border-radius: 15px;
+                border: 2px solid rgba(106, 106, 126, 0.9);
             }}
             QLabel#category_label {{
                 color: #8a8070;
@@ -159,11 +143,13 @@ class DesktopPet(PetDisplay):
                 padding: 0px;
                 margin: 0px;
                 min-height: {1}px;
+                background: transparent;
             }}
             QCheckBox {{
                 color: white;
                 font-size: 13px;
                 spacing: 8px;
+                background: transparent;
             }}
             QCheckBox::indicator {{
                 width: 18px;
@@ -179,7 +165,7 @@ class DesktopPet(PetDisplay):
             QWidget#category_container {{
                 background: transparent;
             }}
-        """.format(self._title_font_size, self._title_container_height)
+        """.format(self._title_font_size, self._title_container_height, bg_path)
         self.menu_widget.setStyleSheet(menu_style)
         self.menu_widget.setObjectName("menu_container")
         
@@ -236,7 +222,7 @@ class DesktopPet(PetDisplay):
         
         category_layout = QHBoxLayout(category)
         category_layout.setSpacing(3)
-        category_layout.setContentsMargins(self._category_left_margin, self._category_top_margin, 0, 0)
+        category_layout.setContentsMargins(self._category_left_margin, self._category_top_margin, 10, 0)
         
         # 标题容器（左侧）- 设置固定高度等于按钮高度，避免空白
         title_container = QWidget()
@@ -257,6 +243,7 @@ class DesktopPet(PetDisplay):
         
         # 按钮容器（右侧，垂直排列）
         btn_container = QWidget()
+        btn_container.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         btn_layout = QVBoxLayout(btn_container)
         btn_layout.setSpacing(4)
         btn_layout.setContentsMargins(0, 0, 0, 0)
@@ -329,36 +316,49 @@ class DesktopPet(PetDisplay):
         """更新会话时间（每分钟调用）"""
         self.stats_manager.update_play_time(60)
     
+    def _get_bg_path(self):
+        """获取背景图路径"""
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_path, 'assets', 'images', 'background.png').replace('\\', '/')
+    
     def _show_menu(self, pos):
-        """显示菜单 - 固定位置不跟随鼠标"""
+        """显示右键菜单 - 固定位置不跟随鼠标"""
         try:
-            # 固定菜单位置：桌宠右下方
+            # 固定菜单位置：桌宠右侧
             pet_x = self.x()
             pet_y = self.y()
             pet_width = self.width()
             pet_height = self.height()
 
-            # 菜单显示在桌宠右侧偏下
-            x = pet_x + pet_width + 15
-            y = pet_y + 20
+            # 设置菜单高度与桌宠一致
+            self.menu_widget.setFixedHeight(pet_height)
+            
+            # 菜单显示在桌宠右侧，距离更近（5px）
+            x = pet_x + pet_width + 5
+            y = pet_y
 
             # 获取屏幕尺寸确保不超出
             screen = QApplication.instance().primaryScreen().availableGeometry()
+            menu_width = self.menu_widget.width()
+            menu_height = self.menu_widget.height()
             
             # 如果右侧空间不够，显示在左侧
-            if x + 280 > screen.width():
-                x = pet_x - 290
+            if x + menu_width > screen.width():
+                x = pet_x - menu_width - 5
             
             # 如果底部空间不够，向上调整
-            if y + 700 > screen.height():
-                y = screen.height() - 720
+            if y + menu_height > screen.height():
+                y = screen.height() - menu_height
 
             if y < 0:
                 y = 10
 
-            self.scroll_area.move(x, y)
-            self.scroll_area.show()
-            self.scroll_area.raise_()
+            self.menu_widget.move(x, y)
+            self.menu_widget.show()
+            self.menu_widget.raise_()
 
             # 记录菜单打开次数
             self.stats_manager.record_interaction("menu")
@@ -378,7 +378,7 @@ class DesktopPet(PetDisplay):
             event.accept()
             
             if self.menu_widget.isVisible():
-                self.scroll_area.hide()
+                self.menu_widget.hide()
             
             # 记录互动"
             self.stats_manager.record_interaction("pet")
@@ -432,7 +432,7 @@ class DesktopPet(PetDisplay):
         if visible:
             self.show()
         
-        self.scroll_area.hide()
+        self.menu_widget.hide()
     
     def _on_click_toggle(self, state):
         "切换点击交互"
@@ -505,7 +505,7 @@ class DesktopPet(PetDisplay):
     def _on_huarong(self):
         """打开华容道游戏"""
         print("HuaRong Dao clicked")
-        self.scroll_area.hide()
+        self.menu_widget.hide()
 
         try:
             self._close_all_windows()
@@ -532,7 +532,7 @@ class DesktopPet(PetDisplay):
     def _on_sudoku(self):
         """打开数独游戏"""
         print("Sudoku clicked")
-        self.scroll_area.hide()
+        self.menu_widget.hide()
         
         try:
             self._close_all_windows()
@@ -594,7 +594,7 @@ class DesktopPet(PetDisplay):
     def _on_backpack(self):
         """打开背包"""
         print("Opening inventory")
-        self.scroll_area.hide()
+        self.menu_widget.hide()
 
         # 创建或显示背包窗口
         if not self.inventory_window or not self.inventory_window.isVisible():
@@ -663,7 +663,7 @@ class DesktopPet(PetDisplay):
     def _on_shop(self):
         """打开商店"""
         print("Opening shop")
-        self.scroll_area.hide()
+        self.menu_widget.hide()
 
         try:
             # 创建或显示商店窗口
@@ -715,7 +715,7 @@ class DesktopPet(PetDisplay):
     def _on_statistics(self):
         """显示统计数据"""
         print("📊 Showing statistics")
-        self.scroll_area.hide()
+        self.menu_widget.hide()
         
         # 获取统计数据
         player_summary = self.stats_manager.get_player_summary()
@@ -809,7 +809,7 @@ class DesktopPet(PetDisplay):
     def _on_settings(self):
         """设置页面"""
         print("[INFO] Settings clicked")
-        self.scroll_area.hide()
+        self.menu_widget.hide()
         
         from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSlider
         
@@ -949,7 +949,7 @@ class DesktopPet(PetDisplay):
             about_text,
             QMessageBox.Ok
         )
-        self.scroll_area.hide()
+        self.menu_widget.hide()
     
     def _on_quit(self):
         "退出应用"
