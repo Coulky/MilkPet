@@ -2,26 +2,26 @@
 """
 道具系统模块
 
-定义所有道具类型和属性：
-- 食物类：恢复心情值、增加饱食度
-- 功能道具：游戏辅助功能
-- 装饰品：桌宠外观变化
-- 特殊道具：解锁成就、获得奖励
+物品分类：
+- 食物 (food)：提升饱食度 + 保护不降
+- 饮品 (drink)：提升饥渴值 + 保护不降
+- 玩具 (toy)：提升心情 + 保护不降
+- 装饰 (decoration)：仅装饰，可设置有效期/永久，每槽位一个
 """
 
 import sys
 import os
 from enum import Enum
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Callable
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 
 class ItemType(Enum):
     """道具类型枚举"""
-    FOOD = "food"           # 食物
-    CONSUMABLE = "consumable"  # 消耗品（功能道具）
-    DECORATION = "decoration"  # 装饰品
-    SPECIAL = "special"      # 特殊道具
+    FOOD = "food"
+    DRINK = "drink"
+    TOY = "toy"
+    DECORATION = "decoration"
 
 
 class ItemRarity(Enum):
@@ -30,34 +30,10 @@ class ItemRarity(Enum):
     RARE = ("稀有", "#4A9EFF")
     EPIC = ("史诗", "#A855F7")
     LEGENDARY = ("传说", "#FFB800")
-    
+
     def __init__(self, chinese_name: str, color: str):
         self.chinese_name = chinese_name
         self.color = color
-
-
-@dataclass
-class ItemEffect:
-    """道具效果"""
-    effect_type: str  # mood, hunger, game_hint, skip_level, appearance, achievement
-    value: int = 0
-    description: str = ""
-    
-    def apply(self, target=None) -> str:
-        """应用效果并返回描述"""
-        if self.effect_type == "mood":
-            return f"心情值 +{self.value}"
-        elif self.effect_type == "hunger":
-            return f"饱食度 +{self.value}"
-        elif self.effect_type == "game_hint":
-            return "获得游戏提示"
-        elif self.effect_type == "skip_level":
-            return "跳过当前关卡"
-        elif self.effect_type == "appearance":
-            return f"外观变更：{self.description}"
-        elif self.effect_type == "achievement":
-            return f"解锁成就：{self.description}"
-        return ""
 
 
 @dataclass
@@ -68,60 +44,77 @@ class Item:
     description: str
     item_type: ItemType
     rarity: ItemRarity
-    icon: str  # 图标路径或emoji
-    effects: List[ItemEffect]
+    icon: str
+    boost_value: int = 0                # 立即提升数值
+    protection_duration: float = 0      # 保护不降持续时间（秒），0=无保护
+    decoration_slot: str = ""           # 装饰品槽位 (head/face/body/accessory)
+    decoration_duration: float = 0      # 装饰品有效期（秒），0=永久
     stackable: bool = True
     max_stack: int = 99
-    price: int = 0  # 价格（用于商店）
-    sell_price: int = 0  # 出售价格
-    
+    price: int = 0
+    sell_price: int = 0
+
     def get_display_name(self) -> str:
-        """获取带稀有度的显示名称"""
         return f"{self.name} [{self.rarity.chinese_name}]"
-    
+
     def get_tooltip(self) -> str:
-        """获取道具提示信息"""
         tooltip = f"【{self.get_display_name()}】\n"
         tooltip += f"{self.description}\n\n"
-        
-        if self.effects:
-            tooltip += "效果：\n"
-            for effect in self.effects:
-                tooltip += f"  • {effect.apply()}\n"
-        
+
+        if self.item_type == ItemType.FOOD:
+            tooltip += f"效果：饱食度 +{self.boost_value}\n"
+            if self.protection_duration > 0:
+                mins = int(self.protection_duration / 60)
+                tooltip += f"保护：{mins}分钟内饱食度不降\n"
+        elif self.item_type == ItemType.DRINK:
+            tooltip += f"效果：饥渴值 +{self.boost_value}\n"
+            if self.protection_duration > 0:
+                mins = int(self.protection_duration / 60)
+                tooltip += f"保护：{mins}分钟内饥渴值不降\n"
+        elif self.item_type == ItemType.TOY:
+            tooltip += f"效果：心情 +{self.boost_value}\n"
+            if self.protection_duration > 0:
+                mins = int(self.protection_duration / 60)
+                tooltip += f"保护：{mins}分钟内心情不降\n"
+        elif self.item_type == ItemType.DECORATION:
+            if self.decoration_duration > 0:
+                mins = int(self.decoration_duration / 60)
+                tooltip += f"有效期：{mins}分钟\n"
+            else:
+                tooltip += "有效期：永久\n"
+
         if self.price > 0:
-            tooltip += f"\n💰 价格: {self.price} 金币"
-        
+            tooltip += f"\n💰 价格: {self.price} 喵币"
+
         return tooltip
 
 
 class ItemFactory:
-    """道具工厂 - 创建和管理所有道具"""
-    
+    """道具工厂"""
+
     _items: Dict[str, Item] = {}
-    
+
     @classmethod
     def initialize(cls):
-        """初始化所有道具"""
         cls._create_food_items()
-        cls._create_consumable_items()
+        cls._create_drink_items()
+        cls._create_toy_items()
         cls._create_decoration_items()
-        cls._create_special_items()
-    
+
     @classmethod
     def _create_food_items(cls):
-        """创建食物类道具"""
-        food_items = [
+        items = [
             Item(
                 id="fish",
                 name="🐟 新鲜鱼干",
-                description="桌宠最爱的零食，能显著提升心情",
+                description="桌宠最爱的零食",
                 item_type=ItemType.FOOD,
                 rarity=ItemRarity.COMMON,
                 icon="🐟",
-                effects=[ItemEffect("mood", 20, "心情愉悦"), ItemEffect("hunger", 30, "填饱肚子")],
+                boost_value=20,
+                protection_duration=300,
                 price=10,
-                sell_price=5
+                sell_price=5,
             ),
             Item(
                 id="cake",
@@ -130,20 +123,10 @@ class ItemFactory:
                 item_type=ItemType.FOOD,
                 rarity=ItemRarity.RARE,
                 icon="🎂",
-                effects=[ItemEffect("mood", 35, "非常开心"), ItemEffect("hunger", 40, "大餐")],
+                boost_value=35,
+                protection_duration=600,
                 price=25,
-                sell_price=12
-            ),
-            Item(
-                id="milk",
-                name="🥛 温热牛奶",
-                description="温暖的牛奶，安抚情绪的好帮手",
-                item_type=ItemType.FOOD,
-                rarity=ItemRarity.COMMON,
-                icon="🥛",
-                effects=[ItemEffect("mood", 15, "平静"), ItemEffect("hunger", 20, "小食")],
-                price=8,
-                sell_price=4
+                sell_price=12,
             ),
             Item(
                 id="pizza",
@@ -152,259 +135,252 @@ class ItemFactory:
                 item_type=ItemType.FOOD,
                 rarity=ItemRarity.RARE,
                 icon="🍕",
-                effects=[ItemEffect("mood", 25, "满足"), ItemEffect("hunger", 50, "饱餐")],
+                boost_value=50,
+                protection_duration=900,
                 price=30,
-                sell_price=15
+                sell_price=15,
             ),
             Item(
                 id="star_candy",
                 name="⭐ 星星糖果",
-                description="神奇的糖果，大幅提升各项数值",
+                description="神奇的糖果，大幅提升饱食度",
                 item_type=ItemType.FOOD,
                 rarity=ItemRarity.EPIC,
                 icon="⭐",
-                effects=[ItemEffect("mood", 50, "超级开心"), ItemEffect("hunger", 60, "超级大餐")],
+                boost_value=80,
+                protection_duration=1800,
                 price=80,
-                sell_price=40
+                sell_price=40,
             ),
         ]
-        
-        for item in food_items:
+        for item in items:
             cls._items[item.id] = item
-    
+
     @classmethod
-    def _create_consumable_items(cls):
-        """创建消耗品类道具"""
-        consumable_items = [
+    def _create_drink_items(cls):
+        items = [
             Item(
-                id="hint_scroll",
-                name="📜 提示卷轴",
-                description="在游戏中获得一次智能提示",
-                item_type=ItemType.CONSUMABLE,
+                id="milk",
+                name="🥛 温热牛奶",
+                description="温暖的牛奶，解渴又健康",
+                item_type=ItemType.DRINK,
                 rarity=ItemRarity.COMMON,
-                icon="📜",
-                effects=[ItemEffect("game_hint", 1, "游戏提示")],
-                price=15,
-                sell_price=7
+                icon="🥛",
+                boost_value=20,
+                protection_duration=300,
+                price=8,
+                sell_price=4,
             ),
             Item(
-                id="skip_card",
-                name="⏭️ 跳过关卡卡",
-                description="直接通过当前游戏关卡",
-                item_type=ItemType.CONSUMABLE,
+                id="juice",
+                name="🧃 鲜榨果汁",
+                description="新鲜水果榨汁，清爽解渴",
+                item_type=ItemType.DRINK,
+                rarity=ItemRarity.COMMON,
+                icon="🧃",
+                boost_value=25,
+                protection_duration=360,
+                price=12,
+                sell_price=6,
+            ),
+            Item(
+                id="bubble_tea",
+                name="🧋 珍珠奶茶",
+                description="甜甜的奶茶，幸福感满满",
+                item_type=ItemType.DRINK,
                 rarity=ItemRarity.RARE,
-                icon="⏭️",
-                effects=[ItemEffect("skip_level", 1, "跳过")],
-                price=50,
-                sell_price=25
+                icon="🧋",
+                boost_value=40,
+                protection_duration=720,
+                price=22,
+                sell_price=11,
             ),
             Item(
-                id="time_freeze",
-                name="❄️ 时间冻结",
-                description="冻结游戏计时器30秒",
-                item_type=ItemType.CONSUMABLE,
-                rarity=ItemRarity.RARE,
-                icon="❄️",
-                effects=[ItemEffect("time_freeze", 30, "时间停止")],
-                price=35,
-                sell_price=17
-            ),
-            Item(
-                id="double_score",
-                name="✨ 双倍积分",
-                description="下一局游戏积分翻倍",
-                item_type=ItemType.CONSUMABLE,
+                id="magic_potion",
+                name="🧪 魔法药水",
+                description="神秘的药水，大幅提升饥渴值",
+                item_type=ItemType.DRINK,
                 rarity=ItemRarity.EPIC,
-                icon="✨",
-                effects=[ItemEffect("double_score", 1, "双倍积分")],
-                price=60,
-                sell_price=30
-            ),
-            Item(
-                id="auto_solve",
-                name="🤖 自动求解",
-                description="自动完成当前数独或华容道",
-                item_type=ItemType.CONSUMABLE,
-                rarity=ItemRarity.LEGENDARY,
-                icon="🤖",
-                effects=[ItemEffect("auto_solve", 1, "自动通关")],
-                price=150,
-                sell_price=75
+                icon="🧪",
+                boost_value=70,
+                protection_duration=1500,
+                price=70,
+                sell_price=35,
             ),
         ]
-        
-        for item in consumable_items:
+        for item in items:
             cls._items[item.id] = item
-    
+
+    @classmethod
+    def _create_toy_items(cls):
+        items = [
+            Item(
+                id="yarn_ball",
+                name="� 毛线球",
+                description="猫咪最爱的玩具，玩得不亦乐乎",
+                item_type=ItemType.TOY,
+                rarity=ItemRarity.COMMON,
+                icon="�",
+                boost_value=20,
+                protection_duration=300,
+                price=10,
+                sell_price=5,
+            ),
+            Item(
+                id="feather_wand",
+                name="🪶 羽毛棒",
+                description="逗猫神器，让桌宠兴奋不已",
+                item_type=ItemType.TOY,
+                rarity=ItemRarity.RARE,
+                icon="🪶",
+                boost_value=35,
+                protection_duration=600,
+                price=25,
+                sell_price=12,
+            ),
+            Item(
+                id="puzzle_toy",
+                name="� 益智玩具",
+                description="锻炼脑力的好玩具",
+                item_type=ItemType.TOY,
+                rarity=ItemRarity.RARE,
+                icon="�",
+                boost_value=30,
+                protection_duration=480,
+                price=20,
+                sell_price=10,
+            ),
+            Item(
+                id="golden_bell",
+                name="🔔 金色铃铛",
+                description="闪闪发光的铃铛，让桌宠无比快乐",
+                item_type=ItemType.TOY,
+                rarity=ItemRarity.EPIC,
+                icon="🔔",
+                boost_value=60,
+                protection_duration=1200,
+                price=60,
+                sell_price=30,
+            ),
+        ]
+        for item in items:
+            cls._items[item.id] = item
+
     @classmethod
     def _create_decoration_items(cls):
-        """创建装饰品类道具"""
-        decoration_items = [
+        items = [
             Item(
                 id="crown",
-                name="👑 皇冠",
-                description="让桌宠戴上皇冠，变得尊贵起来",
+                name="� 皇冠",
+                description="尊贵的皇冠",
                 item_type=ItemType.DECORATION,
                 rarity=ItemRarity.EPIC,
-                icon="👑",
-                effects=[ItemEffect("appearance", 0, "戴上皇冠")],
+                icon="�",
+                decoration_slot="head",
+                decoration_duration=0,
                 stackable=False,
                 price=100,
-                sell_price=50
+                sell_price=50,
             ),
             Item(
                 id="glasses",
                 name="🤓 眼镜",
-                description="时尚的眼镜，让桌宠看起来更聪明",
+                description="时尚的眼镜",
                 item_type=ItemType.DECORATION,
                 rarity=ItemRarity.RARE,
                 icon="🤓",
-                effects=[ItemEffect("appearance", 0, "戴上眼镜")],
+                decoration_slot="face",
+                decoration_duration=86400,
                 stackable=False,
                 price=60,
-                sell_price=30
+                sell_price=30,
             ),
             Item(
                 id="hat",
                 name="🎩 礼帽",
-                description="优雅的礼帽，绅士风度满满",
+                description="优雅的礼帽",
                 item_type=ItemType.DECORATION,
                 rarity=ItemRarity.RARE,
                 icon="🎩",
-                effects=[ItemEffect("appearance", 0, "戴上礼帽")],
+                decoration_slot="head",
+                decoration_duration=0,
                 stackable=False,
                 price=55,
-                sell_price=27
+                sell_price=27,
             ),
             Item(
                 id="wings",
                 name="👼 天使之翼",
-                description="神圣的翅膀，让桌宠如天使般美丽",
+                description="神圣的翅膀",
                 item_type=ItemType.DECORATION,
                 rarity=ItemRarity.LEGENDARY,
                 icon="👼",
-                effects=[ItemEffect("appearance", 0, "长出翅膀")],
+                decoration_slot="body",
+                decoration_duration=0,
                 stackable=False,
                 price=200,
-                sell_price=100
+                sell_price=100,
             ),
             Item(
                 id="bow_tie",
                 name="🎀 蝴蝶结",
-                description="可爱的蝴蝶结，增添可爱气息",
+                description="可爱的蝴蝶结",
                 item_type=ItemType.DECORATION,
                 rarity=ItemRarity.COMMON,
                 icon="🎀",
-                effects=[ItemEffect("appearance", 0, "系上蝴蝶结")],
+                decoration_slot="accessory",
+                decoration_duration=3600,
                 stackable=False,
                 price=20,
-                sell_price=10
+                sell_price=10,
             ),
         ]
-        
-        for item in decoration_items:
+        for item in items:
             cls._items[item.id] = item
-    
-    @classmethod
-    def _create_special_items(cls):
-        """创建特殊道具"""
-        special_items = [
-            Item(
-                id="lucky_coin",
-                name="🪙 幸运金币",
-                description="使用后随机获得一件稀有道具",
-                item_type=ItemType.SPECIAL,
-                rarity=ItemRarity.RARE,
-                icon="🪙",
-                effects=[ItemEffect("random_rare_item", 1, "随机稀有道具")],
-                price=100,
-                sell_price=0  # 不可出售
-            ),
-            Item(
-                id="mystery_box",
-                name="🎁 神秘礼盒",
-                description="打开可能获得史诗或传说级道具！",
-                item_type=ItemType.SPECIAL,
-                rarity=ItemRarity.EPIC,
-                icon="🎁",
-                effects=[ItemEffect("random_epic_item", 1, "随机史诗道具")],
-                price=200,
-                sell_price=0
-            ),
-            Item(
-                id="achievement_key",
-                name="🔑 成就钥匙",
-                description="立即解锁一个未完成的成就",
-                item_type=ItemType.SPECIAL,
-                rarity=ItemRarity.LEGENDARY,
-                icon="🔑",
-                effects=[ItemEffect("achievement", 1, "解锁成就")],
-                price=300,
-                sell_price=0
-            ),
-        ]
-        
-        for item in special_items:
-            cls._items[item.id] = item
-    
+
     @classmethod
     def get_item(cls, item_id: str) -> Optional[Item]:
-        """根据ID获取道具"""
         return cls._items.get(item_id)
-    
+
     @classmethod
     def get_all_items(cls) -> Dict[str, Item]:
-        """获取所有道具"""
         return cls._items.copy()
-    
+
     @classmethod
     def get_items_by_type(cls, item_type: ItemType) -> List[Item]:
-        """根据类型获取道具列表"""
         return [item for item in cls._items.values() if item.item_type == item_type]
-    
+
     @classmethod
     def get_random_item(cls, rarity: ItemRarity = None) -> Optional[Item]:
-        """随机获取一个道具"""
         items = list(cls._items.values())
-        
         if rarity:
             items = [item for item in items if item.rarity == rarity]
-        
         if not items:
             return None
-        
         import random
         return random.choice(items)
-    
+
     @classmethod
-    def get_loot_drop(cls) -> Item:
-        """模拟战利品掉落（加权随机）"""
+    def get_loot_drop(cls) -> Optional[Item]:
         import random
-        
         weights = {
             ItemRarity.COMMON: 50,
             ItemRarity.RARE: 30,
             ItemRarity.EPIC: 15,
-            ItemRarity.LEGENDARY: 5
+            ItemRarity.LEGENDARY: 5,
         }
-        
         rand = random.randint(1, 100)
         cumulative = 0
         selected_rarity = ItemRarity.COMMON
-        
         for rarity, weight in weights.items():
             cumulative += weight
             if rand <= cumulative:
                 selected_rarity = rarity
                 break
-        
         items = [item for item in cls._items.values() if item.rarity == selected_rarity]
-        
         if items:
             return random.choice(items)
-        
         return cls.get_random_item()
 
 
-# 初始化道具工厂
 ItemFactory.initialize()

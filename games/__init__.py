@@ -13,8 +13,7 @@
 from .huarongdao import HuaRongDao
 from .sudoku import SudokuGame
 from .inventory import InventoryWindow, InventorySlot
-from .items import (ItemFactory, Item, ItemType, ItemRarity, 
-                    ItemEffect)
+from .items import (ItemFactory, Item, ItemType, ItemRarity)
 from .statistics import (StatisticsManager, Achievement, GameStats, 
                         PlayerStats, AchievementType)
 
@@ -32,7 +31,6 @@ __all__ = [
     'Item',
     'ItemType',
     'ItemRarity',
-    'ItemEffect',
     
     # 统计
     'StatisticsManager',

@@ -314,9 +314,9 @@ class InventoryWindow(QWidget):
         categories = [
             ("all", "全部"),
             ("food", "食物"),
-            ("consumable", "道具"),
+            ("drink", "饮品"),
+            ("toy", "玩具"),
             ("decoration", "装饰"),
-            ("special", "特殊")
         ]
         
         self.filter_buttons = {}
@@ -418,9 +418,9 @@ class InventoryWindow(QWidget):
             if self.current_filter != "all":
                 type_map = {
                     "food": ItemType.FOOD,
-                    "consumable": ItemType.CONSUMABLE,
+                    "drink": ItemType.DRINK,
+                    "toy": ItemType.TOY,
                     "decoration": ItemType.DECORATION,
-                    "special": ItemType.SPECIAL
                 }
                 
                 if self.current_filter in type_map:
@@ -467,8 +467,8 @@ class InventoryWindow(QWidget):
         elif index == 3:  # 按数量
             items_list.sort(key=lambda x: x[1], reverse=True)
         else:  # 默认按类型
-            type_order = {ItemType.FOOD: 0, ItemType.CONSUMABLE: 1, 
-                         ItemType.DECORATION: 2, ItemType.SPECIAL: 3}
+            type_order = {ItemType.FOOD: 0, ItemType.DRINK: 1,
+                         ItemType.TOY: 2, ItemType.DECORATION: 3}
             items_list.sort(key=lambda x: type_order.get(x[0].item_type, 99))
         
         # 清空并重新填充
@@ -555,7 +555,7 @@ class InventoryWindow(QWidget):
 
             buttons = []
             
-            if item.item_type == ItemType.CONSUMABLE and quantity > 0:
+            if item.item_type in (ItemType.FOOD, ItemType.DRINK, ItemType.TOY) and quantity > 0:
                 use_btn = msg.addButton("✓ 使用", QMessageBox.ActionRole)
                 buttons.append(('use', use_btn))
             

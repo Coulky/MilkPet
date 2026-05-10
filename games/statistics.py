@@ -19,6 +19,7 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 
 from games.secure_storage import SecureStorage
+from games.pet_stats import PetStats
 
 # 导入 PyQt5 用于消息框
 try:
@@ -197,6 +198,9 @@ class StatisticsManager:
         self.inventory_data: Dict[str, int] = {}
         self.player_score: int = 0
         
+        # 宠物属性
+        self.pet_stats = PetStats()
+        
         self._initialize_default_stats()
         self._initialize_achievements()
         self.load_data()
@@ -275,7 +279,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.SPEED_CLEAR,
                 icon="⚡",
                 target_value=1,
-                reward_item="hint_scroll",
+                reward_item="yarn_ball",
                 reward_quantity=5
             ),
             
@@ -494,7 +498,8 @@ class StatisticsManager:
                 'player_stats': self.player_stats.to_dict(),
                 'achievements': {k: v.to_dict() for k, v in self.achievements.items()},
                 'inventory': dict(self.inventory_data),
-                'player_score': self.player_score
+                'player_score': self.player_score,
+                'pet_stats': self.pet_stats.to_dict(),
             }
             
             self.storage.save_encrypted_data(data)
@@ -536,6 +541,11 @@ class StatisticsManager:
                 self.player_score = data['player_score']
                 print(f"[OK] 分数已加载: {self.player_score} 分")
             
+            # 加载宠物属性
+            if 'pet_stats' in data:
+                self.pet_stats = PetStats.from_dict(data['pet_stats'])
+                print(f"[OK] 宠物属性已加载")
+            
         except Exception as e:
             print(f"[ERROR] 加载数据失败: {e}")
     
@@ -562,6 +572,39 @@ class StatisticsManager:
         self.player_score += amount
         self.save_data()
         return self.player_score
+    
+    def process_login_pet_stats(self) -> dict:
+        """登录时处理宠物属性（离线喵币、装饰过期检查）"""
+        import time
+        now = time.time()
+        result = {"offline_coins": 0, "expired_decorations": []}
+        
+        # 计算离线喵币
+        if self.pet_stats.last_login_time > 0:
+            offline_seconds = now - self.pet_stats.last_login_time
+            result["offline_coins"] = self.pet_stats.calc_offline_coins(offline_seconds)
+            if result["offline_coins"] > 0:
+                self.player_score += result["offline_coins"]
+                print(f"[INFO] 离线喵币: +{result['offline_coins']}")
+        
+        # 更新登录时间
+        self.pet_stats.last_login_time = now
+        
+        # 检查装饰品过期
+        result["expired_decorations"] = self.pet_stats.check_decoration_expiry(now)
+        if result["expired_decorations"]:
+            print(f"[INFO] 过期装饰品: {result['expired_decorations']}")
+        
+        # 初始化时间戳
+        if self.pet_stats.last_decay_time <= 0:
+            self.pet_stats.last_decay_time = now
+        if self.pet_stats.last_coin_time <= 0:
+            self.pet_stats.last_coin_time = now
+        if self.pet_stats.last_exp_check_time <= 0:
+            self.pet_stats.last_exp_check_time = now
+        
+        self.save_data()
+        return result
     
     def reset_all_data(self):
         """重置所有数据"""

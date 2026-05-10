@@ -68,8 +68,19 @@ class DesktopPet(PetDisplay):
         self.session_timer.timeout.connect(self._update_session_time)
         self.session_timer.start(60000)
         
+        # 定时器：宠物属性更新（每秒检查衰减、喵币、经验）
+        self.pet_stats_timer = QTimer()
+        self.pet_stats_timer.timeout.connect(self._update_pet_stats)
+        self.pet_stats_timer.start(1000)
+        
         # 初始化玩家会话
         self.stats_manager.player_stats.record_session_start()
+        
+        # 处理登录时的宠物属性（离线喵币、装饰过期）
+        login_result = self.stats_manager.process_login_pet_stats()
+        if login_result.get("offline_coins", 0) > 0:
+            self.player_score = self.stats_manager.player_score
+            print(f"[INFO] 离线获得喵币: +{login_result['offline_coins']}, 当前: {self.player_score}")
         
         # 预加载所有游戏素材
         print("[DesktopPet] 预加载游戏素材...")
@@ -287,7 +298,7 @@ class DesktopPet(PetDisplay):
         starter_items = [
             ("fish", 5),
             ("milk", 3),
-            ("hint_scroll", 3),
+            ("yarn_ball", 3),
             ("bow_tie", 1),
         ]
         
@@ -300,6 +311,59 @@ class DesktopPet(PetDisplay):
     def _update_session_time(self):
         """更新会话时间（每分钟调用）"""
         self.stats_manager.update_play_time(60)
+    
+    def _update_pet_stats(self):
+        """更新宠物属性（每秒调用）"""
+        import time
+        now = time.time()
+        pet = self.stats_manager.pet_stats
+        
+        # 属性自然衰减
+        pet.apply_decay(now)
+        
+        # 喵币自动获取
+        coins = pet.check_coin_earn(now)
+        if coins > 0:
+            self.player_score = self.stats_manager.add_player_score(coins)
+            print(f"[INFO] 自动获取喵币: +{coins}, 当前: {self.player_score}")
+        
+        # 经验值联动
+        exp_change = pet.check_exp_threshold(now)
+        if exp_change != 0:
+            print(f"[INFO] 经验变化: {exp_change:+d}, 当前: {pet.exp:.0f}")
+        
+        # 定期保存
+        self.stats_manager.save_data()
+    
+    def use_item(self, item_id: str) -> bool:
+        """使用物品"""
+        item = ItemFactory.get_item(item_id)
+        if not item:
+            print(f"[ERROR] 物品不存在: {item_id}")
+            return False
+        
+        pet = self.stats_manager.pet_stats
+        
+        if item.item_type == ItemType.FOOD:
+            pet.apply_item_boost("food", item.boost_value, item.protection_duration)
+            print(f"[INFO] 使用食物 {item.name}: 饱食度+{item.boost_value}, 当前: {pet.satiety:.0f}")
+        elif item.item_type == ItemType.DRINK:
+            pet.apply_item_boost("drink", item.boost_value, item.protection_duration)
+            print(f"[INFO] 使用饮品 {item.name}: 饥渴值+{item.boost_value}, 当前: {pet.thirst:.0f}")
+        elif item.item_type == ItemType.TOY:
+            pet.apply_item_boost("toy", item.boost_value, item.protection_duration)
+            print(f"[INFO] 使用玩具 {item.name}: 心情+{item.boost_value}, 当前: {pet.mood:.0f}")
+        elif item.item_type == ItemType.DECORATION:
+            # 检查同槽位是否已有装饰品
+            slot = item.decoration_slot
+            if slot in pet.equipped_decorations:
+                existing = pet.equipped_decorations[slot]
+                print(f"[INFO] 替换装饰品 {slot}: {existing['item_id']} -> {item_id}")
+            pet.equip_decoration(slot, item_id, item.decoration_duration)
+            print(f"[INFO] 装备装饰品 {item.name} (槽位: {slot})")
+        
+        self.stats_manager.save_data()
+        return True
     
     def _get_bg_path(self):
         """获取背景图路径"""
@@ -592,7 +656,7 @@ class DesktopPet(PetDisplay):
                 starter_items = [
                     ("fish", 5),
                     ("milk", 3),
-                    ("hint_scroll", 3),
+                    ("yarn_ball", 3),
                     ("bow_tie", 1),
                 ]
                 for item_id, qty in starter_items:
