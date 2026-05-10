@@ -325,19 +325,20 @@ class HuaRongDao(QWidget):
             
             self.buttons[empty_idx].setText(self.buttons[click_idx].text())
             self.buttons[empty_idx].setIcon(self.buttons[click_idx].icon())
+            self.buttons[empty_idx].setIconSize(self.buttons[click_idx].iconSize())
             self.buttons[empty_idx].setEnabled(True)
             self.buttons[empty_idx].setProperty("is_empty", False)
-            # 同步 number 属性
+            # 同步 number 属性和样式
             num = self.buttons[click_idx].property("number")
             if num is not None:
                 self.buttons[empty_idx].setProperty("number", int(num))
-            self._reset_button_style(self.buttons[empty_idx])
+            self.buttons[empty_idx].setStyleSheet(self.buttons[click_idx].styleSheet())
             
             self.buttons[click_idx].setText("")
             self.buttons[click_idx].setIcon(QIcon())
             self.buttons[click_idx].setEnabled(False)
             self.buttons[click_idx].setProperty("is_empty", True)
-            self.buttons[click_idx].setProperty("number", 0)  # 空格的数字为0
+            self.buttons[click_idx].setProperty("number", 0)
             self._set_empty_button_style(self.buttons[click_idx])
             
             self.empty_pos = (row, col)
@@ -556,16 +557,46 @@ class HuaRongDao(QWidget):
                         icon = QIcon(self.number_images[num])
                         btn.setIcon(icon)
                         btn.setIconSize(QSize(icon_size, icon_size))
-                        # 设置 text 用于胜利检查，但完全隐藏
                         btn.setText(str(num))
-                        btn.setStyleSheet("QPushButton { color: transparent; font-size: 1px; padding: 0px; margin: 0px; }")
+                        btn.setStyleSheet("""
+                            QPushButton {
+                                border: none;
+                                background-color: transparent;
+                                color: transparent;
+                                font-size: 1px;
+                                padding: 0px;
+                                margin: 0px;
+                            }
+                            QPushButton:hover {
+                                background-color: rgba(255, 255, 255, 0.1);
+                            }
+                            QPushButton:pressed {
+                                background-color: rgba(0, 0, 0, 0.1);
+                            }
+                        """)
                     else:
                         btn.setText(str(num))
                         btn.setIcon(QIcon())
+                        btn.setStyleSheet("""
+                            QPushButton {
+                                border: none;
+                                background-color: transparent;
+                                color: #333333;
+                                font-size: 18px;
+                                font-weight: bold;
+                                padding: 0px;
+                                margin: 0px;
+                            }
+                            QPushButton:hover {
+                                background-color: rgba(255, 255, 255, 0.1);
+                            }
+                            QPushButton:pressed {
+                                background-color: rgba(0, 0, 0, 0.1);
+                            }
+                        """)
                     btn.setEnabled(True)
                     btn.setProperty("is_empty", False)
-                    btn.setProperty("number", num)  # 存储数字用于验证
-                    self._reset_button_style(btn)
+                    btn.setProperty("number", num)
                 else:
                     btn.setText("")
                     btn.setIcon(QIcon())
