@@ -17,7 +17,7 @@ import os
 from PyQt5.QtWidgets import (QWidget, QLabel, QMenu, QAction,
                              QVBoxLayout, QHBoxLayout, QPushButton, 
                              QCheckBox, QMessageBox, QApplication, 
-                             QScrollArea, QSizePolicy)
+                             QScrollArea, QSizePolicy, QFrame)
 from PyQt5.QtCore import Qt, QPoint, QTimer
 
 from games.pet_display import PetDisplay
@@ -94,10 +94,18 @@ class DesktopPet(PetDisplay):
         self.menu_widget.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
         self.menu_widget.hide()
         
+        # 使用 QFrame 作为背景容器（与其他窗口一致）
+        self.menu_container = QFrame(self.menu_widget)
+        self.menu_container.setObjectName("menu_container")
+        
         menu_layout = QVBoxLayout()
         menu_layout.setSpacing(8)
         menu_layout.setContentsMargins(10, 4, 10, 10)
-        self.menu_widget.setLayout(menu_layout)
+        self.menu_container.setLayout(menu_layout)
+        
+        main_layout = QVBoxLayout(self.menu_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(self.menu_container)
 
         # 布局常量（改为实例属性）
         self._title_container_width = 50  # 标题容器宽度
@@ -130,7 +138,7 @@ class DesktopPet(PetDisplay):
                 background-color: #FFC0CB;
                 border-color: #FFB6C1;
             }}
-            QWidget#menu_container {{
+            QFrame#menu_container {{
                 background-image: url("{2}");
                 background-color: rgba(43, 43, 54, 0.95);
                 border-radius: 15px;
