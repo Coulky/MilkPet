@@ -16,7 +16,7 @@ import os
 
 from PyQt5.QtWidgets import (QWidget, QLabel, QMenu, QAction,
                              QVBoxLayout, QHBoxLayout, QPushButton, 
-                             QCheckBox, QMessageBox, QApplication, 
+                             QMessageBox, QApplication, 
                              QScrollArea, QSizePolicy, QFrame)
 from PyQt5.QtCore import Qt, QPoint, QTimer
 
@@ -153,23 +153,6 @@ class DesktopPet(PetDisplay):
                 min-height: {1}px;
                 background: transparent;
             }}
-            QCheckBox {{
-                color: white;
-                font-size: 13px;
-                spacing: 8px;
-                background: transparent;
-            }}
-            QCheckBox::indicator {{
-                width: 18px;
-                height: 18px;
-                border-radius: 4px;
-                border: 2px solid #888;
-                background-color: #333;
-            }}
-            QCheckBox::indicator:checked {{
-                background-color: #5a9a5a;
-                border-color: #7aba7a;
-            }}
             QWidget#category_container {{
                 background: transparent;
             }}
@@ -178,8 +161,7 @@ class DesktopPet(PetDisplay):
         self.menu_widget.setObjectName("menu_container")
         
         # ========== 分类数据 ==========
-        # 按钮项格式: {"name": "按钮名称", "callback": 触发方法, "special_style": 特殊样式(可选)}
-        # 特殊组件格式: {"type": "checkbox", "name": "复选框名称", "callback": 触发方法, "checked": 默认状态}
+        # 按钮项格式: {"name": "按钮名称", "callback": 触发方法, "special_style": 特殊样式(可选), "ref": 按钮引用名(可选)}
         
         categories = [
             {
@@ -200,7 +182,7 @@ class DesktopPet(PetDisplay):
                 "label": "系统",
                 "items": [
                     {"name": "取消置顶" if self.is_on_top else "置顶", "callback": self._toggle_top, "ref": "top_btn"},
-                    {"type": "checkbox", "name": "允许点击交互", "callback": self._on_click_toggle, "checked": True},
+                    {"name": "禁止点击交互" if self.allow_click else "允许点击交互", "callback": self._on_click_toggle, "ref": "click_btn"},
                     {"name": "退出", "callback": self._on_quit, "special_style": "warning"},
                 ]
             },
@@ -256,43 +238,38 @@ class DesktopPet(PetDisplay):
         btn_layout.setSpacing(4)
         btn_layout.setContentsMargins(0, 0, 0, 0)
         
-        # 渲染按钮和特殊组件
+        # 渲染按钮
         for item in items:
-            if item.get("type") == "checkbox":
-                # 复选框
-                checkbox = QCheckBox(item["name"])
-                checkbox.setChecked(item.get("checked", False))
-                checkbox.stateChanged.connect(item["callback"])
-                btn_layout.addWidget(checkbox)
-            else:
-                # 普通按钮
-                btn = QPushButton(item["name"])
-                btn.setFixedWidth(self._button_container_width)
-                btn.setFixedHeight(32)
-                btn.clicked.connect(item["callback"])
-                
-                # 特殊样式
-                if item.get("special_style") == "warning":
-                    btn.setStyleSheet("""
-                        QPushButton {
-                            background-color: #d4a5a5;
-                            color: #8a4a4a;
-                            border: none;
-                            padding: 8px 10px;
-                            font-weight: bold;
-                            font-size: 13px;
-                            border-radius: 6px;
-                        }
-                        QPushButton:hover {
-                            background-color: #e4b5b5;
-                        }
-                    """)
-                
-                btn_layout.addWidget(btn)
-                
-                # 保存引用
-                if item.get("ref"):
-                    setattr(self, item["ref"], btn)
+            # 创建按钮
+            btn = QPushButton(item["name"])
+            btn.setFixedWidth(self._button_container_width)
+            btn.setFixedHeight(32)
+            btn.clicked.connect(item["callback"])
+            
+            # 特殊样式
+            if item.get("special_style") == "warning":
+                btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #d4a5a5;
+                        color: #8a4a4a;
+                        border: none;
+                        padding: 8px 10px;
+                        font-weight: bold;
+                        font-size: 13px;
+                        border-radius: 6px;
+                    }
+                    QPushButton:hover {
+                        background-color: #e4b5b5;
+                    }
+                """)
+            
+            # 保存按钮引用（用于更新文字）
+            ref = item.get("ref")
+            if ref:
+                setattr(self, ref, btn)
+            
+            # 添加到布局
+            btn_layout.addWidget(btn)
         
         category_layout.addWidget(btn_container, alignment=Qt.AlignTop)
         
@@ -430,34 +407,48 @@ class DesktopPet(PetDisplay):
         
         if self.is_on_top:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
-            self.top_btn.setText("取消置顶")
+            if hasattr(self, 'top_btn'):
+                self.top_btn.setText("取消置顶")
         else:
             self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)
-            self.top_btn.setText("置顶")
+            if hasattr(self, 'top_btn'):
+                self.top_btn.setText("置顶")
         
         # 恢复窗口位置和可见性
         self.move(pos)
         if visible:
             self.show()
         
+        # 更新托盘菜单状态
+        if hasattr(self, 'tray_manager'):
+            self.tray_manager.update_tray_menu()
+        
         self.menu_widget.hide()
     
-    def _on_click_toggle(self, state):
-        "切换点击交互"
-        self.allow_click = (state == Qt.Checked)
+    def _on_click_toggle(self):
+        """切换点击交互"""
+        self.allow_click = not self.allow_click
         
+        # 使用属性控制鼠标事件穿透（更可靠的方式）
         if self.allow_click:
-            current_flags = self.windowFlags()
-            new_flags = current_flags & ~Qt.WindowTransparentForInput
-            self.setWindowFlags(new_flags)
             self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+            self.setWindowOpacity(1.0)  # 恢复完全不透明
+            # 更新按钮文字
+            if hasattr(self, 'click_btn'):
+                self.click_btn.setText("禁止点击交互")
+            print("[INFO] 点击交互已启用")
         else:
-            current_flags = self.windowFlags()
-            new_flags = current_flags | Qt.WindowTransparentForInput
-            self.setWindowFlags(new_flags)
             self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+            # 更新按钮文字
+            if hasattr(self, 'click_btn'):
+                self.click_btn.setText("允许点击交互")
+            print("[INFO] 点击交互已禁用")
         
-        self.show()
+        # 更新托盘菜单状态
+        if hasattr(self, 'tray_manager'):
+            self.tray_manager.update_tray_menu()
+        
+        self.menu_widget.hide()
     
     def _close_all_windows(self):
         """关闭所有已打开的功能窗口"""

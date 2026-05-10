@@ -105,6 +105,20 @@ class PetTrayManager:
         stats_action = QAction("统计数据", self.parent)
         stats_action.triggered.connect(lambda: self._trigger_callback('_on_statistics'))
         func_menu.addAction(stats_action)
+
+        tray_menu.addSeparator()
+
+        sys_menu = tray_menu.addMenu("系统")
+
+        # 置顶按钮（带状态显示）
+        self.toggle_top_action = QAction("取消置顶" if self.parent.is_on_top else "置顶", self.parent)
+        self.toggle_top_action.triggered.connect(lambda: self._trigger_callback('_toggle_top'))
+        sys_menu.addAction(self.toggle_top_action)
+
+        # 允许点击交互按钮（带状态显示）
+        self.on_click_toggle_action = QAction("禁止点击交互" if self.parent.allow_click else "允许点击交互", self.parent)
+        self.on_click_toggle_action.triggered.connect(lambda: self._trigger_callback('_on_click_toggle'))
+        sys_menu.addAction(self.on_click_toggle_action)
         
         tray_menu.addSeparator()
 
@@ -113,6 +127,14 @@ class PetTrayManager:
         tray_menu.addAction(quit_action)
         
         return tray_menu
+    
+    def update_tray_menu(self):
+        """更新托盘菜单状态"""
+        if hasattr(self, 'toggle_top_action'):
+            self.toggle_top_action.setText("取消置顶" if self.parent.is_on_top else "置顶")
+        
+        if hasattr(self, 'on_click_toggle_action'):
+            self.on_click_toggle_action.setText("禁止点击交互" if self.parent.allow_click else "允许点击交互")
     
     def _trigger_callback(self, callback_name):
         """
