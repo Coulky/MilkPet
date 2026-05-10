@@ -36,7 +36,6 @@ class GameSuccessWindow(QWidget):
     
     def _setup_ui(self):
         self.setWindowTitle("游戏完成")
-        self.setFixedSize(360, 280)
         
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)
@@ -55,24 +54,25 @@ class GameSuccessWindow(QWidget):
         """)
         
         layout = QVBoxLayout(container)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setContentsMargins(30, 25, 30, 25)
+        layout.setSpacing(18)
         
-        # 标题
+        # 标题（居中）
         title_label = QLabel("🎉 恭喜完成！")
+        title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("""
             QLabel {
                 color: #FFD700;
                 font-size: 24px;
                 font-weight: bold;
-                text-align: center;
             }
         """)
         layout.addWidget(title_label)
         
-        # 信息面板
+        # 信息面板（居中对齐）
         info_layout = QVBoxLayout()
         info_layout.setSpacing(12)
+        info_layout.setAlignment(Qt.AlignCenter)
         
         # 游戏名称
         game_layout = QHBoxLayout()
@@ -80,6 +80,7 @@ class GameSuccessWindow(QWidget):
         
         game_label = QLabel("游戏：")
         game_label.setStyleSheet("color: #aaaaaa; font-size: 14px;")
+        game_label.setFixedWidth(80)
         
         game_value = QLabel(self.game_name)
         game_value.setStyleSheet("color: #ffffff; font-size: 14px; font-weight: bold;")
@@ -94,6 +95,7 @@ class GameSuccessWindow(QWidget):
         
         diff_label = QLabel("难度：")
         diff_label.setStyleSheet("color: #aaaaaa; font-size: 14px;")
+        diff_label.setFixedWidth(80)
         
         diff_value = QLabel(self.difficulty)
         diff_value.setStyleSheet("color: #FFB6C1; font-size: 14px; font-weight: bold;")
@@ -108,6 +110,7 @@ class GameSuccessWindow(QWidget):
         
         time_label = QLabel("用时：")
         time_label.setStyleSheet("color: #aaaaaa; font-size: 14px;")
+        time_label.setFixedWidth(80)
         
         time_str = self._format_time(self.time_seconds)
         time_value = QLabel(time_str)
@@ -123,6 +126,7 @@ class GameSuccessWindow(QWidget):
         
         score_label = QLabel("获得喵币：")
         score_label.setStyleSheet("color: #aaaaaa; font-size: 14px;")
+        score_label.setFixedWidth(80)
         
         score_value = QLabel(f"🐱 {self.score}")
         score_value.setStyleSheet("color: #FFD700; font-size: 18px; font-weight: bold;")
@@ -133,7 +137,7 @@ class GameSuccessWindow(QWidget):
         
         layout.addLayout(info_layout)
         
-        # 完成按钮
+        # 完成按钮（居中）
         confirm_btn = QPushButton("确认")
         confirm_btn.setFixedSize(120, 40)
         confirm_btn.setStyleSheet("""
@@ -163,6 +167,10 @@ class GameSuccessWindow(QWidget):
         
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(container)
+        
+        # 根据内容调整大小（不使用固定高度）
+        container.adjustSize()
+        self.adjustSize()
     
     def _format_time(self, seconds: int) -> str:
         """格式化时间显示"""

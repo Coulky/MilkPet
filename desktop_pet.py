@@ -512,7 +512,7 @@ class DesktopPet(PetDisplay):
 
             # 连接游戏结束信号用于统计和得分
             self.huarong_window.game_won.connect(
-                lambda score, time_sec: self._on_game_finished('huarongdao', won=True, score=score, time_seconds=time_sec)
+                lambda score, time_sec: self._on_game_finished('huarongdao', won=True, score=score, time_spent=time_sec)
             )
 
             self.huarong_window.show()
@@ -559,36 +559,14 @@ class DesktopPet(PetDisplay):
         # 记录游戏结果
         self.stats_manager.record_game_result(game_id, won, **kwargs)
         
-        # 奖励道具和分数
+        # 只给喵币，不显示弹框（信息已在成功窗口中显示）
         if won:
             score = kwargs.get('score', 0)
-            time_seconds = kwargs.get('time_seconds', 0)
             
-            # 增加玩家分数
+            # 增加玩家分数（喵币）
             if score > 0:
                 self.player_score = self.stats_manager.add_player_score(score)
-                print(f"💰 获得分数: {score} 分, 总分: {self.player_score} 分")
-            
-                QMessageBox.information(
-                    None,
-                    "游戏胜利",
-                    f"恭喜完成游戏！\n\n获得分数: {score} 分\n当前总分: {self.player_score} 分\n用时: {time_seconds} 秒",
-                    QMessageBox.Ok
-                )
-            
-            # 奖励道具
-            reward_item = ItemFactory.get_loot_drop()
-            if reward_item:
-                QMessageBox.information(
-                    None,
-                    "道具奖励",
-                    f"额外获得道具:\n{reward_item.icon} {reward_item.name}",
-                    QMessageBox.Ok
-                )
-
-                # 如果背包窗口存在，添加道具
-                if self.inventory_window:
-                    self.inventory_window.add_item(reward_item.id)
+                print(f"💰 获得喵币: {score}, 总喵币: {self.player_score}")
 
     def _on_backpack(self):
         """打开背包"""
