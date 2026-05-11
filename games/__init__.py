@@ -3,14 +3,14 @@
 游戏模块包
 
 包含：
-- huarongdao.py: 数字华容道游戏
+- dh_puzzle.py: 数字华容道游戏
 - sudoku.py: 数独游戏
 - inventory.py: 背包系统
 - items.py: 道具系统
 - statistics.py: 数据统计系统
 """
 
-from .huarongdao import HuaRongDao
+from .dh_puzzle import DHPuzzle
 from .sudoku import SudokuGame
 from .inventory import InventoryWindow, InventorySlot
 from .items import (ItemFactory, Item, ItemType, ItemRarity)
@@ -19,7 +19,7 @@ from .statistics import (StatisticsManager, Achievement, GameStats,
 
 __all__ = [
     # 游戏
-    'HuaRongDao',
+    'DHPuzzle',
     'SudokuGame',
     
     # 背包

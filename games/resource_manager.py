@@ -28,7 +28,7 @@ class ResourceManager:
         
         self._initialized = True
         
-        self.huarong_images = {}
+        self.dh_puzzle_images = {}
         self.sudoku_images = {}
         self.background_image = None
         self.pet_image = None
@@ -50,7 +50,7 @@ class ResourceManager:
         print("[ResourceManager] 开始预加载所有素材...")
         
         try:
-            self._preload_huarong_images()
+            self._preload_dh_puzzle_images()
             self._preload_background()
             self._preload_pet_image()
             self._preload_logo()
@@ -63,7 +63,7 @@ class ResourceManager:
             import traceback
             traceback.print_exc()
     
-    def _preload_huarong_images(self):
+    def _preload_dh_puzzle_images(self):
         """预加载华容道数字图片 (1-25)"""
         print("[ResourceManager] 加载华容道图片...")
         
@@ -74,9 +74,9 @@ class ResourceManager:
             if os.path.exists(path):
                 pixmap = QPixmap(path)
                 if not pixmap.isNull():
-                    self.huarong_images[i] = pixmap
+                    self.dh_puzzle_images[i] = pixmap
     
-        print(f"[ResourceManager] ✓ 华容道图片已加载: {len(self.huarong_images)} 张")
+        print(f"[ResourceManager] ✓ 华容道图片已加载: {len(self.dh_puzzle_images)} 张")
     
     def _preload_background(self):
         """预加载背景图片"""
@@ -106,9 +106,9 @@ class ResourceManager:
             self.button_pixmap = QPixmap(path)
             print("[ResourceManager] ✓ 按钮图片已加载")
     
-    def get_huarong_image(self, num):
+    def get_dh_puzzle_image(self, num):
         """获取华容道数字图片"""
-        return self.huarong_images.get(num)
+        return self.dh_puzzle_images.get(num)
     
     def get_background_path(self):
         """获取背景图片路径"""

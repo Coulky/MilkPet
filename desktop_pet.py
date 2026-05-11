@@ -5,7 +5,7 @@
 模块说明：
 - games/pet_display.py: 桌宠显示核心（窗口、图片、UI）
 - games/pet_tray.py: 系统托盘管理（图标、菜单、通知）
-- games/huarongdao.py: 数字华容道游戏
+- games/dh_puzzle.py: 数字华容道游戏
 - games/sudoku.py: 数独游戏
 - games/inventory.py: 背包系统
 - games/shop.py: 商店系统
@@ -22,7 +22,7 @@ from PyQt5.QtCore import Qt, QPoint, QTimer
 
 from games.pet_display import PetDisplay
 from games.pet_tray import PetTrayManager
-from games.huarongdao import HuaRongDao
+from games.dh_puzzle import DHPuzzle
 from games.sudoku import SudokuGame
 from games.inventory import InventoryWindow
 from games.shop import ShopWindow
@@ -52,7 +52,7 @@ class DesktopPet(PetDisplay):
         self.drag_position = QPoint()
         self.allow_click = True
         self.is_on_top = True
-        self.huarong_window = None
+        self.dh_puzzle_window = None
         self.sudoku_window = None
         
         # 背包和统计系统
@@ -178,7 +178,7 @@ class DesktopPet(PetDisplay):
             {
                 "label": "娱乐",
                 "items": [
-                    {"name": "数字华容道", "callback": self._on_huarong},
+                    {"name": "数字华容道", "callback": self._on_dh_puzzle},
                     {"name": "数独", "callback": self._on_sudoku},
                 ]
             },
@@ -520,8 +520,8 @@ class DesktopPet(PetDisplay):
         
         windows_to_close = []
         
-        if self.huarong_window:
-            windows_to_close.append(('huarong', self.huarong_window))
+        if self.dh_puzzle_window:
+            windows_to_close.append(('dh_puzzle', self.dh_puzzle_window))
         if self.sudoku_window:
             windows_to_close.append(('sudoku', self.sudoku_window))
         if self.inventory_window:
@@ -558,31 +558,28 @@ class DesktopPet(PetDisplay):
                 print(f"[WARN] Error processing {name} window: {e}")
         
         # 清理引用
-        self.huarong_window = None
+        self.dh_puzzle_window = None
         self.sudoku_window = None
         self.inventory_window = None
         self.shop_window = None
         
         print("[DEBUG] All windows closed, references cleared")
     
-    def _on_huarong(self):
+    def _on_dh_puzzle(self):
         """打开华容道游戏"""
-        print("HuaRong Dao clicked")
         self.menu_widget.hide()
 
         try:
             self._close_all_windows()
-            self.huarong_window = HuaRongDao()
+            self.dh_puzzle_window = DHPuzzle()
 
             # 连接游戏结束信号用于统计和得分
-            self.huarong_window.game_won.connect(
-                lambda score, time_sec: self._on_game_finished('huarongdao', won=True, score=score, time_spent=time_sec)
+            self.dh_puzzle_window.game_won.connect(
+                lambda score, time_sec: self._on_game_finished('dh_puzzle', won=True, score=score, time_spent=time_sec)
             )
 
-            self.huarong_window.show()
-            print("[OK] HuaRong window opened (independent)")
+            self.dh_puzzle_window.show()
         except Exception as e:
-            print(f"[ERROR] Error opening HuaRong Dao: {e}")
             import traceback
             traceback.print_exc()
             QMessageBox.critical(
@@ -760,7 +757,7 @@ class DesktopPet(PetDisplay):
         
         # 获取统计数据
         player_summary = self.stats_manager.get_player_summary()
-        huarong_summary = self.stats_manager.get_game_summary('huarongdao')
+        dh_puzzle_summary = self.stats_manager.get_game_summary('dh_puzzle')
         sudoku_summary = self.stats_manager.get_game_summary('sudoku')
         
         # 构建显示文本
@@ -780,18 +777,18 @@ class DesktopPet(PetDisplay):
         stats_text += f"\n{'='*40}"
         stats_text += f"\n数字华容道统计\n"
 
-        if huarong_summary:
-            stats_text += f"\n   总场次: {huarong_summary['total_games']}\n"
-            stats_text += f"   胜利: {huarong_summary['wins']}\n"
-            stats_text += f"   失败: {huarong_summary['losses']}\n"
-            stats_text += f"   胜率: {huarong_summary['win_rate']}\n"
-            stats_text += f"   最佳成绩: {huarong_summary['best_score']}\n"
-            stats_text += f"   最快通关: {huarong_summary['best_time']}\n"
-            stats_text += f"   完美通关: {huarong_summary['perfect_games']}\n"
-            stats_text += f"   当前连胜: {huarong_summary['current_streak']}\n"
-            stats_text += f"   最佳连胜: {huarong_summary['best_streak']}\n"
-            stats_text += f"   平均步数: {huarong_summary['average_moves']}\n"
-            stats_text += f"   总游玩时间: {huarong_summary['total_play_time']}\n"
+        if dh_puzzle_summary:
+            stats_text += f"\n   总场次: {dh_puzzle_summary['total_games']}\n"
+            stats_text += f"   胜利: {dh_puzzle_summary['wins']}\n"
+            stats_text += f"   失败: {dh_puzzle_summary['losses']}\n"
+            stats_text += f"   胜率: {dh_puzzle_summary['win_rate']}\n"
+            stats_text += f"   最佳成绩: {dh_puzzle_summary['best_score']}\n"
+            stats_text += f"   最快通关: {dh_puzzle_summary['best_time']}\n"
+            stats_text += f"   完美通关: {dh_puzzle_summary['perfect_games']}\n"
+            stats_text += f"   当前连胜: {dh_puzzle_summary['current_streak']}\n"
+            stats_text += f"   最佳连胜: {dh_puzzle_summary['best_streak']}\n"
+            stats_text += f"   平均步数: {dh_puzzle_summary['average_moves']}\n"
+            stats_text += f"   总游玩时间: {dh_puzzle_summary['total_play_time']}\n"
         else:
             stats_text += "\n   暂无游戏记录\n"
 
@@ -1000,8 +997,8 @@ class DesktopPet(PetDisplay):
         self.session_timer.stop()
 
         # 关闭子窗口
-        if self.huarong_window:
-            self.huarong_window.close()
+        if self.dh_puzzle_window:
+            self.dh_puzzle_window.close()
         if self.sudoku_window:
             self.sudoku_window.close()
         if self.inventory_window:

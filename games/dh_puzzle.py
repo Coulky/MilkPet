@@ -13,7 +13,7 @@ from config.styles import Colors
 from widgets import GameSuccessWindow
 
 
-class HuaRongDao(QWidget):
+class DHPuzzle(QWidget):
     """数字华容道游戏 - 独立窗口
     
     使用 Godot 项目中的 sliding_puzzle 资源图：
@@ -58,7 +58,7 @@ class HuaRongDao(QWidget):
         # 使用预加载的图片
         from games.resource_manager import ResourceManager
         self.resource_manager = ResourceManager()
-        self.number_images = self.resource_manager.huarong_images
+        self.number_images = self.resource_manager.dh_puzzle_images
         
         self._setup_ui()
         self._center_on_screen()

@@ -207,8 +207,8 @@ class StatisticsManager:
     
     def _initialize_default_stats(self):
         """初始化默认游戏统计"""
-        self.game_stats['huarongdao'] = GameStats(
-            game_id='huarongdao',
+        self.game_stats['dh_puzzle'] = GameStats(
+            game_id='dh_puzzle',
             game_name='数字华容道'
         )
         
@@ -346,7 +346,7 @@ class StatisticsManager:
         """检查游戏相关成就"""
         stats = self.game_stats[game_id]
         
-        if game_id == 'huarongdao' and won:
+        if game_id == 'dh_puzzle' and won:
             # 首次胜利
             self._update_achievement("hr_first_win", stats.wins)
             

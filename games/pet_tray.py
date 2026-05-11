@@ -82,9 +82,9 @@ class PetTrayManager:
 
         game_menu = tray_menu.addMenu("娱乐")
 
-        huarong_action = QAction("数字华容道", self.parent)
-        huarong_action.triggered.connect(lambda: self._trigger_callback('_on_huarong'))
-        game_menu.addAction(huarong_action)
+        dh_puzzle_action = QAction("数字华容道", self.parent)
+        dh_puzzle_action.triggered.connect(lambda: self._trigger_callback('_on_dh_puzzle'))
+        game_menu.addAction(dh_puzzle_action)
 
         sudoku_action = QAction("数独", self.parent)
         sudoku_action.triggered.connect(lambda: self._trigger_callback('_on_sudoku'))
@@ -141,7 +141,7 @@ class PetTrayManager:
         触发父窗口的回调方法
         
         参数:
-            callback_name: 回调方法名（如 '_on_huarong'）
+            callback_name: 回调方法名（如 '_on_dh_puzzle'）
         """
         if hasattr(self.parent, callback_name) and callable(getattr(self.parent, callback_name)):
             getattr(self.parent, callback_name)()
