@@ -370,10 +370,10 @@ class DesktopPet(PetDisplay):
     def _give_starter_pack(self):
         """赠送新手礼包"""
         starter_items = [
-            ("fish", 5),
-            ("milk", 3),
-            ("yarn_ball", 3),
-            ("bow_tie", 1),
+            ("xiaoyugan", 5),
+            ("xianyangnai", 3),
+            ("doumaobang", 3),
+            ("fuhuobi", 1),
         ]
         
         for item_id, quantity in starter_items:
@@ -421,12 +421,18 @@ class DesktopPet(PetDisplay):
         if item.item_type == ItemType.FOOD:
             pet.apply_item_boost("food", item.boost_value, item.protection_duration)
             print(f"[INFO] 使用食物 {item.name}: 饱食度+{item.boost_value}, 当前: {pet.satiety:.0f}")
+            if item.protection_duration > 0:
+                self.stat_satiety.set_protection(item.protection_duration)
         elif item.item_type == ItemType.DRINK:
             pet.apply_item_boost("drink", item.boost_value, item.protection_duration)
             print(f"[INFO] 使用饮品 {item.name}: 饥渴值+{item.boost_value}, 当前: {pet.thirst:.0f}")
+            if item.protection_duration > 0:
+                self.stat_thirst.set_protection(item.protection_duration)
         elif item.item_type == ItemType.TOY:
             pet.apply_item_boost("toy", item.boost_value, item.protection_duration)
             print(f"[INFO] 使用玩具 {item.name}: 心情+{item.boost_value}, 当前: {pet.mood:.0f}")
+            if item.protection_duration > 0:
+                self.stat_mood.set_protection(item.protection_duration)
         elif item.item_type == ItemType.DECORATION:
             # 检查同槽位是否已有装饰品
             slot = item.decoration_slot
@@ -746,10 +752,10 @@ class DesktopPet(PetDisplay):
             # 添加新手礼包（首次）
             if self.stats_manager.player_stats.sessions_count <= 1:
                 starter_items = [
-                    ("fish", 5),
-                    ("milk", 3),
-                    ("yarn_ball", 3),
-                    ("bow_tie", 1),
+                    ("xiaoyugan", 5),
+                    ("xianyangnai", 3),
+                    ("doumaobang", 3),
+                    ("fuhuobi", 1),
                 ]
                 for item_id, qty in starter_items:
                     self.inventory_window.add_item(item_id, qty)
@@ -786,12 +792,14 @@ class DesktopPet(PetDisplay):
             effect_messages.append(f"获得游戏道具：{item.name}")
 
         if effect_messages:
-            QMessageBox.information(
-                self.inventory_window or self,
-                f"使用了 {item.name}",
-                "\n".join(effect_messages),
-                QMessageBox.Ok
+            from widgets.dialog import BaseDialog
+            dialog = BaseDialog(
+                title=f"使用了 {item.name}",
+                message="\n".join(effect_messages),
+                dialog_type="info",
+                parent=self.inventory_window or self
             )
+            dialog.exec_()
 
         self.stats_manager.record_item_action("use", item_id)
     

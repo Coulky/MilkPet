@@ -43,23 +43,26 @@ class InventorySlot(QFrame):
         self.setFixedSize(120, 150)
         self.setStyleSheet("""
             InventorySlot {
-                background-color: rgba(58, 58, 78, 0.9);
-                border: 2px solid #6a6a7e;
+                background-color: #f0f0f0;
+                border: 2px solid #d0d0d0;
                 border-radius: 10px;
             }
             InventorySlot:hover {
-                border-color: #8a8abe;
+                border-color: #b0b0b0;
             }
             QLabel#inv_icon {
                 font-size: 32px;
+                background: transparent;
             }
             QLabel#inv_name {
-                color: #eeeeee;
+                color: #333333;
                 font-size: 11px;
                 font-weight: bold;
+                background: transparent;
             }
             QLabel#inv_rarity {
                 font-size: 9px;
+                background: transparent;
             }
             QLabel#inv_count {
                 color: white;
@@ -70,14 +73,26 @@ class InventorySlot(QFrame):
                 border-radius: 8px;
             }
             QPushButton#use_btn {
-                background-color: #4a7a4a;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #5a9a5a, stop:1 #4a7a4a);
                 color: white;
-                border: none;
-                border-radius: 5px;
+                border: 2px solid #6aba6a;
+                border-radius: 6px;
                 font-size: 11px;
-                padding: 3px 8px;
+                font-weight: bold;
+                padding: 4px 12px;
+                min-width: 50px;
             }
-            QPushButton#use_btn:hover { background-color: #5a9a5a; }
+            QPushButton#use_btn:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #6aba6a, stop:1 #5a9a5a);
+                border-color: #7aca7a;
+            }
+            QPushButton#use_btn:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #4a8a4a, stop:1 #3a6a3a);
+                border-color: #5a9a5a;
+            }
         """)
 
         layout = QVBoxLayout()
@@ -129,7 +144,20 @@ class InventorySlot(QFrame):
         self.quantity = quantity
 
         if item:
-            self.icon_label.setText(item.icon if item.icon else "[?]")
+            if item.icon and (item.icon.endswith('.png') or item.icon.endswith('.jpg') or item.icon.endswith('.jpeg')):
+                icon_path = item.icon
+                if not os.path.isabs(icon_path):
+                    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    icon_path = os.path.join(base_dir, icon_path)
+                pixmap = QPixmap(icon_path)
+                if not pixmap.isNull():
+                    scaled_pixmap = pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    self.icon_label.setPixmap(scaled_pixmap)
+                else:
+                    self.icon_label.setText("[?]")
+            else:
+                self.icon_label.setText(item.icon if item.icon else "[?]")
+
             name_text = item.name[:8]
             if len(item.name) > 8:
                 name_text += ".."
@@ -153,14 +181,18 @@ class InventorySlot(QFrame):
 
             self.setStyleSheet(f"""
                 InventorySlot {{
-                    background-color: rgba(58, 58, 78, 0.95);
+                    background-color: #ffffff;
                     border: 2px solid {rc};
                     border-radius: 10px;
                 }}
                 InventorySlot:hover {{
                     border-color: {rc};
-                    background-color: rgba(68, 68, 88, 0.95);
+                    background-color: #f5f5f5;
                     box-shadow: 0 0 10px {rc}40;
+                }}
+                QLabel {{
+                    background: transparent;
+                    color: #333333;
                 }}
             """)
             self._hide_use_btn()
@@ -177,12 +209,12 @@ class InventorySlot(QFrame):
         self._hide_use_btn()
         self.setStyleSheet("""
             InventorySlot {
-                background-color: rgba(58, 58, 78, 0.9);
-                border: 2px solid #6a6a7e;
+                background-color: #f0f0f0;
+                border: 2px solid #d0d0d0;
                 border-radius: 10px;
             }
             InventorySlot:hover {
-                border-color: #8a8abe;
+                border-color: #b0b0b0;
             }
         """)
 

@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QGridLayout, QLabel, QScrollArea, QFrame,
                              QSizePolicy, QApplication, QComboBox)
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QPixmap
 
 from .items import Item, ItemType, ItemRarity, ItemFactory
 from common.common_enum import ItemType as ItemTypeEnum
@@ -57,33 +58,38 @@ class ShopItemSlot(QFrame):
         rarity_color = RARITY_COLORS.get(self.item.rarity, "#aaaaaa")
         self.setStyleSheet(f"""
             ShopItemSlot {{
-                background-color: rgba(58, 58, 78, 0.92);
+                background-color: #ffffff;
                 border: 2px solid {rarity_color};
                 border-radius: 10px;
             }}
             ShopItemSlot:hover {{
                 border-color: {rarity_color};
-                background-color: rgba(68, 68, 88, 0.95);
+                background-color: #f5f5f5;
             }}
             ShopItemSlot:disabled {{
                 opacity: 0.45;
+                background-color: #e0e0e0;
             }}
             QLabel#shop_icon {{
                 font-size: 32px;
+                background: transparent;
             }}
             QLabel#shop_name {{
-                color: #eeeeee;
+                color: #333333;
                 font-size: 11px;
                 font-weight: bold;
+                background: transparent;
             }}
             QLabel#shop_rarity {{
                 color: {rarity_color};
                 font-size: 9px;
+                background: transparent;
             }}
             QLabel#shop_price {{
                 color: #FFD700;
                 font-size: 12px;
                 font-weight: bold;
+                background: transparent;
             }}
             QPushButton#buy_btn {{
                 background-color: #4a7a4a;
@@ -108,7 +114,21 @@ class ShopItemSlot(QFrame):
         icon_label = QLabel()
         icon_label.setObjectName("shop_icon")
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setText(self.item.icon if self.item.icon else "[?]")
+        icon_label.setFixedSize(64, 64)
+
+        if self.item.icon and (self.item.icon.endswith('.png') or self.item.icon.endswith('.jpg') or self.item.icon.endswith('.jpeg')):
+            icon_path = self.item.icon
+            if not os.path.isabs(icon_path):
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                icon_path = os.path.join(base_dir, icon_path)
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(56, 56, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                icon_label.setPixmap(scaled_pixmap)
+            else:
+                icon_label.setText("[?]")
+        else:
+            icon_label.setText(self.item.icon if self.item.icon else "[?]")
         layout.addWidget(icon_label)
 
         name_text = self.item.name[:8]

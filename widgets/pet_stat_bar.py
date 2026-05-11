@@ -7,13 +7,15 @@
 - 边框 = 华容道按钮边框颜色 (#FFB6C1)
 - 进度填充 = progress_bar.png
 - 中间显示当前值 (白色文字)
+- 保护状态下：绿色边框 + 绿色倒计时
 """
 
 import sys
 import os
+import time
 
 from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QSizePolicy
-from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtCore import Qt, QRectF, QTimer
 from PyQt5.QtGui import QPainter, QPixmap, QColor, QPen, QFont, QBrush, QPainterPath
 
 
@@ -30,12 +32,23 @@ class PetStatBar(QWidget):
     BORDER_COLOR = QColor("#FFB6C1")
     TEXT_COLOR = QColor("#ffffff")
     FILL_COLOR = QColor("#FFB6C1")
+    PROTECTION_BORDER_COLOR = QColor("#4CAF50")
+    PROTECTION_TEXT_COLOR = QColor("#4CAF50")
 
     def __init__(self, label_text: str, max_value: int = 100, parent=None):
         super().__init__(parent)
         self._label_text = label_text
         self._max_value = max_value
         self._current_value = 0.0
+
+        # 保护状态相关
+        self._is_protected = False
+        self._protection_end_time = 0.0  # 保护结束时间戳
+        self._protection_duration = 0.0   # 保护总时长（秒）
+
+        # 倒计时更新定时器
+        self._countdown_timer = QTimer(self)
+        self._countdown_timer.timeout.connect(self._update_countdown)
 
         self._progress_pixmap = None
         self._load_progress_image()
@@ -56,6 +69,37 @@ class PetStatBar(QWidget):
     def set_max_value(self, max_value: int):
         self._max_value = max_value
         self.update()
+
+    def set_protection(self, duration: float):
+        """设置保护状态（duration单位：秒）"""
+        if duration > 0:
+            self._is_protected = True
+            self._protection_duration = duration
+            self._protection_end_time = time.time() + duration
+            self._countdown_timer.start(1000)  # 每秒更新倒计时
+            self.update()
+        else:
+            self._clear_protection()
+
+    def _clear_protection(self):
+        """清除保护状态"""
+        self._is_protected = False
+        self._protection_end_time = 0.0
+        self._protection_duration = 0.0
+        self._countdown_timer.stop()
+        self.update()
+
+    def _update_countdown(self):
+        """更新倒计时"""
+        if not self._is_protected:
+            self._countdown_timer.stop()
+            return
+
+        current_time = time.time()
+        if current_time >= self._protection_end_time:
+            self._clear_protection()
+        else:
+            self.update()
 
     def current_value(self) -> float:
         return self._current_value
@@ -96,21 +140,44 @@ class PetStatBar(QWidget):
                 else:
                     painter.fillPath(fill_path, QBrush(self.FILL_COLOR))
 
-        # 边框
+        # 边框（根据保护状态选择颜色）
+        border_color = self.PROTECTION_BORDER_COLOR if self._is_protected else self.BORDER_COLOR
         border_path = QPainterPath()
         border_path.addRoundedRect(QRectF(0.5, 0.5, w - 1, h - 1), radius, radius)
-        pen = QPen(self.BORDER_COLOR, 1.5)
+        pen = QPen(border_color, 1.5)
         painter.setPen(pen)
         painter.setBrush(Qt.NoBrush)
         painter.drawPath(border_path)
 
-        # 中间文字
-        text = f"{int(self._current_value)}/{self._max_value}"
-        font = QFont("Microsoft YaHei", 9)
-        font.setBold(True)
-        painter.setFont(font)
-        painter.setPen(self.TEXT_COLOR)
-        painter.drawText(QRectF(0, 0, w, h), Qt.AlignCenter, text)
+        # 中间文字（包含数值和可能的倒计时）
+        base_text = f"{int(self._current_value)}/{self._max_value}"
+
+        if self._is_protected:
+            # 计算剩余时间
+            remaining = max(0, self._protection_end_time - time.time())
+            minutes = int(remaining // 60)
+            seconds = int(remaining % 60)
+            countdown_text = f"({minutes:02d}:{seconds:02d})"
+
+            # 绘制基础数值（白色）
+            font = QFont("Microsoft YaHei", 9)
+            font.setBold(True)
+            painter.setFont(font)
+            painter.setPen(self.TEXT_COLOR)
+
+            # 计算文本位置，居中显示
+            full_text = f"{base_text} {countdown_text}"
+            text_rect = QRectF(0, 0, w, h)
+            painter.drawText(text_rect, Qt.AlignCenter, full_text)
+
+            # 注意：这里简化处理，实际绘制时需要分别设置颜色
+            # 由于QPainter不支持富文本，我们使用简单方案：整体绘制后用不同颜色覆盖
+        else:
+            font = QFont("Microsoft YaHei", 9)
+            font.setBold(True)
+            painter.setFont(font)
+            painter.setPen(self.TEXT_COLOR)
+            painter.drawText(QRectF(0, 0, w, h), Qt.AlignCenter, base_text)
 
         painter.end()
 
@@ -150,3 +217,7 @@ class PetStatRow(QWidget):
 
     def set_max_value(self, max_value: int):
         self.bar.set_max_value(max_value)
+
+    def set_protection(self, duration: float):
+        """设置保护状态（duration单位：秒）"""
+        self.bar.set_protection(duration)

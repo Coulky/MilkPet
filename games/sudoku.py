@@ -5,8 +5,8 @@ import traceback
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QGridLayout, QLabel, QFrame, QComboBox)
-from PyQt5.QtCore import Qt, pyqtSignal, QSize
-from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, pyqtSignal, QSize, QTimer
+from PyQt5.QtGui import QFont, QIcon, QPixmap
 
 from config.styles import Colors, ButtonStyles, Fonts, Rounded
 from widgets.dialog import GameFailDialog
@@ -60,6 +60,13 @@ class SudokuGame(QWidget):
             self.lives = INITIAL_LIVES
             self.game_over = False
 
+            # 计时器相关
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self._update_timer)
+            self.start_time = None
+            self.elapsed_time = 0
+            self.is_timer_running = False
+
             from basic_model.resource_manager import ResourceManager
             self.resource_manager = ResourceManager()
 
@@ -87,7 +94,7 @@ class SudokuGame(QWidget):
 
     def _setup_ui(self):
         self.setWindowTitle("数独")
-        self.setFixedSize(540, 750)
+        self.setFixedSize(540, 800)
 
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)
@@ -118,8 +125,14 @@ class SudokuGame(QWidget):
                 padding: 3px;
                 background: transparent;
             }}
-            QLabel#lives_label {{
+            QLabel#status_label {{
                 color: {T['error']};
+                font-size: {Fonts.SIZE_NORMAL}px;
+                font-weight: bold;
+                background: transparent;
+            }}
+            QLabel#timer_label {{
+                color: #8a8070;
                 font-size: {Fonts.SIZE_NORMAL}px;
                 font-weight: bold;
                 background: transparent;
@@ -159,7 +172,7 @@ class SudokuGame(QWidget):
         """)
 
         main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(8)
+        main_layout.setSpacing(6)
         main_layout.setContentsMargins(15, 12, 15, 12)
 
         title = QLabel("数独")
@@ -173,20 +186,21 @@ class SudokuGame(QWidget):
         new_game_btn = self.resource_manager.create_styled_button(
             text="新游戏",
             callback=self._new_game,
-            size=QSize(100, 50)
+            size=QSize(93, 67)
         )
         top_bar.addWidget(new_game_btn)
 
         difficulty_container = QWidget()
         difficulty_container.setStyleSheet("background: transparent;")
-        difficulty_container.setFixedWidth(160)
+        difficulty_container.setFixedWidth(150)
 
         diff_layout = QHBoxLayout(difficulty_container)
         diff_layout.setContentsMargins(0, 0, 0, 0)
-        diff_layout.setSpacing(4)
+        diff_layout.setSpacing(2)
+        diff_layout.addStretch(1)
 
         diff_label = QLabel("难度:")
-        diff_label.setStyleSheet(f"color: {Colors.PINK_TEXT}; font-size: 14px; font-weight: bold; background: transparent;")
+        diff_label.setStyleSheet(f"color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
         diff_layout.addWidget(diff_label)
 
         self.difficulty_combo = QComboBox()
@@ -197,25 +211,26 @@ class SudokuGame(QWidget):
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
         self.difficulty_combo.setStyleSheet(f"""
             QComboBox {{
-                background-color: {Colors.PINK_LIGHT};
-                color: {Colors.PINK_TEXT};
-                border: 1px solid {Colors.PINK_DARK};
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-weight: bold;
-                font-size: 12px;
+                background-color: #4a4a5e;
+                color: white;
+                border: 2px solid #6a6a7e;
+                border-radius: 5px;
+                padding: 5px;
+                min-width: 120px;
             }}
             QComboBox:hover {{
-                background-color: "#FFE8EC";
-                border-color: {Colors.PINK_DARK};
+                border-color: #8a8a9e;
             }}
-            QComboBox::drop-down {{ border: none; width: 20px; }}
+            QComboBox::drop-down {{
+                border: none;
+                width: 30px;
+            }}
             QComboBox::down-arrow {{
                 image: none;
                 border-left: 5px solid transparent;
                 border-right: 5px solid transparent;
-                border-top: 7px solid {Colors.PINK_TEXT};
-                margin-right: 6px;
+                border-top: 8px solid white;
+                margin-right: 10px;
             }}
             QComboBox QAbstractItemView {{
                 background-color: #3a3a4e;
@@ -227,58 +242,64 @@ class SudokuGame(QWidget):
         top_bar.addWidget(difficulty_container)
 
         self.note_btn = self.resource_manager.create_styled_button(
-            text="✏笔记",
+            text="笔记",
             callback=self._toggle_note_mode,
-            size=QSize(80, 50)
+            size=QSize(93, 67)
         )
-        self.note_btn.setStyleSheet(f"""
-            QWidget {{
-                background-color: transparent;
-            }}
-            QLabel {{
-                color: {Colors.PINK_TEXT};
-                font-size: 13px;
-                font-weight: bold;
-                background-color: transparent;
-            }}
-        """)
         top_bar.addWidget(self.note_btn)
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",
             callback=self.close,
-            size=QSize(70, 50)
+            size=QSize(93, 67)
         )
-        close_btn.setStyleSheet(f"""
-            QWidget {{
-                background-color: transparent;
-            }}
-            QLabel {{
-                color: {Colors.PINK_TEXT};
-                font-size: 13px;
-                font-weight: bold;
-                background-color: transparent;
-            }}
-        """)
         top_bar.addWidget(close_btn)
 
         main_layout.addLayout(top_bar)
 
-        lives_layout = QHBoxLayout()
-        lives_layout.addStretch(1)
-        self.lives_label = QLabel(f"❤️ x{self.lives}")
-        self.lives_label.setObjectName("lives_label")
-        self.lives_label.setAlignment(Qt.AlignCenter)
-        lives_layout.addWidget(self.lives_label)
-        lives_layout.addStretch(1)
-        main_layout.addLayout(lives_layout)
+        status_bar = QHBoxLayout()
+        status_bar.setSpacing(16)
+        status_bar.addStretch(1)
 
-        info_layout = QHBoxLayout()
-        self.info_label_widget = QLabel("点击格子，选择数字")
-        self.info_label_widget.setObjectName("info")
-        self.info_label_widget.setAlignment(Qt.AlignCenter)
-        info_layout.addWidget(self.info_label_widget)
-        main_layout.addLayout(info_layout)
+        lives_widget = QWidget()
+        lives_widget.setStyleSheet("background: transparent;")
+        lives_h_layout = QHBoxLayout(lives_widget)
+        lives_h_layout.setContentsMargins(0, 0, 0, 0)
+        lives_h_layout.setSpacing(4)
+
+        logo_icon = self.resource_manager.get_logo_icon()
+        if logo_icon and not logo_icon.isNull():
+            self.lives_icon = QLabel()
+            self.lives_icon.setPixmap(logo_icon.pixmap(18, 18))
+            self.lives_icon.setStyleSheet("background: transparent;")
+            lives_h_layout.addWidget(self.lives_icon)
+        else:
+            self.lives_icon = None
+
+        self.lives_label = QLabel(f"x{self.lives}")
+        self.lives_label.setObjectName("status_label")
+        self.lives_label.setAlignment(Qt.AlignCenter)
+        lives_h_layout.addWidget(self.lives_label)
+        status_bar.addWidget(lives_widget)
+
+        timer_widget = QWidget()
+        timer_widget.setStyleSheet("background: transparent;")
+        timer_h_layout = QHBoxLayout(timer_widget)
+        timer_h_layout.setContentsMargins(0, 0, 0, 0)
+        timer_h_layout.setSpacing(4)
+
+        timer_icon_label = QLabel("⏱")
+        timer_icon_label.setStyleSheet(f"color: #8a8070; font-size: {Fonts.SIZE_NORMAL}px; background: transparent;")
+        timer_h_layout.addWidget(timer_icon_label)
+
+        self.timer_label = QLabel("00:00")
+        self.timer_label.setObjectName("timer_label")
+        self.timer_label.setAlignment(Qt.AlignCenter)
+        timer_h_layout.addWidget(self.timer_label)
+        status_bar.addWidget(timer_widget)
+
+        status_bar.addStretch(1)
+        main_layout.addLayout(status_bar)
 
         self.grid_widget = QWidget()
         self.grid_layout = QGridLayout(self.grid_widget)
@@ -385,6 +406,19 @@ class SudokuGame(QWidget):
         if not self.selected_cell or self.game_finished or self.game_over:
             return
         row, col = self.selected_cell
+
+        if self.note_mode:
+            key = f"{row},{col}"
+            if num in self.notes[row][col]:
+                self.notes[row][col].discard(num)
+            else:
+                self.notes[row][col].add(num)
+            self.board[row][col] = 0
+            self.inputs[row][col].setText("")
+            self._render_notes(row, col)
+            self.info_label_widget.setText(f"笔记模式：已添加/移除数字 {num}")
+            return
+
         if self.initial[row][col]:
             self.info_label_widget.setText("⚠️ 初始数字不可修改！")
             return
@@ -404,11 +438,12 @@ class SudokuGame(QWidget):
             self.inputs[row][col].setStyleSheet(
                 f"QPushButton#cell_btn {{"
                 f"  background-color: {WHITE_THEME['primary']};"
-                f"  color: {WHITE_THEME['fill_text']};"
+                f"  color: {WHITE_THEME['fill_text']} !important;"
                 f"  font-weight: bold;"
                 f"  {base_style}"
                 f"}}"
             )
+            self._remove_related_notes(row, col, num)
         else:
             self.inputs[row][col].setStyleSheet(
                 f"QPushButton#cell_btn {{"
@@ -424,9 +459,34 @@ class SudokuGame(QWidget):
         self._check_win()
         self._update_highlights()
 
+    def _remove_related_notes(self, row, col, num):
+        for c in range(9):
+            if c != col and num in self.notes[row][c]:
+                self.notes[row][c].discard(num)
+                if not self.notes[row][c]:
+                    self.inputs[row][c].setText("")
+                else:
+                    self._render_notes(row, c)
+        for r in range(9):
+            if r != row and num in self.notes[r][col]:
+                self.notes[r][col].discard(num)
+                if not self.notes[r][col]:
+                    self.inputs[r][col].setText("")
+                else:
+                    self._render_notes(r, col)
+        box_row, box_col = (row // 3) * 3, (col // 3) * 3
+        for r in range(box_row, box_row + 3):
+            for c in range(box_col, box_col + 3):
+                if (r != row or c != col) and num in self.notes[r][c]:
+                    self.notes[r][c].discard(num)
+                    if not self.notes[r][c]:
+                        self.inputs[r][c].setText("")
+                    else:
+                        self._render_notes(r, c)
+
     def _lose_life(self):
         self.lives -= 1
-        self.lives_label.setText(f"❤️ x{self.lives}")
+        self.lives_label.setText(f"x{self.lives}")
 
         if self.lives <= 0:
             self._handle_game_over()
@@ -436,6 +496,8 @@ class SudokuGame(QWidget):
     def _handle_game_over(self):
         self.game_over = True
         self.info_label_widget.setText("💔 游戏失败！")
+        self.timer.stop()
+        self.is_timer_running = False
 
         has_revive_coin = self._check_revive_coin()
 
@@ -477,8 +539,9 @@ class SudokuGame(QWidget):
         if self._consume_revive_coin():
             self.lives = INITIAL_LIVES
             self.game_over = False
-            self.lives_label.setText(f"❤️ x{self.lives}")
+            self.lives_label.setText(f"x{self.lives}")
             self.info_label_widget.setText("✨ 复活成功！继续游戏吧！")
+            self._start_timer()
             self._clear_highlights()
         else:
             self.info_label_widget.setText("❌ 复活币不足！")
@@ -538,14 +601,6 @@ class SudokuGame(QWidget):
         )
         self._update_highlights()
 
-    def _toggle_note(self, row, col, num):
-        if num in self.notes[row][col]:
-            self.notes[row][col].discard(num)
-        else:
-            self.notes[row][col].add(num)
-        self.board[row][col] = 0
-        self._render_notes(row, col)
-
     def _render_notes(self, row, col):
         btn = self.inputs[row][col]
         base_style = self._get_cell_base_style(row, col)
@@ -598,7 +653,7 @@ class SudokuGame(QWidget):
                         btn.setStyleSheet(
                             f"QPushButton#cell_btn {{"
                             f"  background-color: {T['primary']};"
-                            f"  color: {T['fill_text']};"
+                            f"  color: {T['fill_text']} !important;"
                             f"  font-weight: bold;"
                             f"  {base_style}"
                             f"}}"
@@ -612,6 +667,8 @@ class SudokuGame(QWidget):
                             f"  {base_style}"
                             f"}}"
                         )
+                elif self.notes[i][j]:
+                    self._render_notes(i, j)
                 else:
                     btn.setStyleSheet(
                         f"QPushButton#cell_btn {{"
@@ -719,6 +776,14 @@ class SudokuGame(QWidget):
         self.game_finished = False
         self.game_over = False
         self.lives = INITIAL_LIVES
+        self.note_mode = False
+
+        # 停止并重置计时器
+        self.timer.stop()
+        self.is_timer_running = False
+        self.elapsed_time = 0
+        self.start_time = None
+        self.timer_label.setText("00:00")
 
         self._generate_puzzle()
         self._apply_board_style()
@@ -749,9 +814,28 @@ class SudokuGame(QWidget):
                     btn.setText("")
                     self.board[i][j] = 0
 
-        self.lives_label.setText(f"❤️ x{self.lives}")
-        diff_name = DIFFICULTY_SETTINGS[self.current_difficulty]['name']
-        self.info_label_widget.setText(f"难度: {diff_name} | 点击格子，选择数字")
+        self.lives_label.setText(f"x{self.lives}")
+        self.info_label_widget.setText("点击格子，选择数字")
+
+        # 启动计时器
+        self._start_timer()
+
+    def _start_timer(self):
+        self.start_time = None
+        self.elapsed_time = 0
+        self.timer.start(1000)
+        self.is_timer_running = True
+
+    def _update_timer(self):
+        if self.is_timer_running:
+            import time as time_module
+            current_time = int(time_module.time())
+            if self.start_time is None:
+                self.start_time = current_time
+            self.elapsed_time = int(current_time - self.start_time)
+            minutes = self.elapsed_time // 60
+            seconds = self.elapsed_time % 60
+            self.timer_label.setText(f"{minutes:02d}:{seconds:02d}")
 
     def _check_win(self):
         for i in range(9):
@@ -763,7 +847,7 @@ class SudokuGame(QWidget):
             if len(set(self.board[i])) != 9:
                 return False
         for j in range(9):
-            if len(set(self.board[i][j] for i in range(9))) != 9:
+            if len(set(self.board[i][j] for i in range(9)) != 9):
                 return False
         for bi in range(3):
             for bj in range(3):
@@ -778,10 +862,14 @@ class SudokuGame(QWidget):
         diff_name = DIFFICULTY_SETTINGS[self.current_difficulty]['name']
         self.info_label_widget.setText(f"🎉 恭喜！{diff_name}数独完成！")
 
+        # 停止计时器
+        self.timer.stop()
+        self.is_timer_running = False
+
         score_map = {'easy': 100, 'medium': 200, 'hard': 400}
         bonus = self.lives * 20
         score = score_map.get(self.current_difficulty, 100) + bonus
-        self.game_won.emit(score, 0, diff_name)
+        self.game_won.emit(score, self.elapsed_time, diff_name)
         return True
 
     def _get_bg_path(self):
@@ -789,4 +877,6 @@ class SudokuGame(QWidget):
         return ResourceManager().get_background_path()
 
     def closeEvent(self, event):
+        self.timer.stop()
+        self.is_timer_running = False
         event.accept()
