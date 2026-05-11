@@ -18,8 +18,8 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
-from games.secure_storage import SecureStorage
-from games.pet_stats import PetStats
+from basic_model.secure_storage import SecureStorage
+from pet.pet_stats import PetStats
 
 # 导入 PyQt5 用于消息框
 try:

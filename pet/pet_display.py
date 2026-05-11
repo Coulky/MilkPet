@@ -48,7 +48,7 @@ class PetDisplay(QWidget):
         if getattr(sys, 'frozen', False):
             base_path = sys._MEIPASS
         else:
-            # 获取项目根目录（向上两级：games/pet_display.py -> games/ -> 项目根）
+            # 获取项目根目录（向上两级：pet/pet_display.py -> pet/ -> 项目根）
             current_file = os.path.abspath(__file__)
             base_path = os.path.dirname(os.path.dirname(current_file))
         

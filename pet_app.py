@@ -31,7 +31,7 @@ def main():
     app.setQuitOnLastWindowClosed(False)
     
     # 单实例检查
-    from games.single_instance import check_single_instance, release_instance
+    from basic_model.single_instance import check_single_instance, release_instance
     if not check_single_instance("MilkPet", show_message=True):
         print("[INFO] 检测到重复启动，程序退出")
         return

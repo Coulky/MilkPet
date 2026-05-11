@@ -3,8 +3,11 @@ import os
 
 folder_path_list = [
     "__pycache__",
+    "basic_model/__pycache__",
+    "common/__pycache__",
     "config/__pycache__",
     "games/__pycache__",
+    "pet/__pycache__",
     "widgets/__pycache__"
     ]
 

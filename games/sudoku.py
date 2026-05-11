@@ -32,7 +32,7 @@ class SudokuGame(QWidget):
             self.inputs = [[None]*9 for _ in range(9)]
             self.initial = [[False]*9 for _ in range(9)]
             
-            from games.resource_manager import ResourceManager
+            from basic_model.resource_manager import ResourceManager
             self.resource_manager = ResourceManager()
             
             print("[DEBUG] SudokuGame: Setting up UI...")
@@ -427,7 +427,7 @@ class SudokuGame(QWidget):
     
     def _get_bg_path(self):
         """获取背景图片路径"""
-        from games.resource_manager import ResourceManager
+        from basic_model.resource_manager import ResourceManager
         return ResourceManager().get_background_path()
 
     def closeEvent(self, event):

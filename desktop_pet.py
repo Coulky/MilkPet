@@ -3,12 +3,12 @@
 桌宠主控制器 - 协调所有功能模块
 
 模块说明：
-- games/pet_display.py: 桌宠显示核心（窗口、图片、UI）
-- games/pet_tray.py: 系统托盘管理（图标、菜单、通知）
+- pet/pet_display.py: 桌宠显示核心（窗口、图片、UI）
+- pet/pet_tray.py: 系统托盘管理（图标、菜单、通知）
 - games/dh_puzzle.py: 数字华容道游戏
 - games/sudoku.py: 数独游戏
-- games/inventory.py: 背包系统
-- games/shop.py: 商店系统
+- basic_model/inventory.py: 背包系统
+- basic_model/shop.py: 商店系统
 """
 
 import sys
@@ -20,14 +20,15 @@ from PyQt5.QtWidgets import (QWidget, QLabel, QMenu, QAction,
                              QScrollArea, QSizePolicy, QFrame)
 from PyQt5.QtCore import Qt, QPoint, QTimer
 
-from games.pet_display import PetDisplay
-from games.pet_tray import PetTrayManager
+from pet.pet_display import PetDisplay
+from pet.pet_tray import PetTrayManager
 from games.dh_puzzle import DHPuzzle
 from games.sudoku import SudokuGame
-from games.inventory import InventoryWindow
-from games.shop import ShopWindow
-from games.items import ItemFactory, ItemRarity
-from games.statistics import StatisticsManager
+from basic_model.inventory import InventoryWindow
+from basic_model.shop import ShopWindow
+from basic_model.items import ItemFactory, ItemRarity
+from basic_model.statistics import StatisticsManager
+from widgets.pet_stat_bar import PetStatRow
 
 
 class DesktopPet(PetDisplay):
@@ -84,7 +85,7 @@ class DesktopPet(PetDisplay):
         
         # 预加载所有游戏素材
         print("[DesktopPet] 预加载游戏素材...")
-        from games.resource_manager import ResourceManager
+        from basic_model.resource_manager import ResourceManager
         self.resource_manager = ResourceManager()
         self.resource_manager.preload_all()
         
@@ -117,6 +118,9 @@ class DesktopPet(PetDisplay):
         main_layout = QVBoxLayout(self.menu_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.menu_container)
+
+        # ========== 宠物属性显示区域 ==========
+        self._setup_pet_stats_area(menu_layout)
 
         # 布局常量（改为实例属性）
         self._title_container_width = 50  # 标题容器宽度
@@ -293,6 +297,70 @@ class DesktopPet(PetDisplay):
         line.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
         return line
     
+    def _setup_pet_stats_area(self, menu_layout):
+        """设置宠物属性显示区域（经验等级 + 饱食度/饥渴值/心情进度条）"""
+        # 等级和经验显示
+        self.level_label = QLabel("Lv.0")
+        self.level_label.setObjectName("category_label")
+        self.level_label.setAlignment(Qt.AlignCenter)
+        self.level_label.setStyleSheet("""
+            QLabel {
+                color: #FFD700;
+                font-size: 14px;
+                font-weight: bold;
+                background: transparent;
+                padding: 2px 0px;
+            }
+        """)
+        menu_layout.addWidget(self.level_label)
+
+        self.exp_label = QLabel("EXP: 0/100")
+        self.exp_label.setObjectName("category_label")
+        self.exp_label.setAlignment(Qt.AlignCenter)
+        self.exp_label.setStyleSheet("""
+            QLabel {
+                color: #aaaaaa;
+                font-size: 10px;
+                background: transparent;
+                padding: 0px 0px 4px 0px;
+            }
+        """)
+        menu_layout.addWidget(self.exp_label)
+
+        # 属性进度条
+        self.stat_satiety = PetStatRow("饱食度", 100)
+        self.stat_thirst = PetStatRow("饥渴值", 100)
+        self.stat_mood = PetStatRow("心情", 100)
+
+        menu_layout.addWidget(self.stat_satiety)
+        menu_layout.addWidget(self.stat_thirst)
+        menu_layout.addWidget(self.stat_mood)
+
+        # 分隔线
+        line = self._create_divider()
+        menu_layout.addWidget(line)
+
+        # 菜单刷新定时器
+        self.menu_refresh_timer = QTimer()
+        self.menu_refresh_timer.timeout.connect(self._refresh_menu_stats)
+    
+    def _refresh_menu_stats(self):
+        """刷新右键菜单中的属性显示"""
+        if not self.menu_widget.isVisible():
+            self.menu_refresh_timer.stop()
+            return
+
+        pet = self.stats_manager.pet_stats
+        level = pet.get_level()
+        level_exp = pet.get_level_exp()
+
+        self.level_label.setText(f"Lv.{level}")
+        self.exp_label.setText(f"EXP: {int(level_exp)}/{pet.get_exp_to_next_level():.0f}")
+
+        self.stat_satiety.set_value(pet.satiety)
+        self.stat_thirst.set_value(pet.thirst)
+        self.stat_mood.set_value(pet.mood)
+    
     def _give_starter_pack(self):
         """赠送新手礼包"""
         starter_items = [
@@ -382,8 +450,9 @@ class DesktopPet(PetDisplay):
             pet_width = self.width()
             pet_height = self.height()
 
-            # 设置菜单高度与桌宠一致
-            self.menu_widget.setFixedHeight(pet_height)
+            # 设置菜单高度（至少与桌宠一致，内容多时自动扩展）
+            self.menu_widget.setMinimumHeight(pet_height)
+            self.menu_widget.adjustSize()
             
             # 菜单显示在桌宠右侧，距离更近（5px）
             x = pet_x + pet_width + 5
@@ -408,6 +477,10 @@ class DesktopPet(PetDisplay):
             self.menu_widget.move(x, y)
             self.menu_widget.show()
             self.menu_widget.raise_()
+
+            # 刷新属性显示并启动定时器
+            self._refresh_menu_stats()
+            self.menu_refresh_timer.start(1000)
 
             # 记录菜单打开次数
             self.stats_manager.record_interaction("menu")

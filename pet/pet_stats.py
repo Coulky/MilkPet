@@ -26,6 +26,7 @@ from config.settings import (
     PET_DECAY_SATIETY, PET_DECAY_THIRST, PET_DECAY_MOOD,
     PET_ATTR_MIN, PET_ATTR_MAX,
     EXP_THRESHOLDS, EXP_MIN, EXP_MAX,
+    EXP_PER_LEVEL,
 )
 
 
@@ -60,6 +61,18 @@ class PetStats:
 
     def clamp_exp(self, value: float) -> float:
         return max(EXP_MIN, min(EXP_MAX, value))
+
+    def get_level(self) -> int:
+        """根据总经验计算等级"""
+        return int(self.exp / EXP_PER_LEVEL)
+
+    def get_level_exp(self) -> float:
+        """获取当前等级内的经验值"""
+        return self.exp % EXP_PER_LEVEL
+
+    def get_exp_to_next_level(self) -> float:
+        """获取升级所需经验"""
+        return EXP_PER_LEVEL - (self.exp % EXP_PER_LEVEL)
 
     # ================================================================
     # 属性衰减

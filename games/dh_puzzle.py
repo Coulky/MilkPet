@@ -56,7 +56,7 @@ class DHPuzzle(QWidget):
         }
         
         # 使用预加载的图片
-        from games.resource_manager import ResourceManager
+        from basic_model.resource_manager import ResourceManager
         self.resource_manager = ResourceManager()
         self.number_images = self.resource_manager.dh_puzzle_images
         
@@ -540,11 +540,10 @@ class DHPuzzle(QWidget):
         
         # 重置数据
         numbers = list(range(1, self.grid_size * self.grid_size))
-        # numbers.insert(-1, 0)
+        numbers.insert(-1, 0)
 
-        numbers.append(0)  # 0放在最后一位作为空格
-        
-        random.shuffle(numbers)
+        # numbers.append(0)  # 0放在最后一位作为空格
+        # random.shuffle(numbers)
         
         idx = 0
         for i in range(self.grid_size):
