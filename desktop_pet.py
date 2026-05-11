@@ -27,6 +27,8 @@ from games.sudoku import SudokuGame
 from basic_model.inventory import InventoryWindow
 from basic_model.shop import ShopWindow
 from basic_model.items import ItemFactory, ItemRarity
+from common.common_enum import ItemType
+from config.settings import GAME_EXP_REWARD
 from basic_model.statistics import StatisticsManager
 from widgets.pet_stat_bar import PetStatRow
 
@@ -354,8 +356,12 @@ class DesktopPet(PetDisplay):
         level = pet.get_level()
         level_exp = pet.get_level_exp()
 
-        self.level_label.setText(f"Lv.{level}")
-        self.exp_label.setText(f"EXP: {int(level_exp)}/{pet.get_exp_to_next_level():.0f}")
+        if pet.is_max_level():
+            self.level_label.setText(f"Lv.{level} MAX")
+            self.exp_label.setText("EXP: 已满级")
+        else:
+            self.level_label.setText(f"Lv.{level}")
+            self.exp_label.setText(f"EXP: {int(level_exp)}/{pet.get_exp_to_next_level():.0f}")
 
         self.stat_satiety.set_value(pet.satiety)
         self.stat_thirst.set_value(pet.thirst)
@@ -648,7 +654,7 @@ class DesktopPet(PetDisplay):
 
             # 连接游戏结束信号用于统计和得分
             self.dh_puzzle_window.game_won.connect(
-                lambda score, time_sec: self._on_game_finished('dh_puzzle', won=True, score=score, time_spent=time_sec)
+                lambda score, time_sec, difficulty: self._on_game_finished('dh_puzzle', won=True, score=score, time_spent=time_sec, difficulty=difficulty)
             )
 
             self.dh_puzzle_window.show()
@@ -690,10 +696,11 @@ class DesktopPet(PetDisplay):
         """游戏结束时调用"""
         print(f"📊 Game finished: {game_id}, won={won}")
         
-        # 记录游戏结果
-        self.stats_manager.record_game_result(game_id, won, **kwargs)
+        # difficulty 只用于经验计算，不传给 record_game
+        stats_kwargs = {k: v for k, v in kwargs.items() if k != 'difficulty'}
+        self.stats_manager.record_game_result(game_id, won, **stats_kwargs)
         
-        # 只给喵币，不显示弹框（信息已在成功窗口中显示）
+        # 只给喵币和经验，不显示弹框（信息已在成功窗口中显示）
         if won:
             score = kwargs.get('score', 0)
             
@@ -701,6 +708,21 @@ class DesktopPet(PetDisplay):
             if score > 0:
                 self.player_score = self.stats_manager.add_player_score(score)
                 print(f"💰 获得喵币: {score}, 总喵币: {self.player_score}")
+            
+            # 根据难度获得经验
+            difficulty = kwargs.get('difficulty', '普通')
+            exp_reward = GAME_EXP_REWARD.get(game_id, {}).get(difficulty, 10)
+            
+            if exp_reward > 0:
+                pet = self.stats_manager.pet_stats
+                old_level = pet.get_level()
+                pet.exp = pet.clamp_exp(pet.exp + exp_reward)
+                new_level = pet.get_level()
+                
+                print(f"⭐ 获得经验: {exp_reward}, 总经验: {int(pet.exp)}, 等级: Lv.{pet.get_level()}")
+                
+                if new_level > old_level:
+                    print(f"🎉 升级! Lv.{old_level} -> Lv.{new_level}")
 
     def _on_backpack(self):
         """打开背包"""
@@ -744,15 +766,25 @@ class DesktopPet(PetDisplay):
             return
 
         print(f"💊 Used item: {item.name}")
-        
-        # 应用效果
+
         effect_messages = []
-        for effect in item.effects:
-            msg = effect.apply()
-            if msg:
-                effect_messages.append(msg)
-        
-        # 显示效果提示
+        if item.item_type in (ItemType.FOOD, ItemType.DRINK, ItemType.TOY):
+            if item.boost_value > 0:
+                type_names = {
+                    ItemType.FOOD: "饱食度",
+                    ItemType.DRINK: "饥渴值",
+                    ItemType.TOY: "心情",
+                }
+                attr_name = type_names.get(item.item_type, "属性")
+                effect_messages.append(f"{attr_name} +{item.boost_value}")
+            if item.protection_duration > 0:
+                mins = int(item.protection_duration / 60)
+                effect_messages.append(f"保护效果持续{mins}分钟")
+        elif item.item_type == ItemType.DECORATION:
+            effect_messages.append(f"已装备装饰品：{item.name}")
+        elif item.item_type == ItemType.GAME:
+            effect_messages.append(f"获得游戏道具：{item.name}")
+
         if effect_messages:
             QMessageBox.information(
                 self.inventory_window or self,
@@ -760,8 +792,7 @@ class DesktopPet(PetDisplay):
                 "\n".join(effect_messages),
                 QMessageBox.Ok
             )
-        
-        # 记录✅ 使用了"
+
         self.stats_manager.record_item_action("use", item_id)
     
     def _on_inventory_closed(self):
@@ -780,7 +811,13 @@ class DesktopPet(PetDisplay):
             # 创建或显示商店窗口
             if not self.shop_window or not self.shop_window.isVisible():
                 self._close_all_windows()
-                self.shop_window = ShopWindow(player_score=self.player_score, parent=None)
+                owned_items = self.stats_manager.get_inventory_data() or {}
+                self.shop_window = ShopWindow(
+                    player_score=self.player_score,
+                    player_level=self.stats_manager.pet_stats.get_level(),
+                    owned_items=owned_items,
+                    parent=None
+                )
 
                 # 连接购买信号
                 self.shop_window.item_purchased.connect(self._on_item_purchased)
@@ -811,9 +848,14 @@ class DesktopPet(PetDisplay):
         # 记录消费
         self.stats_manager.player_stats.gold_spent += price
         
-        # 添加到背包
+        # 持久化到 stats_manager（无论背包窗口是否打开）
+        inv_data = self.stats_manager.get_inventory_data()
+        inv_data[item_id] = inv_data.get(item_id, 0) + 1
+        self.stats_manager.set_inventory_data(inv_data)
+        
+        # 更新背包 UI（如果背包窗口已打开）
         if self.inventory_window:
-            self.inventory_window.add_item(item_id, 1)
+            self.inventory_window.load_inventory_data(self.stats_manager.get_inventory_data())
         
         # 更新商店分数显示
         if self.shop_window:

@@ -20,23 +20,13 @@ from enum import Enum
 
 from basic_model.secure_storage import SecureStorage
 from pet.pet_stats import PetStats
+from common.common_enum import AchievementType
 
 # 导入 PyQt5 用于消息框
 try:
     from PyQt5.QtWidgets import QMessageBox
 except ImportError:
     QMessageBox = None
-
-
-class AchievementType(Enum):
-    """成就类型"""
-    GAME_WINS = "game_wins"           # 游戏胜利次数
-    PLAY_TIME = "play_time"           # 游玩时长
-    ITEMS_COLLECTED = "items"         # 收集道具
-    PERFECT_GAME = "perfect_game"     # 完美游戏
-    SPEED_CLEAR = "speed_clear"       # 速通成就
-    SOCIAL = "social"                 # 社交互动
-    EXPLORER = "explorer"             # 探索者
 
 
 @dataclass

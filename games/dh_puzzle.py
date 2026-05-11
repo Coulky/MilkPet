@@ -21,7 +21,7 @@ class DHPuzzle(QWidget):
     - 对应 GD 文件: scripts/games/sliding_puzzle/SlidingPuzzle.gd
     """
     
-    game_won = pyqtSignal(int, int)  # (score, time_seconds)
+    game_won = pyqtSignal(int, int, str)  # (score, time_seconds, difficulty)
     
     GRID_PIXEL_SIZE = 450
     GRID_SPACING = 1
@@ -472,7 +472,7 @@ class DHPuzzle(QWidget):
         
         # ========== 发送游戏胜利信号 ==========
         try:
-            self.game_won.emit(total_score, self.elapsed_time)
+            self.game_won.emit(total_score, self.elapsed_time, difficulty_name)
             print("[OK] 游戏胜利信号已发送")
         except Exception as e:
             print(f"[ERROR] 发送游戏胜利信号失败: {e}")

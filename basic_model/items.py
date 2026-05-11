@@ -68,6 +68,10 @@ class Item:
                 tooltip += "有效期：永久\n"
             if self.required_level > 0:
                 tooltip += f"需要等级：Lv.{self.required_level}\n"
+        elif self.item_type == ItemType.GAME:
+            tooltip += f"{self.description}\n"
+            if self.required_level > 0:
+                tooltip += f"需要等级：Lv.{self.required_level}\n"
 
         if self.price > 0:
             tooltip += f"\n💰 价格: {self.price} 喵币"

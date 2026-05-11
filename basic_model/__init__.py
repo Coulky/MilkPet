@@ -10,8 +10,9 @@
 
 from .inventory import InventoryWindow, InventorySlot
 from .items import (ItemFactory, Item, ItemType, ItemRarity)
-from .statistics import (StatisticsManager, Achievement, GameStats, 
-                        PlayerStats, AchievementType)
+from .statistics import (StatisticsManager, Achievement, GameStats,
+                        PlayerStats)
+from common.common_enum import AchievementType
 
 __all__ = [
     # 背包

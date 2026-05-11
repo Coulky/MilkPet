@@ -25,158 +25,186 @@ from .items import Item, ItemType, ItemRarity, ItemFactory
 
 
 class InventorySlot(QFrame):
-    """背包格子 - 单个道具槽位"""
-    
-    item_used = pyqtSignal(str)  # 使用道具信号
-    item_clicked = pyqtSignal(str)  # 点击道具信号
-    
+    """背包格子 - 参照商店 ShopItemSlot 样式"""
+
+    item_used = pyqtSignal(str)
+
     def __init__(self, slot_id: int = 0, parent=None):
         super().__init__(parent)
-        
+
         self.slot_id = slot_id
         self.item: Optional[Item] = None
         self.quantity: int = 0
-        
+        self._use_btn_visible = False
+
         self._setup_ui()
-    
+
     def _setup_ui(self):
-        """设置UI"""
-        self.setFixedSize(80, 80)
+        self.setFixedSize(120, 150)
         self.setStyleSheet("""
             InventorySlot {
                 background-color: rgba(58, 58, 78, 0.9);
                 border: 2px solid #6a6a7e;
-                border-radius: 8px;
+                border-radius: 10px;
             }
             InventorySlot:hover {
                 border-color: #8a8abe;
-                background-color: rgba(68, 68, 88, 0.9);
             }
-            QLabel#item_icon {
+            QLabel#inv_icon {
                 font-size: 32px;
             }
-            QLabel#item_count {
+            QLabel#inv_name {
+                color: #eeeeee;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QLabel#inv_rarity {
+                font-size: 9px;
+            }
+            QLabel#inv_count {
                 color: white;
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: bold;
                 background-color: rgba(0, 0, 0, 150);
-                padding: 2px 6px;
-                border-radius: 10px;
+                padding: 1px 5px;
+                border-radius: 8px;
             }
+            QPushButton#use_btn {
+                background-color: #4a7a4a;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+            QPushButton#use_btn:hover { background-color: #5a9a5a; }
         """)
-        
+
         layout = QVBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(2)
         layout.setAlignment(Qt.AlignCenter)
-        
+
         self.icon_label = QLabel()
-        self.icon_label.setObjectName("item_icon")
+        self.icon_label.setObjectName("inv_icon")
         self.icon_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.icon_label)
-        
+
+        self.name_label = QLabel()
+        self.name_label.setObjectName("inv_name")
+        self.name_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.name_label)
+
+        self.rarity_label = QLabel()
+        self.rarity_label.setObjectName("inv_rarity")
+        self.rarity_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.rarity_label)
+
         self.count_label = QLabel()
-        self.count_label.setObjectName("item_count")
+        self.count_label.setObjectName("inv_count")
         self.count_label.setAlignment(Qt.AlignBottom | Qt.AlignRight)
         self.count_label.hide()
-        layout.addWidget(self.count_label)
-        
+
+        count_layout = QVBoxLayout()
+        count_layout.setContentsMargins(0, 0, 2, 2)
+        count_layout.addWidget(self.count_label)
+
+        self.use_btn = QPushButton("\u4f7f\u7528")
+        self.use_btn.setObjectName("use_btn")
+        self.use_btn.hide()
+        self.use_btn.clicked.connect(self._on_use_clicked)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        btn_layout.addWidget(self.use_btn)
+        btn_layout.addStretch()
+
+        layout.addLayout(count_layout)
+        layout.addLayout(btn_layout)
+
         self.setLayout(layout)
-        
-        self.setAcceptDrops(True)
-    
+
     def set_item(self, item: Item, quantity: int = 1):
-        """设置槽位中的道具"""
         self.item = item
         self.quantity = quantity
-        
+
         if item:
-            self.icon_label.setText(item.icon)
-            self.icon_label.setStyleSheet(f"color: {item.rarity.color};")
-            
+            self.icon_label.setText(item.icon if item.icon else "[?]")
+            name_text = item.name[:8]
+            if len(item.name) > 8:
+                name_text += ".."
+            self.name_label.setText(name_text)
+            self.rarity_label.setText(f"[{item.rarity.chinese_name}]")
+
+            rarity_color_map = {
+                ItemRarity.COMMON: "#aaaaaa",
+                ItemRarity.RARE: "#4a9eff",
+                ItemRarity.EPIC: "#b04aff",
+                ItemRarity.LEGENDARY: "#ffaa00",
+            }
+            rc = rarity_color_map.get(item.rarity, "#aaaaaa")
+            self.rarity_label.setStyleSheet(f"color: {rc};")
+
             if quantity > 1:
-                self.count_label.setText(str(quantity))
+                self.count_label.setText(f"x{quantity}")
                 self.count_label.show()
             else:
                 self.count_label.hide()
-            
-            # 根据稀有度设置边框颜色
+
             self.setStyleSheet(f"""
                 InventorySlot {{
                     background-color: rgba(58, 58, 78, 0.95);
-                    border: 2px solid {item.rarity.color};
-                    border-radius: 8px;
+                    border: 2px solid {rc};
+                    border-radius: 10px;
                 }}
                 InventorySlot:hover {{
-                    border-color: {item.rarity.color};
+                    border-color: {rc};
                     background-color: rgba(68, 68, 88, 0.95);
-                    box-shadow: 0 0 10px {item.rarity.color}40;
+                    box-shadow: 0 0 10px {rc}40;
                 }}
             """)
+            self._hide_use_btn()
         else:
             self.clear_slot()
-    
+
     def clear_slot(self):
-        """清空槽位"""
         self.item = None
         self.quantity = 0
         self.icon_label.setText("")
-        self.icon_label.setStyleSheet("")
+        self.name_label.setText("")
+        self.rarity_label.setText("")
         self.count_label.hide()
+        self._hide_use_btn()
         self.setStyleSheet("""
             InventorySlot {
                 background-color: rgba(58, 58, 78, 0.9);
                 border: 2px solid #6a6a7e;
-                border-radius: 8px;
+                border-radius: 10px;
             }
             InventorySlot:hover {
                 border-color: #8a8abe;
-                background-color: rgba(68, 68, 88, 0.9);
             }
         """)
-    
+
     def mousePressEvent(self, event):
-        """鼠标点击事件"""
         if event.button() == Qt.LeftButton and self.item:
-            self.item_clicked.emit(self.item.id)
-        
-        elif event.button() == Qt.RightButton and self.item:
-            self._show_context_menu(event.globalPos())
-    
-    def _show_context_menu(self, pos: QPoint):
-        """显示右键菜单 - 只显示使用选项"""
-        from PyQt5.QtWidgets import QMenu, QAction
-        
-        menu = QMenu(self)
-        
-        use_action = QAction(f"✓ 使用 {self.item.name}", self)
-        use_action.triggered.connect(lambda: self.item_used.emit(self.item.id))
-        menu.addAction(use_action)
-        
-        menu.exec_(pos)
-    
-    def _split_stack(self):
-        """分割堆叠"""
-        if self.quantity > 1:
-            split_amount = self.quantity // 2
-            self.quantity -= split_amount
-            self.count_label.setText(str(self.quantity))
-            
-            # 返回分割出的数量，由父组件处理
-            return (self.item, split_amount)
-        return None
-    
-    def _drop_item(self):
-        """丢弃道具"""
-        reply = QMessageBox.question(
-            self,
-            "确认丢弃",
-            f"确定要丢弃 {self.item.name} x{self.quantity} 吗？\n此操作不可撤销！",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            self.clear_slot()
+            if self._use_btn_visible:
+                self._hide_use_btn()
+            else:
+                self._show_use_btn()
+
+    def _show_use_btn(self):
+        self._use_btn_visible = True
+        self.use_btn.show()
+
+    def _hide_use_btn(self):
+        self._use_btn_visible = False
+        self.use_btn.hide()
+
+    def _on_use_clicked(self):
+        if self.item:
+            self._hide_use_btn()
+            self.item_used.emit(self.item.id)
 
 
 class InventoryWindow(QWidget):
@@ -315,8 +343,9 @@ class InventoryWindow(QWidget):
             ("all", "全部"),
             ("food", "食物"),
             ("drink", "饮品"),
-            ("toy", "玩具"),
-            ("decoration", "装饰"),
+            ("toy", "\u73a9\u5177"),
+            ("decoration", "\u88c5\u9970"),
+            ("game", "\u6e38\u620f\u9053\u5177"),
         ]
         
         self.filter_buttons = {}
@@ -354,12 +383,11 @@ class InventoryWindow(QWidget):
         self.grid_layout.setContentsMargins(15, 15, 15, 15)
         
         for i in range(self.MAX_SLOTS):
-            row = i // 6
-            col = i % 6
+            row = i // 5
+            col = i % 5
             
             slot = InventorySlot(slot_id=i)
             slot.item_used.connect(self._on_item_used)
-            slot.item_clicked.connect(self._on_item_clicked)
             
             self.grid_layout.addWidget(slot, row, col)
             self.slots.append(slot)
@@ -421,6 +449,7 @@ class InventoryWindow(QWidget):
                     "drink": ItemType.DRINK,
                     "toy": ItemType.TOY,
                     "decoration": ItemType.DECORATION,
+                    "game": ItemType.GAME,
                 }
                 
                 if self.current_filter in type_map:
@@ -466,10 +495,11 @@ class InventoryWindow(QWidget):
             items_list.sort(key=lambda x: x[0].name)
         elif index == 3:  # 按数量
             items_list.sort(key=lambda x: x[1], reverse=True)
-        else:  # 默认按类型
+        else:  # 默认按类型，再按价格低到高
             type_order = {ItemType.FOOD: 0, ItemType.DRINK: 1,
-                         ItemType.TOY: 2, ItemType.DECORATION: 3}
-            items_list.sort(key=lambda x: type_order.get(x[0].item_type, 99))
+                         ItemType.TOY: 2, ItemType.DECORATION: 3,
+                         ItemType.GAME: 4}
+            items_list.sort(key=lambda x: (type_order.get(x[0].item_type, 99), x[0].price))
         
         # 清空并重新填充
         self.inventory.clear()

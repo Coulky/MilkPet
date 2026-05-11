@@ -26,7 +26,7 @@ from config.settings import (
     PET_DECAY_SATIETY, PET_DECAY_THIRST, PET_DECAY_MOOD,
     PET_ATTR_MIN, PET_ATTR_MAX,
     EXP_THRESHOLDS, EXP_MIN, EXP_MAX,
-    EXP_PER_LEVEL,
+    LEVEL_EXP,
 )
 
 
@@ -62,17 +62,46 @@ class PetStats:
     def clamp_exp(self, value: float) -> float:
         return max(EXP_MIN, min(EXP_MAX, value))
 
+    def _get_cumulative_exp(self) -> list:
+        """计算累计经验阈值列表"""
+        cum = [0]
+        for exp in LEVEL_EXP:
+            cum.append(cum[-1] + exp)
+        return cum
+
+    def get_max_level(self) -> int:
+        """获取最大等级"""
+        return len(LEVEL_EXP)
+
+    def is_max_level(self) -> bool:
+        """是否已达到最大等级"""
+        cum = self._get_cumulative_exp()
+        return self.exp >= cum[-1]
+
     def get_level(self) -> int:
-        """根据总经验计算等级"""
-        return int(self.exp / EXP_PER_LEVEL)
+        """根据总经验计算等级（从0开始，满级返回最大等级）"""
+        cum = self._get_cumulative_exp()
+        for i in range(len(cum) - 1, 0, -1):
+            if self.exp >= cum[i]:
+                return i
+        return 0
 
     def get_level_exp(self) -> float:
         """获取当前等级内的经验值"""
-        return self.exp % EXP_PER_LEVEL
+        cum = self._get_cumulative_exp()
+        level = self.get_level()
+        if level >= len(cum) - 1:
+            return 0.0
+        return self.exp - cum[level]
 
     def get_exp_to_next_level(self) -> float:
-        """获取升级所需经验"""
-        return EXP_PER_LEVEL - (self.exp % EXP_PER_LEVEL)
+        """获取升级所需经验（满级返回0）"""
+        if self.is_max_level():
+            return 0.0
+        cum = self._get_cumulative_exp()
+        level = self.get_level()
+        next_exp = cum[level + 1] if level + 1 < len(cum) else cum[-1]
+        return next_exp - self.exp
 
     # ================================================================
     # 属性衰减
@@ -156,13 +185,27 @@ class PetStats:
             return 0
 
         threshold, interval, change = matched_threshold
+
+        # 满级后不再增加经验
+        if change > 0 and self.is_max_level():
+            return 0
+
         elapsed = now - self.last_exp_check_time
 
         if elapsed >= interval:
             cycles = int(elapsed / interval)
             self.last_exp_check_time += cycles * interval
             total_change = change * cycles
-            self.exp = self.clamp_exp(self.exp + total_change)
+            new_exp = self.exp + total_change
+
+            # 正向变化时不超过最大等级所需经验
+            if total_change > 0:
+                cum = self._get_cumulative_exp()
+                max_exp = cum[-1]
+                if new_exp >= max_exp:
+                    new_exp = max_exp
+
+            self.exp = self.clamp_exp(new_exp)
             return total_change
 
         return 0
