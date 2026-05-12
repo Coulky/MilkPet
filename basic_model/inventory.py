@@ -17,7 +17,8 @@ from collections import defaultdict
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QGridLayout, QLabel, QScrollArea, QFrame,
-                             QMessageBox, QComboBox, QToolTip, QSizePolicy)
+                             QMessageBox, QComboBox, QToolTip, QSizePolicy,
+                             QApplication)
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QSize
 from PyQt5.QtGui import QPixmap, QFont, QColor, QIcon
 
@@ -25,7 +26,7 @@ from .items import Item, ItemType, ItemRarity, ItemFactory
 
 
 class InventorySlot(QFrame):
-    """背包格子 - 参照商店 ShopItemSlot 样式"""
+    """背包格子 - 与商店 ShopItemSlot 样式一致"""
 
     item_used = pyqtSignal(str)
 
@@ -35,7 +36,6 @@ class InventorySlot(QFrame):
         self.slot_id = slot_id
         self.item: Optional[Item] = None
         self.quantity: int = 0
-        self._use_btn_visible = False
 
         self._setup_ui()
 
@@ -43,12 +43,9 @@ class InventorySlot(QFrame):
         self.setFixedSize(120, 150)
         self.setStyleSheet("""
             InventorySlot {
-                background-color: #f0f0f0;
-                border: 2px solid #d0d0d0;
+                background-color: #ffffff;
+                border: 2px solid #e0e0e0;
                 border-radius: 10px;
-            }
-            InventorySlot:hover {
-                border-color: #b0b0b0;
             }
             QLabel#inv_icon {
                 font-size: 32px;
@@ -60,39 +57,21 @@ class InventorySlot(QFrame):
                 font-weight: bold;
                 background: transparent;
             }
-            QLabel#inv_rarity {
-                font-size: 9px;
+            QLabel#inv_count {
+                color: #FFD700;
+                font-size: 12px;
+                font-weight: bold;
                 background: transparent;
             }
-            QLabel#inv_count {
-                color: white;
-                font-size: 11px;
-                font-weight: bold;
-                background-color: rgba(0, 0, 0, 150);
-                padding: 1px 5px;
-                border-radius: 8px;
-            }
             QPushButton#use_btn {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #5a9a5a, stop:1 #4a7a4a);
+                background-color: #4a7a4a;
                 color: white;
-                border: 2px solid #6aba6a;
-                border-radius: 6px;
+                border: none;
+                border-radius: 5px;
                 font-size: 11px;
-                font-weight: bold;
-                padding: 4px 12px;
-                min-width: 50px;
+                padding: 3px 8px;
             }
-            QPushButton#use_btn:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #6aba6a, stop:1 #5a9a5a);
-                border-color: #7aca7a;
-            }
-            QPushButton#use_btn:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #4a8a4a, stop:1 #3a6a3a);
-                border-color: #5a9a5a;
-            }
+            QPushButton#use_btn:hover { background-color: #5a9a5a; }
         """)
 
         layout = QVBoxLayout()
@@ -103,6 +82,7 @@ class InventorySlot(QFrame):
         self.icon_label = QLabel()
         self.icon_label.setObjectName("inv_icon")
         self.icon_label.setAlignment(Qt.AlignCenter)
+        self.icon_label.setFixedSize(64, 64)
         layout.addWidget(self.icon_label)
 
         self.name_label = QLabel()
@@ -110,32 +90,15 @@ class InventorySlot(QFrame):
         self.name_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.name_label)
 
-        self.rarity_label = QLabel()
-        self.rarity_label.setObjectName("inv_rarity")
-        self.rarity_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.rarity_label)
-
         self.count_label = QLabel()
         self.count_label.setObjectName("inv_count")
-        self.count_label.setAlignment(Qt.AlignBottom | Qt.AlignRight)
-        self.count_label.hide()
-
-        count_layout = QVBoxLayout()
-        count_layout.setContentsMargins(0, 0, 2, 2)
-        count_layout.addWidget(self.count_label)
+        self.count_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.count_label)
 
         self.use_btn = QPushButton("\u4f7f\u7528")
         self.use_btn.setObjectName("use_btn")
-        self.use_btn.hide()
         self.use_btn.clicked.connect(self._on_use_clicked)
-
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
-        btn_layout.addWidget(self.use_btn)
-        btn_layout.addStretch()
-
-        layout.addLayout(count_layout)
-        layout.addLayout(btn_layout)
+        layout.addWidget(self.use_btn)
 
         self.setLayout(layout)
 
@@ -151,7 +114,7 @@ class InventorySlot(QFrame):
                     icon_path = os.path.join(base_dir, icon_path)
                 pixmap = QPixmap(icon_path)
                 if not pixmap.isNull():
-                    scaled_pixmap = pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                    scaled_pixmap = pixmap.scaled(56, 56, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                     self.icon_label.setPixmap(scaled_pixmap)
                 else:
                     self.icon_label.setText("[?]")
@@ -162,7 +125,8 @@ class InventorySlot(QFrame):
             if len(item.name) > 8:
                 name_text += ".."
             self.name_label.setText(name_text)
-            self.rarity_label.setText(f"[{item.rarity.chinese_name}]")
+
+            self.count_label.setText(f"x{quantity}")
 
             rarity_color_map = {
                 ItemRarity.COMMON: "#aaaaaa",
@@ -171,13 +135,6 @@ class InventorySlot(QFrame):
                 ItemRarity.LEGENDARY: "#ffaa00",
             }
             rc = rarity_color_map.get(item.rarity, "#aaaaaa")
-            self.rarity_label.setStyleSheet(f"color: {rc};")
-
-            if quantity > 1:
-                self.count_label.setText(f"x{quantity}")
-                self.count_label.show()
-            else:
-                self.count_label.hide()
 
             self.setStyleSheet(f"""
                 InventorySlot {{
@@ -185,17 +142,26 @@ class InventorySlot(QFrame):
                     border: 2px solid {rc};
                     border-radius: 10px;
                 }}
-                InventorySlot:hover {{
-                    border-color: {rc};
-                    background-color: #f5f5f5;
-                    box-shadow: 0 0 10px {rc}40;
-                }}
                 QLabel {{
                     background: transparent;
                     color: #333333;
                 }}
+                QLabel#inv_count {{
+                    color: #FFD700;
+                    font-size: 12px;
+                    font-weight: bold;
+                    background: transparent;
+                }}
+                QPushButton#use_btn {{
+                    background-color: #4a7a4a;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    font-size: 11px;
+                    padding: 3px 8px;
+                }}
+                QPushButton#use_btn:hover {{ background-color: #5a9a5a; }}
             """)
-            self._hide_use_btn()
         else:
             self.clear_slot()
 
@@ -204,38 +170,17 @@ class InventorySlot(QFrame):
         self.quantity = 0
         self.icon_label.setText("")
         self.name_label.setText("")
-        self.rarity_label.setText("")
-        self.count_label.hide()
-        self._hide_use_btn()
+        self.count_label.setText("")
         self.setStyleSheet("""
             InventorySlot {
-                background-color: #f0f0f0;
-                border: 2px solid #d0d0d0;
+                background-color: #f5f5f5;
+                border: 2px solid #e0e0e0;
                 border-radius: 10px;
-            }
-            InventorySlot:hover {
-                border-color: #b0b0b0;
             }
         """)
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton and self.item:
-            if self._use_btn_visible:
-                self._hide_use_btn()
-            else:
-                self._show_use_btn()
-
-    def _show_use_btn(self):
-        self._use_btn_visible = True
-        self.use_btn.show()
-
-    def _hide_use_btn(self):
-        self._use_btn_visible = False
-        self.use_btn.hide()
-
     def _on_use_clicked(self):
         if self.item:
-            self._hide_use_btn()
             self.item_used.emit(self.item.id)
 
 
@@ -265,15 +210,14 @@ class InventoryWindow(QWidget):
         self._refresh_inventory()
     
     def _setup_ui(self):
-        """设置UI"""
-        from PyQt5.QtWidgets import QApplication
+        """设置UI - 与商店窗口样式完全一致"""
         
         self.setWindowTitle("背包")
-        self.setFixedSize(720, 580)
+        self.setFixedSize(720, 600)
 
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
 
         container = QFrame(self)
         container.setObjectName("container")
@@ -288,39 +232,53 @@ class InventoryWindow(QWidget):
             }}
             QLabel#title {{
                 color: #ffffff;
-                font-size: 24px;
+                font-size: 20px;
                 font-weight: bold;
-                padding: 10px;
+                padding: 6px;
                 background: transparent;
             }}
             QLabel#info {{
-                color: #aaaaaa;
-                font-size: 14px;
-                padding: 5px;
+                color: #FFD700;
+                font-size: 15px;
+                font-weight: bold;
+                padding: 4px;
                 background: transparent;
             }}
-            QPushButton#control_btn {{
-                background-color: #5a7a9a;
-                color: white;
-                font-size: 13px;
-                padding: 8px 16px;
+            QPushButton#cat_btn {{
+                background-color: #fad8d1;
+                color: #8a8070;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 5px 12px;
                 border-radius: 6px;
+                border: 1px solid #FFB6C1;
+            }}
+            QPushButton#cat_btn:checked {{
+                background-color: #FFB6C1;
+                color: white;
+                border-color: #FFB6C1;
+            }}
+            QPushButton#cat_btn:hover:!checked {{
+                background-color: #FFE4E9;
+                border-color: #FFC0CB;
+            }}
+            QScrollArea {{
                 border: none;
+                background-color: transparent;
             }}
-            QPushButton#control_btn:hover {{
-                background-color: #6a8aaa;
-            }}
-            QPushButton#control_btn:checked {{
-                background-color: #4a6a8a;
-                border: 2px solid #8a8aba;
+            QWidget#grid_container {{
+                background: transparent;
             }}
             QComboBox {{
-                background-color: #3a3a46;
+                background-color: #4a4a5e;
                 color: white;
-                border: 2px solid #5a5a6e;
-                border-radius: 6px;
-                padding: 6px 12px;
+                border: 2px solid #6a6a7e;
+                border-radius: 5px;
+                padding: 5px;
                 font-size: 13px;
+            }}
+            QComboBox:hover {{
+                border-color: #8a8a9e;
             }}
             QComboBox::drop-down {{
                 border: none;
@@ -334,47 +292,33 @@ class InventoryWindow(QWidget):
                 margin-right: 10px;
             }}
             QComboBox QAbstractItemView {{
-                background-color: #3a3a46;
+                background-color: #3a3a4e;
                 color: white;
-                selection-background-color: #5a5a6e;
-                outline: none;
-            }}
-            QScrollArea {{
-                border: none;
-                background-color: transparent;
-            }}
-            QWidget#grid_container {{
-                background-color: rgba(43, 43, 54, 0.95);
-                border: 2px solid #4a4a5e;
-                border-radius: 12px;
+                selection-background-color: #5a7a9a;
             }}
         """)
         
         main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(15)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(18, 18, 18, 14)
         
         title_bar = QHBoxLayout()
         
-        title_label = QLabel("我的背包")
+        title_label = QLabel("\u6211\u7684\u80cc\u5305")
         title_label.setObjectName("title")
         title_bar.addWidget(title_label)
         
         title_bar.addStretch()
         
-        capacity_label = QLabel(f"容量: {len(self.inventory)}/{self.MAX_SLOTS}")
-        capacity_label.setObjectName("info")
-        title_bar.addWidget(capacity_label)
-        self.capacity_label = capacity_label
-        
         main_layout.addLayout(title_bar)
         
         filter_bar = QHBoxLayout()
+        filter_bar.setSpacing(5)
         
         categories = [
-            ("all", "全部"),
-            ("food", "食物"),
-            ("drink", "饮品"),
+            ("all", "\u5168\u90e8"),
+            ("food", "\u98df\u7269"),
+            ("drink", "\u996e\u54c1"),
             ("toy", "\u73a9\u5177"),
             ("decoration", "\u88c5\u9970"),
             ("game", "\u6e38\u620f\u9053\u5177"),
@@ -383,7 +327,7 @@ class InventoryWindow(QWidget):
         self.filter_buttons = {}
         for cat_id, cat_name in categories:
             btn = QPushButton(cat_name)
-            btn.setObjectName("control_btn")
+            btn.setObjectName("cat_btn")
             btn.setCheckable(True)
             btn.clicked.connect(lambda checked, cid=cat_id: self._filter_items(cid))
             filter_bar.addWidget(btn)
@@ -394,10 +338,10 @@ class InventoryWindow(QWidget):
         filter_bar.addStretch()
         
         sort_combo = QComboBox()
-        sort_combo.addItem("按类型排序")
-        sort_combo.addItem("按稀有度排序")
-        sort_combo.addItem("按名称排序")
-        sort_combo.addItem("按数量排序")
+        sort_combo.addItem("\u6309\u7c7b\u578b+\u4ef7\u683c")
+        sort_combo.addItem("\u6309\u7a00\u6709\u5ea6")
+        sort_combo.addItem("\u6309\u540d\u79f0")
+        sort_combo.addItem("\u6309\u6570\u91cf")
         sort_combo.currentIndexChanged.connect(self._sort_inventory)
         filter_bar.addWidget(sort_combo)
         
@@ -411,46 +355,54 @@ class InventoryWindow(QWidget):
         grid_container.setObjectName("grid_container")
         
         self.grid_layout = QGridLayout(grid_container)
-        self.grid_layout.setSpacing(8)
-        self.grid_layout.setContentsMargins(15, 15, 15, 15)
-        
-        for i in range(self.MAX_SLOTS):
-            row = i // 5
-            col = i % 5
-            
-            slot = InventorySlot(slot_id=i)
-            slot.item_used.connect(self._on_item_used)
-            
-            self.grid_layout.addWidget(slot, row, col)
-            self.slots.append(slot)
+        self.grid_layout.setSpacing(10)
+        self.grid_layout.setContentsMargins(12, 12, 12, 12)
         
         scroll_area.setWidget(grid_container)
-        main_layout.addWidget(scroll_area)
+        main_layout.addWidget(scroll_area, stretch=1)
         
         bottom_bar = QHBoxLayout()
         
-        sort_btn = QPushButton("整理背包")
-        sort_btn.setObjectName("control_btn")
-        sort_btn.clicked.connect(self._sort_inventory)
-        bottom_bar.addWidget(sort_btn)
+        close_container = QWidget()
+        close_container.setFixedSize(120, 100)
+        close_container.setCursor(Qt.PointingHandCursor)
         
-        use_selected_btn = QPushButton("使用选中")
-        use_selected_btn.setObjectName("control_btn")
-        use_selected_btn.clicked.connect(self._use_selected_item)
-        bottom_bar.addWidget(use_selected_btn)
+        close_icon = QLabel(close_container)
+        close_icon.setGeometry(0, 0, 120, 100)
+        close_icon.setAlignment(Qt.AlignCenter)
         
-        close_btn = QPushButton("关闭")
-        close_btn.setObjectName("control_btn")
-        close_btn.setStyleSheet("""
-            QPushButton#control_btn {
-                background-color: #8a4a4a;
-            }
-            QPushButton#control_btn:hover {
-                background-color: #aa5a5a;
+        btn_path = self._get_btn_path()
+        if os.path.exists(btn_path):
+            btn_pixmap = QPixmap(btn_path)
+            if not btn_pixmap.isNull():
+                scaled = btn_pixmap.scaled(112, 92, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                close_icon.setPixmap(scaled)
+        
+        close_text = QLabel("\u5173\u95ed", close_container)
+        close_text.setGeometry(0, 0, 120, 100)
+        close_text.setAlignment(Qt.AlignCenter)
+        close_text.setStyleSheet("""
+            QLabel {
+                color: #8a8070;
+                font-size: 16px;
+                font-weight: bold;
+                background: transparent;
+                border: none;
             }
         """)
-        close_btn.clicked.connect(self.close)
-        bottom_bar.addWidget(close_btn)
+        font = close_text.font()
+        font.setBold(True)
+        font.setPointSize(16)
+        close_text.setFont(font)
+        
+        def on_close_click(event):
+            if event.button() == Qt.LeftButton:
+                self.close()
+        close_container.mousePressEvent = on_close_click
+        
+        bottom_bar.addStretch()
+        bottom_bar.addWidget(close_container)
+        bottom_bar.addStretch()
         
         main_layout.addLayout(bottom_bar)
         
@@ -458,15 +410,16 @@ class InventoryWindow(QWidget):
         window_layout.setContentsMargins(0, 0, 0, 0)
         window_layout.addWidget(container)
         
+        self._center_on_screen()
+        
         self.selected_slot: Optional[InventorySlot] = None
     
     def _refresh_inventory(self):
-        """刷新背包显示"""
-        # 清空所有槽位
+        """刷新背包显示 - 动态生成格子（商城样式）"""
         for slot in self.slots:
-            slot.clear_slot()
+            slot.deleteLater()
+        self.slots.clear()
         
-        # 根据筛选条件获取道具列表
         items_to_show = []
         
         for item_id, quantity in self.inventory.items():
@@ -474,7 +427,6 @@ class InventoryWindow(QWidget):
             if not item:
                 continue
             
-            # 应用筛选
             if self.current_filter != "all":
                 type_map = {
                     "food": ItemType.FOOD,
@@ -490,13 +442,22 @@ class InventoryWindow(QWidget):
             
             items_to_show.append((item, quantity))
         
-        # 填充到槽位
-        for idx, (item, quantity) in enumerate(items_to_show):
-            if idx < len(self.slots):
-                self.slots[idx].set_item(item, quantity)
+        col = 0
+        row = 0
+        cols_per_row = 5
         
-        # 更新容量显示
-        self.capacity_label.setText(f"容量: {len(self.inventory)}/{self.MAX_SLOTS}")
+        for item, quantity in items_to_show:
+            slot = InventorySlot()
+            slot.set_item(item, quantity)
+            slot.item_used.connect(self._on_item_used)
+            
+            self.grid_layout.addWidget(slot, row, col)
+            self.slots.append(slot)
+            
+            col += 1
+            if col >= cols_per_row:
+                col = 0
+                row += 1
     
     def _filter_items(self, category: str):
         """筛选道具"""
@@ -745,7 +706,20 @@ class InventoryWindow(QWidget):
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(base_path, 'assets', 'images', 'background.png').replace('\\', '/')
-    
+
+    def _get_btn_path(self):
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, 'assets', 'images', 'button.png').replace('\\', '/')
+
+    def _center_on_screen(self):
+        screen = QApplication.instance().primaryScreen().availableGeometry()
+        x = (screen.width() - self.width()) // 2
+        y = (screen.height() - self.height()) // 2
+        self.move(x, y)
+
     def closeEvent(self, event):
         """关闭事件"""
         self.closed.emit()

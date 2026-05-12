@@ -26,11 +26,11 @@ from widgets.dialog import ConfirmDialog, WarningDialog, CompleteDialog
 
 CATEGORY_MAP = {
     "all": ("\u5168\u90e8", None),
-    "food": ("\U0001f37d \u98df\u7269", ItemType.FOOD),
-    "drink": ("\U0001f37b \u996e\u54c1", ItemType.DRINK),
-    "toy": ("\U0001f3ab \u73a9\u5177", ItemType.TOY),
-    "decoration": ("\U0001f451 \u88c5\u9970", ItemType.DECORATION),
-    "game": ("\U0001f3ae \u6e38\u620f\u9053\u5177", ItemType.GAME),
+    "food": ("\u98df\u7269", ItemType.FOOD),
+    "drink": ("\u996e\u54c1", ItemType.DRINK),
+    "toy": ("\u73a9\u5177", ItemType.TOY),
+    "decoration": ("\u88c5\u9970", ItemType.DECORATION),
+    "game": ("\u6e38\u620f\u9053\u5177", ItemType.GAME),
 }
 
 RARITY_COLORS = {
@@ -62,10 +62,6 @@ class ShopItemSlot(QFrame):
                 border: 2px solid {rarity_color};
                 border-radius: 10px;
             }}
-            ShopItemSlot:hover {{
-                border-color: {rarity_color};
-                background-color: #f5f5f5;
-            }}
             ShopItemSlot:disabled {{
                 opacity: 0.45;
                 background-color: #e0e0e0;
@@ -78,11 +74,6 @@ class ShopItemSlot(QFrame):
                 color: #333333;
                 font-size: 11px;
                 font-weight: bold;
-                background: transparent;
-            }}
-            QLabel#shop_rarity {{
-                color: {rarity_color};
-                font-size: 9px;
                 background: transparent;
             }}
             QLabel#shop_price {{
@@ -138,11 +129,6 @@ class ShopItemSlot(QFrame):
         name_label.setObjectName("shop_name")
         name_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(name_label)
-
-        rarity_label = QLabel(f"[{self.item.rarity.chinese_name}]")
-        rarity_label.setObjectName("shop_rarity")
-        rarity_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(rarity_label)
 
         price_label = QLabel(f"{self.item.price} \U0001f4b0")
         price_label.setObjectName("shop_price")
@@ -228,20 +214,22 @@ class ShopWindow(QWidget):
                 background: transparent;
             }}
             QPushButton#cat_btn {{
-                background-color: rgba(70, 70, 90, 0.85);
-                color: #cccccc;
-                font-size: 11px;
+                background-color: #fad8d1;
+                color: #8a8070;
+                font-size: 12px;
+                font-weight: bold;
                 padding: 5px 12px;
                 border-radius: 6px;
-                border: 1px solid #555566;
+                border: 1px solid #FFB6C1;
             }}
             QPushButton#cat_btn:checked {{
-                background-color: rgba(90, 122, 154, 0.95);
+                background-color: #FFB6C1;
                 color: white;
-                border-color: #7a9aba;
+                border-color: #FFB6C1;
             }}
             QPushButton#cat_btn:hover:!checked {{
-                background-color: rgba(80, 80, 100, 0.9);
+                background-color: #FFE4E9;
+                border-color: #FFC0CB;
             }}
             QScrollArea {{
                 border: none;
@@ -250,6 +238,33 @@ class ShopWindow(QWidget):
             QWidget#grid_container {{
                 background: transparent;
             }}
+            QComboBox {{
+                background-color: #4a4a5e;
+                color: white;
+                border: 2px solid #6a6a7e;
+                border-radius: 5px;
+                padding: 5px;
+                font-size: 13px;
+            }}
+            QComboBox:hover {{
+                border-color: #8a8a9e;
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                width: 30px;
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 8px solid white;
+                margin-right: 10px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: #3a3a4e;
+                color: white;
+                selection-background-color: #5a7a9a;
+            }}
         """)
 
         main_layout = QVBoxLayout(container)
@@ -257,7 +272,7 @@ class ShopWindow(QWidget):
         main_layout.setContentsMargins(18, 18, 18, 14)
 
         title_bar = QHBoxLayout()
-        title = QLabel("\U0001f6d2 \u5546\u5e97")
+        title = QLabel("\u5546\u5e97")
         title.setObjectName("title")
         title_bar.addWidget(title)
 
@@ -310,22 +325,46 @@ class ShopWindow(QWidget):
         main_layout.addWidget(scroll_area, stretch=1)
 
         bottom_bar = QHBoxLayout()
-        close_btn = QPushButton("\u5173\u95ed\u5546\u5e97")
-        close_btn.setObjectName("close_btn")
-        close_btn.setStyleSheet("""
-            QPushButton#close_btn {
-                background-color: #8a4a4a;
-                color: white;
-                font-size: 13px;
-                padding: 8px 24px;
-                border-radius: 6px;
+        
+        close_container = QWidget()
+        close_container.setFixedSize(120, 100)
+        close_container.setCursor(Qt.PointingHandCursor)
+        
+        close_icon = QLabel(close_container)
+        close_icon.setGeometry(0, 0, 120, 100)
+        close_icon.setAlignment(Qt.AlignCenter)
+        
+        btn_path = self._get_btn_path()
+        if os.path.exists(btn_path):
+            btn_pixmap = QPixmap(btn_path)
+            if not btn_pixmap.isNull():
+                scaled = btn_pixmap.scaled(112, 92, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                close_icon.setPixmap(scaled)
+        
+        close_text = QLabel("\u5173\u95ed", close_container)
+        close_text.setGeometry(0, 0, 120, 100)
+        close_text.setAlignment(Qt.AlignCenter)
+        close_text.setStyleSheet("""
+            QLabel {
+                color: #8a8070;
+                font-size: 16px;
+                font-weight: bold;
+                background: transparent;
                 border: none;
             }
-            QPushButton#close_btn:hover { background-color: #aa5a5a; }
         """)
-        close_btn.clicked.connect(self.close)
+        font = close_text.font()
+        font.setBold(True)
+        font.setPointSize(16)
+        close_text.setFont(font)
+        
+        def on_close_click(event):
+            if event.button() == Qt.LeftButton:
+                self.close()
+        close_container.mousePressEvent = on_close_click
+        
         bottom_bar.addStretch()
-        bottom_bar.addWidget(close_btn)
+        bottom_bar.addWidget(close_container)
         bottom_bar.addStretch()
 
         main_layout.addLayout(bottom_bar)
@@ -473,6 +512,13 @@ class ShopWindow(QWidget):
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(base_path, 'assets', 'images', 'background.png').replace('\\', '/')
+
+    def _get_btn_path(self):
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, 'assets', 'images', 'button.png').replace('\\', '/')
 
     def closeEvent(self, event):
         self.closed.emit()

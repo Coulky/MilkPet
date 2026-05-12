@@ -301,6 +301,11 @@ class SudokuGame(QWidget):
         status_bar.addStretch(1)
         main_layout.addLayout(status_bar)
 
+        self.info_label_widget = QLabel("点击格子，选择数字")
+        self.info_label_widget.setObjectName("info")
+        self.info_label_widget.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.info_label_widget)
+
         self.grid_widget = QWidget()
         self.grid_layout = QGridLayout(self.grid_widget)
         self.grid_layout.setSpacing(0)
@@ -509,7 +514,7 @@ class SudokuGame(QWidget):
         )
         dialog.revive_clicked.connect(self._on_revive)
         dialog.abandon_clicked.connect(self._on_abandon)
-        dialog.exec_()
+        dialog.show()
 
     def _check_revive_coin(self):
         try:

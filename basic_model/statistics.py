@@ -564,12 +564,15 @@ class StatisticsManager:
         return self.player_score
     
     def process_login_pet_stats(self) -> dict:
-        """登录时处理宠物属性（离线喵币、装饰过期检查）"""
+        """登录时处理宠物属性（离线衰减、离线喵币、装饰过期检查）"""
         import time
         now = time.time()
         result = {"offline_coins": 0, "expired_decorations": []}
         
-        # 计算离线喵币
+        decay_changes = self.pet_stats.apply_decay(now)
+        if any(v != 0 for v in decay_changes.values()):
+            print(f"[INFO] 离线属性衰减: 饱食度{decay_changes['satiety']:+.1f}, 饥渴值{decay_changes['thirst']:+.1f}, 心情{decay_changes['mood']:+.1f}")
+        
         if self.pet_stats.last_login_time > 0:
             offline_seconds = now - self.pet_stats.last_login_time
             result["offline_coins"] = self.pet_stats.calc_offline_coins(offline_seconds)
@@ -577,17 +580,12 @@ class StatisticsManager:
                 self.player_score += result["offline_coins"]
                 print(f"[INFO] 离线喵币: +{result['offline_coins']}")
         
-        # 更新登录时间
         self.pet_stats.last_login_time = now
         
-        # 检查装饰品过期
         result["expired_decorations"] = self.pet_stats.check_decoration_expiry(now)
         if result["expired_decorations"]:
             print(f"[INFO] 过期装饰品: {result['expired_decorations']}")
         
-        # 初始化时间戳
-        if self.pet_stats.last_decay_time <= 0:
-            self.pet_stats.last_decay_time = now
         if self.pet_stats.last_coin_time <= 0:
             self.pet_stats.last_coin_time = now
         if self.pet_stats.last_exp_check_time <= 0:

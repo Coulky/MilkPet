@@ -14,7 +14,7 @@ import os
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QLabel, QFrame, QApplication)
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 
 
 DIALOG_STYLES = {
@@ -76,6 +76,11 @@ class BaseDialog(QWidget):
 
         self._setup_ui()
         self._center_on_screen()
+
+        self._auto_close_timer = QTimer(self)
+        self._auto_close_timer.setSingleShot(True)
+        self._auto_close_timer.timeout.connect(self.close)
+        self._auto_close_timer.start(2500)
 
     def _get_bg_path(self):
         if getattr(sys, 'frozen', False):

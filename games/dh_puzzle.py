@@ -72,7 +72,13 @@ class DHPuzzle(QWidget):
     
     def _calc_btn_size(self):
         total_spacing = self.GRID_SPACING * (self.grid_size - 1)
-        return (self.GRID_PIXEL_SIZE - total_spacing) // self.grid_size
+        total_margin = self.GRID_SPACING * 2
+        return (self.GRID_PIXEL_SIZE - total_spacing - total_margin) // self.grid_size
+
+    def _calc_grid_size(self):
+        btn_size = self._calc_btn_size()
+        total = btn_size * self.grid_size + self.GRID_SPACING * (self.grid_size - 1) + self.GRID_SPACING * 2
+        return total
     
     def _setup_ui(self):
         self.setWindowTitle("数字华容道")
@@ -287,10 +293,12 @@ class DHPuzzle(QWidget):
 
         grid_frame = QFrame()
         grid_frame.setObjectName("grid_frame")
+        self.grid_frame = grid_frame
+        grid_frame.setFixedSize(self._calc_grid_size(), self._calc_grid_size())
         
         self.grid_layout = QGridLayout(grid_frame)
         self.grid_layout.setSpacing(self.GRID_SPACING)
-        self.grid_layout.setContentsMargins(8, 8, 8, 8)
+        self.grid_layout.setContentsMargins(self.GRID_SPACING, self.GRID_SPACING, self.GRID_SPACING, self.GRID_SPACING)
         
         btn_size = self._calc_btn_size()
 
@@ -642,7 +650,8 @@ class DHPuzzle(QWidget):
             self._new_game()
     
     def _rebuild_grid(self):
-        """重建网格"""
+        self.grid_frame.setFixedSize(self._calc_grid_size(), self._calc_grid_size())
+        
         while self.grid_layout.count():
             item = self.grid_layout.takeAt(0)
             if item.widget():

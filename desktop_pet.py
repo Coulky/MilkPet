@@ -97,9 +97,6 @@ class DesktopPet(PetDisplay):
         # 设置右键菜单
         self._setup_menu()
         
-        # 赠送新手礼包
-        self._give_starter_pack()
-    
     def _setup_menu(self):
         """设置右键菜单"""
         self.menu_widget = QWidget()
@@ -307,7 +304,7 @@ class DesktopPet(PetDisplay):
         self.level_label.setAlignment(Qt.AlignCenter)
         self.level_label.setStyleSheet("""
             QLabel {
-                color: #FFD700;
+                color: #8a8070;
                 font-size: 14px;
                 font-weight: bold;
                 background: transparent;
@@ -366,21 +363,6 @@ class DesktopPet(PetDisplay):
         self.stat_satiety.set_value(pet.satiety)
         self.stat_thirst.set_value(pet.thirst)
         self.stat_mood.set_value(pet.mood)
-    
-    def _give_starter_pack(self):
-        """赠送新手礼包"""
-        starter_items = [
-            ("dried_fish", 5),
-            ("fresh_milk", 3),
-            ("cat_teaser", 3),
-            ("revive_coin", 1),
-        ]
-        
-        for item_id, quantity in starter_items:
-            item = ItemFactory.get_item(item_id)
-            if item:
-                print(f"[GIFT] 新手礼包: {item.name} x{quantity}")
-                # 这里只是打印，实际添加在背包打开时处理
 
     def _update_session_time(self):
         """更新会话时间（每分钟调用）"""
@@ -691,6 +673,8 @@ class DesktopPet(PetDisplay):
             )
             
             self.sudoku_window.show()
+            self.sudoku_window.raise_()
+            self.sudoku_window.activateWindow()
             print("[OK] Sudoku window opened (independent)")
         except Exception as e:
             print(f"[ERROR] Error opening Sudoku: {e}")
@@ -799,7 +783,7 @@ class DesktopPet(PetDisplay):
                 dialog_type="info",
                 parent=self.inventory_window or self
             )
-            dialog.exec_()
+            dialog.show()
 
         self.stats_manager.record_item_action("use", item_id)
     

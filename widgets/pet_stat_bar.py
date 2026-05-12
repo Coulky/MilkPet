@@ -30,7 +30,7 @@ class PetStatBar(QWidget):
 
     BG_COLOR = QColor("#8a8070")
     BORDER_COLOR = QColor("#FFB6C1")
-    TEXT_COLOR = QColor("#ffffff")
+    TEXT_COLOR = QColor("#8a8070")
     FILL_COLOR = QColor("#FFB6C1")
     PROTECTION_BORDER_COLOR = QColor("#4CAF50")
     PROTECTION_TEXT_COLOR = QColor("#4CAF50")
@@ -112,35 +112,19 @@ class PetStatBar(QWidget):
         h = self.height()
         radius = 4
 
-        # 背景（底色 = 字体颜色）
         bg_path = QPainterPath()
         bg_path.addRoundedRect(QRectF(1, 1, w - 2, h - 2), radius, radius)
-        painter.fillPath(bg_path, QBrush(self.BG_COLOR))
+        painter.fillPath(bg_path, QBrush(QColor("#ffffff")))
 
-        # 进度填充
-        if self._max_value > 0:
-            ratio = self._current_value / self._max_value
+        if self._max_value > 0 and self._current_value > 0:
+            ratio = min(self._current_value / self._max_value, 1.0)
             fill_width = int((w - 2) * ratio)
             if fill_width > 0:
                 fill_rect = QRectF(1, 1, fill_width, h - 2)
                 fill_path = QPainterPath()
                 fill_path.addRoundedRect(fill_rect, radius, radius)
+                painter.fillPath(fill_path, QBrush(QColor("#fbd8d0")))
 
-                if self._progress_pixmap and not self._progress_pixmap.isNull():
-                    # 用 progress_bar.png 平铺填充
-                    scaled = self._progress_pixmap.scaled(
-                        fill_width, h - 2,
-                        Qt.IgnoreAspectRatio,
-                        Qt.SmoothTransformation
-                    )
-                    painter.save()
-                    painter.setClipPath(fill_path)
-                    painter.drawPixmap(1, 1, scaled)
-                    painter.restore()
-                else:
-                    painter.fillPath(fill_path, QBrush(self.FILL_COLOR))
-
-        # 边框（根据保护状态选择颜色）
         border_color = self.PROTECTION_BORDER_COLOR if self._is_protected else self.BORDER_COLOR
         border_path = QPainterPath()
         border_path.addRoundedRect(QRectF(0.5, 0.5, w - 1, h - 1), radius, radius)
@@ -149,29 +133,22 @@ class PetStatBar(QWidget):
         painter.setBrush(Qt.NoBrush)
         painter.drawPath(border_path)
 
-        # 中间文字（包含数值和可能的倒计时）
         base_text = f"{int(self._current_value)}/{self._max_value}"
 
         if self._is_protected:
-            # 计算剩余时间
             remaining = max(0, self._protection_end_time - time.time())
             minutes = int(remaining // 60)
             seconds = int(remaining % 60)
             countdown_text = f"({minutes:02d}:{seconds:02d})"
 
-            # 绘制基础数值（白色）
             font = QFont("Microsoft YaHei", 9)
             font.setBold(True)
             painter.setFont(font)
             painter.setPen(self.TEXT_COLOR)
 
-            # 计算文本位置，居中显示
             full_text = f"{base_text} {countdown_text}"
             text_rect = QRectF(0, 0, w, h)
             painter.drawText(text_rect, Qt.AlignCenter, full_text)
-
-            # 注意：这里简化处理，实际绘制时需要分别设置颜色
-            # 由于QPainter不支持富文本，我们使用简单方案：整体绘制后用不同颜色覆盖
         else:
             font = QFont("Microsoft YaHei", 9)
             font.setBold(True)
