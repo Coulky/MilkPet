@@ -370,10 +370,10 @@ class DesktopPet(PetDisplay):
     def _give_starter_pack(self):
         """赠送新手礼包"""
         starter_items = [
-            ("xiaoyugan", 5),
-            ("xianyangnai", 3),
-            ("doumaobang", 3),
-            ("fuhuobi", 1),
+            ("dried_fish", 5),
+            ("fresh_milk", 3),
+            ("cat_teaser", 3),
+            ("revive_coin", 1),
         ]
         
         for item_id, quantity in starter_items:
@@ -752,10 +752,10 @@ class DesktopPet(PetDisplay):
             # 添加新手礼包（首次）
             if self.stats_manager.player_stats.sessions_count <= 1:
                 starter_items = [
-                    ("xiaoyugan", 5),
-                    ("xianyangnai", 3),
-                    ("doumaobang", 3),
-                    ("fuhuobi", 1),
+                    ("dried_fish", 5),
+                    ("fresh_milk", 3),
+                    ("cat_teaser", 3),
+                    ("revive_coin", 1),
                 ]
                 for item_id, qty in starter_items:
                     self.inventory_window.add_item(item_id, qty)

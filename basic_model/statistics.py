@@ -218,7 +218,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.GAME_WINS,
                 icon="🎮",
                 target_value=1,
-                reward_item="xiaoyugan",
+                reward_item="dried_fish",
                 reward_quantity=3
             ),
             Achievement(
@@ -228,7 +228,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.GAME_WINS,
                 icon="🏆",
                 target_value=10,
-                reward_item="budingdangao",
+                reward_item="pudding_cake",
                 reward_quantity=2
             ),
             Achievement(
@@ -238,7 +238,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.PERFECT_GAME,
                 icon="⭐",
                 target_value=1,
-                reward_item="sanwenyuguantou"
+                reward_item="salmon_can"
             ),
 
             # 数独成就
@@ -249,7 +249,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.GAME_WINS,
                 icon="🔢",
                 target_value=1,
-                reward_item="jiguangtang",
+                reward_item="chicken_soup",
                 reward_quantity=3
             ),
             Achievement(
@@ -259,7 +259,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.GAME_WINS,
                 icon="🧠",
                 target_value=10,
-                reward_item="xianyangnai",
+                reward_item="fresh_milk",
                 reward_quantity=2
             ),
             Achievement(
@@ -269,7 +269,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.SPEED_CLEAR,
                 icon="⚡",
                 target_value=1,
-                reward_item="doumaobang",
+                reward_item="cat_teaser",
                 reward_quantity=5
             ),
 
@@ -281,7 +281,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.PLAY_TIME,
                 icon="⏰",
                 target_value=3600,  # 1小时 = 3600秒
-                reward_item="wanjuxiaolaoshu"
+                reward_item="toy_mouse"
             ),
             Achievement(
                 id="items_20",
@@ -290,7 +290,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.ITEMS_COLLECTED,
                 icon="🎒",
                 target_value=20,
-                reward_item="jiguangbi"
+                reward_item="laser_pen"
             ),
             Achievement(
                 id="interact_100",
@@ -299,7 +299,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.SOCIAL,
                 icon="❤️",
                 target_value=100,
-                reward_item="fuhuobi"
+                reward_item="revive_coin"
             ),
             Achievement(
                 id="achievements_5",
@@ -308,7 +308,7 @@ class StatisticsManager:
                 achievement_type=AchievementType.EXPLORER,
                 icon="🌟",
                 target_value=5,
-                reward_item="jinqiangyutang"
+                reward_item="tuna_soup"
             ),
         ]
         
