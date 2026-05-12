@@ -22,6 +22,7 @@ from PyQt5.QtGui import QPixmap
 from .items import Item, ItemType, ItemRarity, ItemFactory
 from common.common_enum import ItemType as ItemTypeEnum
 from widgets.dialog import ConfirmDialog, WarningDialog, CompleteDialog
+from basic_model.resource_manager import ResourceManager
 
 
 CATEGORY_MAP = {
@@ -61,10 +62,6 @@ class ShopItemSlot(QFrame):
                 background-color: #ffffff;
                 border: 2px solid {rarity_color};
                 border-radius: 10px;
-            }}
-            ShopItemSlot:disabled {{
-                opacity: 0.45;
-                background-color: #e0e0e0;
             }}
             QLabel#shop_icon {{
                 font-size: 32px;
@@ -138,9 +135,14 @@ class ShopItemSlot(QFrame):
         buy_btn = QPushButton("\u8d2d\u4e70")
         buy_btn.setObjectName("buy_btn")
         buy_btn.clicked.connect(lambda: self.item_buy.emit(self.item.id))
+        self.buy_btn = buy_btn
         layout.addWidget(buy_btn)
 
         self.setLayout(layout)
+
+    def set_purchasable(self, can_buy: bool):
+        """设置是否可购买（只置灰购买按钮，不影响图标显示）"""
+        self.buy_btn.setEnabled(can_buy)
 
 
 class ShopWindow(QWidget):
@@ -158,6 +160,7 @@ class ShopWindow(QWidget):
         self.current_category = "all"
         self.shop_items: List[Item] = []
         self.slots: List[ShopItemSlot] = []
+        self.resource_manager = ResourceManager()
 
         self._load_items()
         self._setup_ui()
@@ -213,57 +216,12 @@ class ShopWindow(QWidget):
                 padding: 4px;
                 background: transparent;
             }}
-            QPushButton#cat_btn {{
-                background-color: #fad8d1;
-                color: #8a8070;
-                font-size: 12px;
-                font-weight: bold;
-                padding: 5px 12px;
-                border-radius: 6px;
-                border: 1px solid #FFB6C1;
-            }}
-            QPushButton#cat_btn:checked {{
-                background-color: #FFB6C1;
-                color: white;
-                border-color: #FFB6C1;
-            }}
-            QPushButton#cat_btn:hover:!checked {{
-                background-color: #FFE4E9;
-                border-color: #FFC0CB;
-            }}
             QScrollArea {{
                 border: none;
                 background-color: transparent;
             }}
             QWidget#grid_container {{
                 background: transparent;
-            }}
-            QComboBox {{
-                background-color: #4a4a5e;
-                color: white;
-                border: 2px solid #6a6a7e;
-                border-radius: 5px;
-                padding: 5px;
-                font-size: 13px;
-            }}
-            QComboBox:hover {{
-                border-color: #8a8a9e;
-            }}
-            QComboBox::drop-down {{
-                border: none;
-                width: 30px;
-            }}
-            QComboBox::down-arrow {{
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 8px solid white;
-                margin-right: 10px;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: #3a3a4e;
-                color: white;
-                selection-background-color: #5a7a9a;
             }}
         """)
 
@@ -288,14 +246,15 @@ class ShopWindow(QWidget):
 
         self.cat_buttons = {}
         for cat_id, (cat_name, _) in CATEGORY_MAP.items():
-            btn = QPushButton(cat_name)
-            btn.setObjectName("cat_btn")
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, cid=cat_id: self._switch_category(cid))
+            is_selected = (cat_id == "all")
+            btn = self.resource_manager.create_category_button(
+                text=cat_name,
+                selected=is_selected,
+                callback=lambda checked, cid=cat_id: self._switch_category(cid),
+                parent=self
+            )
             category_bar.addWidget(btn)
             self.cat_buttons[cat_id] = btn
-
-        self.cat_buttons["all"].setChecked(True)
         category_bar.addStretch()
 
         sort_combo = QComboBox()
@@ -304,6 +263,7 @@ class ShopWindow(QWidget):
         sort_combo.addItem("\u6309\u7b49\u7ea7")
         sort_combo.addItem("\u4ec5\u6309\u4ef7\u683c")
         sort_combo.currentIndexChanged.connect(self._sort_items)
+        self.resource_manager.apply_combobox_style(sort_combo)
         category_bar.addWidget(sort_combo)
 
         main_layout.addLayout(category_bar)
@@ -326,45 +286,14 @@ class ShopWindow(QWidget):
 
         bottom_bar = QHBoxLayout()
         
-        close_container = QWidget()
-        close_container.setFixedSize(120, 100)
-        close_container.setCursor(Qt.PointingHandCursor)
-        
-        close_icon = QLabel(close_container)
-        close_icon.setGeometry(0, 0, 120, 100)
-        close_icon.setAlignment(Qt.AlignCenter)
-        
-        btn_path = self._get_btn_path()
-        if os.path.exists(btn_path):
-            btn_pixmap = QPixmap(btn_path)
-            if not btn_pixmap.isNull():
-                scaled = btn_pixmap.scaled(112, 92, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                close_icon.setPixmap(scaled)
-        
-        close_text = QLabel("\u5173\u95ed", close_container)
-        close_text.setGeometry(0, 0, 120, 100)
-        close_text.setAlignment(Qt.AlignCenter)
-        close_text.setStyleSheet("""
-            QLabel {
-                color: #8a8070;
-                font-size: 16px;
-                font-weight: bold;
-                background: transparent;
-                border: none;
-            }
-        """)
-        font = close_text.font()
-        font.setBold(True)
-        font.setPointSize(16)
-        close_text.setFont(font)
-        
-        def on_close_click(event):
-            if event.button() == Qt.LeftButton:
-                self.close()
-        close_container.mousePressEvent = on_close_click
+        close_btn = self.resource_manager.create_icon_button(
+            text="\u5173\u95ed",
+            callback=lambda: self.close(),
+            parent=self
+        )
         
         bottom_bar.addStretch()
-        bottom_bar.addWidget(close_container)
+        bottom_bar.addWidget(close_btn)
         bottom_bar.addStretch()
 
         main_layout.addLayout(bottom_bar)
@@ -411,7 +340,7 @@ class ShopWindow(QWidget):
             slot.item_buy.connect(self._on_buy_item)
 
             if self.player_level < item.required_level:
-                slot.setEnabled(False)
+                slot.set_purchasable(False)
 
             self.grid_layout.addWidget(slot, row, col)
             self.slots.append(slot)

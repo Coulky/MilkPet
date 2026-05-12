@@ -134,43 +134,26 @@ class DesktopPet(PetDisplay):
         bg_path = self._get_bg_path()
         
         menu_style = """
-            QPushButton {{
-                background-color: #fad8d1;
-                color: #8a8070;
-                border: 1px solid #FFB6C1;
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-size: 13px;
-                font-weight: bold;
-                text-align: center;
-            }}
-            QPushButton:hover {{
-                background-color: #FFE4E9;
-                border-color: #FFC0CB;
-            }}
-            QPushButton:pressed {{
-                background-color: #FFC0CB;
-                border-color: #FFB6C1;
-            }}
+            {0}
             QFrame#menu_container {{
-                background-image: url("{2}");
+                background-image: url("{3}");
                 background-color: rgba(43, 43, 54, 0.95);
                 border-radius: 15px;
                 border: 2px solid rgba(106, 106, 126, 0.9);
             }}
             QLabel#category_label {{
                 color: #8a8070;
-                font-size: {0}px;
+                font-size: {1}px;
                 font-weight: bold;
                 padding: 0px;
                 margin: 0px;
-                min-height: {1}px;
+                min-height: {2}px;
                 background: transparent;
             }}
             QWidget#category_container {{
                 background: transparent;
             }}
-        """.format(self._title_font_size, self._title_container_height, bg_path)
+        """.format(self.resource_manager.MENU_BUTTON_STYLE, self._title_font_size, self._title_container_height, bg_path)
         self.menu_widget.setStyleSheet(menu_style)
         self.menu_widget.setObjectName("menu_container")
         

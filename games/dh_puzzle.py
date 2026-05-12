@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QSize, QTimer
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 
-from config.styles import Colors
+from config.styles import ButtonStyles
 from widgets import GameSuccessWindow
 
 
@@ -227,43 +227,9 @@ class DHPuzzle(QWidget):
         self.difficulty_combo.addItem("5x5", 5)
         self.difficulty_combo.setCurrentIndex(0)  # 默认3×3
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
-        self.difficulty_combo.setFixedWidth(45)  # 固定宽度
-        self.difficulty_combo.setFixedHeight(30)  # 固定高度
-        # 浅粉色主题样式（使用通用样式配置）
-        pink_text = Colors.PINK_TEXT
-        self.difficulty_combo.setStyleSheet(f"""
-            QComboBox {{
-                background-color: #fad8d1;
-                color: {pink_text};
-                border: 1px solid #FFB6C1;
-                border-radius: 4px;
-                padding: 2px;
-                font-weight: bold;
-                font-size: 13px;
-            }}
-            QComboBox:hover {{
-                background-color: #FFE8EC;
-                border-color: #FFC0CB;
-            }}
-            QComboBox::drop-down {{
-                border: none;
-                width: 20px;
-            }}
-            QComboBox::down-arrow {{
-                image: none;
-                border-left: 4px solid transparent;
-                border-right: 4px solid transparent;
-                border-top: 6px solid {pink_text};
-                margin-right: 8px;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: #FFF5F7;
-                color: {pink_text};
-                selection-background-color: #fad8d1;
-                selection-color: {pink_text};
-                font-weight: bold;
-            }}
-        """)
+        self.difficulty_combo.setFixedWidth(45)
+        self.difficulty_combo.setFixedHeight(30)
+        self.resource_manager.apply_combobox_style(self.difficulty_combo)
         difficulty_h_layout.addWidget(self.difficulty_combo)
         
         difficulty_h_layout.addStretch(1)  # 右侧拉伸，让内容居中
@@ -313,7 +279,7 @@ class DHPuzzle(QWidget):
                 self.grid_layout.addWidget(btn, i, j)
                 self.buttons.append(btn)
 
-        main_layout.addWidget(grid_frame)
+        main_layout.addWidget(grid_frame, 0, Qt.AlignCenter)
 
         window_layout = QVBoxLayout(self)
         window_layout.setContentsMargins(0, 0, 0, 0)

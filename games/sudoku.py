@@ -209,35 +209,7 @@ class SudokuGame(QWidget):
         self.difficulty_combo.addItem("困难", "hard")
         self.difficulty_combo.setCurrentIndex(0)
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
-        self.difficulty_combo.setStyleSheet(f"""
-            QComboBox {{
-                background-color: #4a4a5e;
-                color: white;
-                border: 2px solid #6a6a7e;
-                border-radius: 5px;
-                padding: 5px;
-                min-width: 120px;
-            }}
-            QComboBox:hover {{
-                border-color: #8a8a9e;
-            }}
-            QComboBox::drop-down {{
-                border: none;
-                width: 30px;
-            }}
-            QComboBox::down-arrow {{
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 8px solid white;
-                margin-right: 10px;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: #3a3a4e;
-                color: white;
-                selection-background-color: #5a7a9a;
-            }}
-        """)
+        self.resource_manager.apply_combobox_style(self.difficulty_combo)
         diff_layout.addWidget(self.difficulty_combo)
         top_bar.addWidget(difficulty_container)
 

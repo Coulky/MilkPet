@@ -6,7 +6,7 @@
 import os
 import sys
 
-from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QLabel, QComboBox
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QPainter, QColor
 from PyQt5.QtCore import Qt, QSize
 
@@ -223,3 +223,196 @@ class ResourceManager:
         btn_container.leaveEvent = leaveEvent
         
         return btn_container
+
+    def create_icon_button(self, text="关闭", callback=None, size=None, parent=None):
+        """
+        创建带图标背景的按钮（图标+文字叠加）
+        
+        参数:
+            text: 按钮文字
+            callback: 点击回调
+            size: QSize(width, height)，默认 (120, 100)
+            parent: 父窗口
+            
+        返回:
+            QWidget: 按钮容器
+        """
+        btn_container = QWidget(parent)
+        if size is None:
+            size = QSize(120, 100)
+        btn_container.setFixedSize(size)
+        btn_container.setCursor(Qt.PointingHandCursor)
+
+        icon_label = QLabel(btn_container)
+        icon_label.setGeometry(0, 0, size.width(), size.height())
+        icon_label.setAlignment(Qt.AlignCenter)
+
+        if self.button_pixmap and not self.button_pixmap.isNull():
+            scaled = self.button_pixmap.scaled(
+                size - QSize(8, 8), Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+            icon_label.setPixmap(scaled)
+
+        text_label = QLabel(text, btn_container)
+        text_label.setGeometry(0, 0, size.width(), size.height())
+        text_label.setAlignment(Qt.AlignCenter)
+        text_label.setStyleSheet("""
+            QLabel {
+                color: #8a8070;
+                font-size: 16px;
+                font-weight: bold;
+                background: transparent;
+                border: none;
+            }
+        """)
+        font = text_label.font()
+        font.setBold(True)
+        font.setPointSize(16)
+        text_label.setFont(font)
+        text_label.raise_()
+
+        def mousePressEvent(event):
+            if callback and event.button() == Qt.LeftButton:
+                callback()
+        btn_container.mousePressEvent = mousePressEvent
+
+        return btn_container
+
+    MENU_BUTTON_STYLE = """
+        QPushButton {
+            background-color: #fad8d1;
+            color: #8a8070;
+            border: 1px solid #FFB6C1;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+        }
+        QPushButton:hover {
+            background-color: #FFE4E9;
+            border-color: #FFC0CB;
+        }
+        QPushButton:pressed {
+            background-color: #FFC0CB;
+            border-color: #FFB6C1;
+        }
+    """
+
+    def create_menu_button(self, text="", callback=None, parent=None):
+        """
+        创建右键菜单风格的按钮
+        
+        参数:
+            text: 按钮文字
+            callback: 点击回调
+            parent: 父窗口
+            
+        返回:
+            QPushButton: 菜单按钮
+        """
+        btn = QPushButton(text, parent)
+        btn.setStyleSheet(self.MENU_BUTTON_STYLE)
+        if callback:
+            btn.clicked.connect(callback)
+        return btn
+
+    COMBOBOX_STYLE = """
+        QComboBox {
+            background-color: #fad8d1;
+            color: #8a8070;
+            border: 1px solid #FFB6C1;
+            border-radius: 4px;
+            padding: 2px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        QComboBox:hover {
+            background-color: #FFE8EC;
+            border-color: #FFC0CB;
+        }
+        QComboBox::drop-down {
+            border: none;
+            width: 20px;
+        }
+        QComboBox::down-arrow {
+            image: none;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid #8a8070;
+            margin-right: 8px;
+        }
+        QComboBox QAbstractItemView {
+            background-color: #FFF5F7;
+            color: #8a8070;
+            selection-background-color: #fad8d1;
+            selection-color: #8a8070;
+            font-weight: bold;
+        }
+    """
+
+    def create_styled_combobox(self, parent=None):
+        """
+        创建统一样式的下拉选择框
+        
+        参数:
+            parent: 父窗口
+            
+        返回:
+            QComboBox: 样式化下拉框
+        """
+        combo = QComboBox(parent)
+        combo.setStyleSheet(self.COMBOBOX_STYLE)
+        return combo
+
+    def apply_combobox_style(self, combo):
+        """为已有 QComboBox 应用统一样式"""
+        combo.setStyleSheet(self.COMBOBOX_STYLE)
+
+    CATEGORY_BTN_STYLE = """
+        QPushButton {{
+            background-color: #fad8d1;
+            color: #8a8070;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: 1px solid #FFB6C1;
+        }}
+        QPushButton:checked {{
+            background-color: #FFB6C1;
+            color: white;
+            border-color: #FFB6C1;
+        }}
+        QPushButton:hover:!checked {{
+            background-color: #FFE4E9;
+            border-color: #FFC0CB;
+        }}
+    """
+
+    def create_category_button(self, text="", selected=False, callback=None, parent=None):
+        """
+        创建分类/筛选按钮（支持选中状态）
+        
+        参数:
+            text: 按钮文字
+            selected: 是否选中（True=高亮样式，False=普通样式）
+            callback: 点击回调
+            parent: 父窗口
+            
+        返回:
+            QPushButton: 可选中的分类按钮
+        """
+        btn = QPushButton(text, parent)
+        btn.setObjectName("cat_btn")
+        btn.setCheckable(True)
+        btn.setChecked(selected)
+        btn.setStyleSheet(self.CATEGORY_BTN_STYLE)
+        if callback:
+            btn.clicked.connect(callback)
+        return btn
+
+    def apply_category_style(self, btn):
+        """为已有按钮应用分类按钮统一样式"""
+        btn.setCheckable(True)
+        btn.setStyleSheet(self.CATEGORY_BTN_STYLE)
