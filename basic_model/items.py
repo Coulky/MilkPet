@@ -14,7 +14,7 @@ import os
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
-from common.common_enum import ItemType, ItemRarity
+from common.common_enum import ItemType, ItemRarity, DecorationPosition
 
 from config.item_settings import items as item_settings
 
@@ -30,8 +30,9 @@ class Item:
     icon: str
     boost_value: int = 0                # 立即提升数值
     protection_duration: float = 0      # 保护不降持续时间（秒），0=无保护
-    decoration_slot: str = ""           # 装饰品槽位 (head/face/body/accessory)
-    decoration_duration: float = 0      # 装饰品有效期（秒），0=永久
+    decoration_slot: str = ""
+    position: DecorationPosition = None
+    decoration_duration: float = 0
     required_level: int = 0             # 购买/使用所需等级，0=无限制
     stackable: bool = True
     max_stack: int = 99

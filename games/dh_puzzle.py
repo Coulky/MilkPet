@@ -510,10 +510,10 @@ class DHPuzzle(QWidget):
         
         # 重置数据
         numbers = list(range(1, self.grid_size * self.grid_size))
-        numbers.insert(-1, 0)
+        # numbers.insert(-1, 0)
 
-        # numbers.append(0)  # 0放在最后一位作为空格
-        # random.shuffle(numbers)
+        numbers.append(0)  # 0放在最后一位作为空格
+        random.shuffle(numbers)
         
         idx = 0
         for i in range(self.grid_size):

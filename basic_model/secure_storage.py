@@ -213,39 +213,49 @@ simple_encrypt = secure_encrypt
 simple_decrypt = secure_decrypt
 
 
+class SavePathResolver:
+    """Save path resolver - supports Documents / Steam cloud"""
+
+    MODE_DOCUMENTS = "documents"
+    MODE_STEAM = "steam"
+
+    def __init__(self, mode: str = None):
+        self.mode = mode or self.MODE_DOCUMENTS
+
+    def get_save_dir(self) -> str:
+        if self.mode == self.MODE_STEAM:
+            return self._get_steam_path()
+        return self._get_documents_path()
+
+    def _get_documents_path(self) -> str:
+        """Documents目录: C:\\Users\\xx\\Documents\\MilkPet"""
+        if sys.platform == 'win32':
+            docs = os.path.join(os.path.expanduser('~'), 'Documents')
+        elif sys.platform == 'darwin':
+            docs = os.path.expanduser('~/Documents')
+        else:
+            docs = os.path.expanduser('~/.local/share')
+        save_dir = os.path.join(docs, 'MilkPet')
+        os.makedirs(save_dir, exist_ok=True)
+        return save_dir
+
+    def _get_steam_path(self) -> str:
+        raise NotImplementedError("Steam cloud save not implemented yet")
+
+
 class SecureStorage:
     """安全数据存储管理器"""
-    
-    def __init__(self, app_name: str = "MilkPet", data_file: str = "player_data.dat"):
+
+    def __init__(self, app_name: str = "MilkPet", data_file: str = "pet.dat"):
         self.app_name = app_name
         self.data_file = data_file
         self.machine_id = get_machine_id()
         self.encryption_key = self.machine_id + "_milkpet_secret_2024"
+        self.path_resolver = SavePathResolver()
     
     def get_storage_path(self) -> str:
-        """
-        获取安全的存储路径
-        
-        Windows: %APPDATA%/MilkPet/
-        Mac: ~/Library/Application Support/MilkPet/
-        Linux: ~/.local/share/MilkPet/
-        """
-        if getattr(sys, 'frozen', False):
-            # 打包后：使用用户数据目录
-            if sys.platform == 'win32':
-                base_path = os.environ.get('APPDATA', os.path.expanduser('~'))
-            elif sys.platform == 'darwin':
-                base_path = os.path.expanduser('~/Library/Application Support')
-            else:
-                base_path = os.path.expanduser('~/.local/share')
-        else:
-            # 开发时：在项目根目录
-            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
-        storage_dir = os.path.join(base_path, self.app_name)
-        os.makedirs(storage_dir, exist_ok=True)
-        
-        return os.path.join(storage_dir, self.data_file)
+        save_dir = self.path_resolver.get_save_dir()
+        return os.path.join(save_dir, self.data_file)
     
     def save_encrypted_data(self, data: Dict[str, Any]) -> bool:
         """

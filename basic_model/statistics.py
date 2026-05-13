@@ -176,7 +176,7 @@ class PlayerStats:
 class StatisticsManager:
     """统计数据管理器（包含背包和分数）"""
     
-    SAVE_FILE = "player_data.dat"
+    SAVE_FILE = "pet.dat"
     
     def __init__(self):
         self.game_stats: Dict[str, GameStats] = {}
