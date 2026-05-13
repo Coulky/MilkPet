@@ -50,7 +50,8 @@ class ShopItemSlot(QFrame):
     def __init__(self, item: Item, parent=None):
         super().__init__(parent)
         self.item = item
-
+        from basic_model.resource_manager import ResourceManager
+        self.resource_manager = ResourceManager()
         self._setup_ui()
 
     def _setup_ui(self):
@@ -68,14 +69,8 @@ class ShopItemSlot(QFrame):
                 background: transparent;
             }}
             QLabel#shop_name {{
-                color: #333333;
+                color: #8a8070;
                 font-size: 11px;
-                font-weight: bold;
-                background: transparent;
-            }}
-            QLabel#shop_price {{
-                color: #FFD700;
-                font-size: 12px;
                 font-weight: bold;
                 background: transparent;
             }}
@@ -102,7 +97,7 @@ class ShopItemSlot(QFrame):
         icon_label = QLabel()
         icon_label.setObjectName("shop_icon")
         icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setFixedSize(64, 64)
+        icon_label.setFixedSize(96, 96)
 
         if self.item.icon and (self.item.icon.endswith('.png') or self.item.icon.endswith('.jpg') or self.item.icon.endswith('.jpeg')):
             icon_path = self.item.icon
@@ -111,7 +106,7 @@ class ShopItemSlot(QFrame):
                 icon_path = os.path.join(base_dir, icon_path)
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(56, 56, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                scaled_pixmap = pixmap.scaled(88, 88, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon_label.setPixmap(scaled_pixmap)
             else:
                 icon_label.setText("[?]")
@@ -127,9 +122,10 @@ class ShopItemSlot(QFrame):
         name_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(name_label)
 
-        price_label = QLabel(f"{self.item.price} \U0001f4b0")
+        price_label = self.resource_manager.create_coin_label(text=str(self.item.price), icon_size=12, font_size=11)
         price_label.setObjectName("shop_price")
-        price_label.setAlignment(Qt.AlignCenter)
+        if hasattr(price_label, '_text_label'):
+            price_label._text_label.setStyleSheet("color: #8a8070; font-size: 11px; font-weight: bold; background: transparent;")
         layout.addWidget(price_label)
 
         buy_btn = QPushButton("\u8d2d\u4e70")
@@ -234,7 +230,7 @@ class ShopWindow(QWidget):
         title.setObjectName("title")
         title_bar.addWidget(title)
 
-        score_label = QLabel(f"\U0001f4b0 {self.player_score}")
+        score_label = self.resource_manager.create_coin_label(text=str(self.player_score), icon_size=15, font_size=14)
         score_label.setObjectName("score")
         self.score_label = score_label
         title_bar.addStretch()
@@ -287,7 +283,7 @@ class ShopWindow(QWidget):
 
         bottom_bar = QHBoxLayout()
         
-        close_btn = self.resource_manager.create_icon_button(
+        close_btn = self.resource_manager.create_styled_button(
             text="\u5173\u95ed",
             callback=lambda: self.close(),
             parent=self
@@ -400,7 +396,7 @@ class ShopWindow(QWidget):
 
         def on_confirm():
             self.player_score -= item.price
-            self.score_label.setText(f"\U0001f4b0 {self.player_score}")
+            self.score_label._text_label.setText(str(self.player_score))
             self.item_purchased.emit(item.id, item.price)
 
             complete_dlg = CompleteDialog(
@@ -421,7 +417,7 @@ class ShopWindow(QWidget):
     def update_score(self, new_score: int):
         self.player_score = new_score
         if hasattr(self, 'score_label'):
-            self.score_label.setText(f"\U0001f4b0 {self.player_score}")
+            self.score_label._text_label.setText(str(self.player_score))
 
     def update_level(self, new_level: int):
         self.player_level = new_level

@@ -323,7 +323,7 @@ class InventoryWindow(QWidget):
         
         bottom_bar = QHBoxLayout()
         
-        close_btn = self.resource_manager.create_icon_button(
+        close_btn = self.resource_manager.create_styled_button(
             text="\u5173\u95ed",
             callback=lambda: self.close(),
             parent=self

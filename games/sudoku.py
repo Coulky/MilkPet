@@ -172,13 +172,8 @@ class SudokuGame(QWidget):
         """)
 
         main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(6)
-        main_layout.setContentsMargins(15, 12, 15, 12)
-
-        title = QLabel("数独")
-        title.setObjectName("title")
-        title.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(15, 38, 15, 50)
 
         top_bar = QHBoxLayout()
         top_bar.setSpacing(8)
@@ -228,6 +223,7 @@ class SudokuGame(QWidget):
         top_bar.addWidget(close_btn)
 
         main_layout.addLayout(top_bar)
+        main_layout.addSpacing(20)
 
         status_bar = QHBoxLayout()
         status_bar.setSpacing(16)
@@ -273,10 +269,10 @@ class SudokuGame(QWidget):
         status_bar.addStretch(1)
         main_layout.addLayout(status_bar)
 
-        self.info_label_widget = QLabel("点击格子，选择数字")
-        self.info_label_widget.setObjectName("info")
-        self.info_label_widget.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(self.info_label_widget)
+        self.info_label_widget = QLabel("")
+        self.info_label_widget.setVisible(False)
+
+        main_layout.addSpacing(20)
 
         self.grid_widget = QWidget()
         self.grid_layout = QGridLayout(self.grid_widget)
@@ -294,6 +290,7 @@ class SudokuGame(QWidget):
                 self.inputs[i][j] = btn
 
         main_layout.addWidget(self.grid_widget, alignment=Qt.AlignCenter)
+        main_layout.addSpacing(20)
 
         num_layout = QHBoxLayout()
         num_layout.setSpacing(4)

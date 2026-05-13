@@ -128,11 +128,10 @@ class GameSuccessWindow(QWidget):
         score_label.setStyleSheet("color: #aaaaaa; font-size: 14px;")
         score_label.setFixedWidth(80)
         
-        score_value = QLabel(f"🐱 {self.score}")
-        score_value.setStyleSheet("color: #FFD700; font-size: 18px; font-weight: bold;")
+        score_value = self._create_score_widget()
         
         score_layout.addWidget(score_label)
-        score_layout.addWidget(score_value)
+        score_layout.addWidget(score_value, 0, Qt.AlignLeft)
         info_layout.addLayout(score_layout)
         
         layout.addLayout(info_layout)
@@ -171,6 +170,23 @@ class GameSuccessWindow(QWidget):
         # 根据内容调整大小（不使用固定高度）
         container.adjustSize()
         self.adjustSize()
+    
+    def _create_score_widget(self):
+        """创建带喵币图标的分数显示"""
+        from basic_model.resource_manager import ResourceManager
+        rm = ResourceManager()
+        widget = rm.create_coin_label(text=str(self.score), icon_size=18, font_size=18, parent=self)
+        widget.layout().setAlignment(Qt.AlignLeft)
+        if hasattr(widget, '_text_label'):
+            widget._text_label.setStyleSheet("""
+                QLabel {
+                    color: #FFD700;
+                    font-size: 18px;
+                    font-weight: bold;
+                    background: transparent;
+                }
+            """)
+        return widget
     
     def _format_time(self, seconds: int) -> str:
         """格式化时间显示"""

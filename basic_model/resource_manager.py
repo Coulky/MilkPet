@@ -6,7 +6,7 @@
 import os
 import sys
 
-from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QLabel, QComboBox
+from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QPainter, QColor
 from PyQt5.QtCore import Qt, QSize
 
@@ -34,6 +34,7 @@ class ResourceManager:
         self.pet_image = None
         self.logo_icon = None
         self.button_pixmap = None
+        self.coin_icon = None
         
         self._base_path = self._get_base_path()
     
@@ -55,6 +56,7 @@ class ResourceManager:
             self._preload_pet_image()
             self._preload_logo()
             self._preload_button()
+            self._preload_coin_icon()
             
             print("[ResourceManager] ✅ 所有素材预加载完成")
             
@@ -105,6 +107,13 @@ class ResourceManager:
         if os.path.exists(path):
             self.button_pixmap = QPixmap(path)
             print("[ResourceManager] ✓ 按钮图片已加载")
+
+    def _preload_coin_icon(self):
+        """预加载喵币图标"""
+        path = os.path.join(self._base_path, 'assets', 'images', 'coin_icon.png')
+        if os.path.exists(path):
+            self.coin_icon = QIcon(path)
+            print("[ResourceManager] ✓ 喵币图标已加载")
     
     def get_dh_puzzle_image(self, num):
         """获取华容道数字图片"""
@@ -121,6 +130,50 @@ class ResourceManager:
     def get_logo_icon(self):
         """获取 Logo 图标"""
         return self.logo_icon
+
+    def get_coin_icon(self):
+        """获取喵币图标"""
+        return self.coin_icon
+
+    def create_coin_label(self, text="", icon_size=14, font_size=12, parent=None):
+        """创建带喵币图标的标签（图标+文字水平排列）
+        
+        参数:
+            text: 显示的文字（如金额数字）
+            icon_size: 图标大小(px)
+            font_size: 文字字号
+            parent: 父窗口
+            
+        返回:
+            QWidget: 包含图标+文字的容器，可通过 container._text_label.setText() 更新文字
+        """
+        container = QWidget(parent)
+        container.setStyleSheet("background: transparent;")
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(3)
+        layout.setAlignment(Qt.AlignCenter)
+
+        if self.coin_icon and not self.coin_icon.isNull():
+            icon_label = QLabel(container)
+            pixmap = self.coin_icon.pixmap(icon_size, icon_size)
+            icon_label.setPixmap(pixmap)
+            icon_label.setFixedSize(icon_size, icon_size)
+            layout.addWidget(icon_label)
+
+        text_label = QLabel(text, container)
+        text_label.setStyleSheet(f"""
+            QLabel {{
+                color: #FFD700;
+                font-size: {font_size}px;
+                font-weight: bold;
+                background: transparent;
+            }}
+        """)
+        layout.addWidget(text_label)
+
+        container._text_label = text_label
+        return container
     
     def create_styled_button(self, text="", callback=None, size=None, parent=None):
         """
@@ -224,62 +277,8 @@ class ResourceManager:
         
         return btn_container
 
-    def create_icon_button(self, text="关闭", callback=None, size=None, parent=None):
-        """
-        创建带图标背景的按钮（图标+文字叠加）
-        
-        参数:
-            text: 按钮文字
-            callback: 点击回调
-            size: QSize(width, height)，默认 (120, 100)
-            parent: 父窗口
-            
-        返回:
-            QWidget: 按钮容器
-        """
-        btn_container = QWidget(parent)
-        if size is None:
-            size = QSize(120, 100)
-        btn_container.setFixedSize(size)
-        btn_container.setCursor(Qt.PointingHandCursor)
-
-        icon_label = QLabel(btn_container)
-        icon_label.setGeometry(0, 0, size.width(), size.height())
-        icon_label.setAlignment(Qt.AlignCenter)
-
-        if self.button_pixmap and not self.button_pixmap.isNull():
-            scaled = self.button_pixmap.scaled(
-                size - QSize(8, 8), Qt.KeepAspectRatio, Qt.SmoothTransformation
-            )
-            icon_label.setPixmap(scaled)
-
-        text_label = QLabel(text, btn_container)
-        text_label.setGeometry(0, 0, size.width(), size.height())
-        text_label.setAlignment(Qt.AlignCenter)
-        text_label.setStyleSheet("""
-            QLabel {
-                color: #8a8070;
-                font-size: 16px;
-                font-weight: bold;
-                background: transparent;
-                border: none;
-            }
-        """)
-        font = text_label.font()
-        font.setBold(True)
-        font.setPointSize(16)
-        text_label.setFont(font)
-        text_label.raise_()
-
-        def mousePressEvent(event):
-            if callback and event.button() == Qt.LeftButton:
-                callback()
-        btn_container.mousePressEvent = mousePressEvent
-
-        return btn_container
-
-    MENU_BUTTON_STYLE = """
-        QPushButton {
+    MENU_CONTAINER_STYLE = """
+        QPushButton#action_btn {
             background-color: #fad8d1;
             color: #8a8070;
             border: 1px solid #FFB6C1;
@@ -289,38 +288,48 @@ class ResourceManager:
             font-weight: bold;
             text-align: center;
         }
-        QPushButton:hover {
+        QPushButton#action_btn:hover {
             background-color: #FFE4E9;
             border-color: #FFC0CB;
         }
-        QPushButton:pressed {
+        QPushButton#action_btn:pressed {
             background-color: #FFC0CB;
             border-color: #FFB6C1;
         }
     """
 
-    def create_menu_button(self, text="", callback=None, parent=None):
-        """
-        创建右键菜单风格的按钮
-        
-        参数:
-            text: 按钮文字
-            callback: 点击回调
-            parent: 父窗口
-            
-        返回:
-            QPushButton: 菜单按钮
-        """
-        btn = QPushButton(text, parent)
-        btn.setStyleSheet(self.MENU_BUTTON_STYLE)
-        if callback:
-            btn.clicked.connect(callback)
-        return btn
+    MENU_CATEGORY_LABEL_STYLE = """QLabel#category_label {{
+                color: #8a8070;
+                font-size: {font_size}px;
+                font-weight: bold;
+                padding: 0px;
+                margin: 0px;
+                min-height: {min_height}px;
+                background: transparent;
+            }}"""
+
+    MENU_FRAME_STYLE = """QFrame#menu_container {{
+                background-image: url("{bg_path}");
+                background-color: rgba(43, 43, 54, 0.95);
+                border-radius: 15px;
+                border: 2px solid rgba(106, 106, 126, 0.9);
+            }}
+            QWidget#category_container {{
+                background: transparent;
+            }}"""
+
+    def get_menu_style(self, bg_path="", title_font_size=18, title_height=32):
+        return self.MENU_CONTAINER_STYLE + "\n" + self.MENU_FRAME_STYLE.format(
+            bg_path=bg_path
+        ) + "\n" + self.MENU_CATEGORY_LABEL_STYLE.format(
+            font_size=title_font_size,
+            min_height=title_height
+        )
 
     COMBOBOX_SIZE_MAP = {
-        "large": (150, 36, 14),
-        "medium": (120, 30, 13),
-        "small": (90, 24, 11),
+        "large": (150, 40, 15),
+        "medium": (120, 32, 13),
+        "small": (90, 26, 11),
     }
 
     COMBOBOX_STYLE = """
@@ -330,6 +339,7 @@ class ResourceManager:
             border: 1px solid #FFB6C1;
             border-radius: 4px;
             padding: 2px;
+            padding-left: 5px;
             font-weight: bold;
             font-size: {font_size}px;
         }}
@@ -368,11 +378,19 @@ class ResourceManager:
 
     def create_styled_combobox(self, parent=None, size="small"):
         combo = QComboBox(parent)
+        w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
+        combo.setFixedWidth(w)
+        combo.setFixedHeight(h)
         style = self._build_combobox_style(size)
         combo.setStyleSheet(style)
         return combo
 
     def apply_combobox_style(self, combo, size="small"):
+        w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
+        if not combo.minimumWidth():
+            combo.setFixedWidth(w)
+        if not combo.minimumHeight():
+            combo.setFixedHeight(h)
         style = self._build_combobox_style(size)
         combo.setStyleSheet(style)
 
@@ -416,28 +434,48 @@ class ResourceManager:
         btn_w, btn_h, font_size = self.BUTTON_SIZE_MAP.get(size, self.BUTTON_SIZE_MAP["medium"])
         
         btn = QPushButton(text, parent)
+        btn.setObjectName("action_btn")
         btn.setFixedWidth(btn_w)
         btn.setFixedHeight(btn_h)
         
         if special_style == "warning":
             style = self.ACTION_BTN_WARNING_STYLE
         else:
-            style = self.MENU_BUTTON_STYLE
+            style = """
+                QPushButton#action_btn {
+                    background-color: #fad8d1;
+                    color: #8a8070;
+                    border: 1px solid #FFB6C1;
+                    border-radius: 6px;
+                    padding: 8px 10px;
+                    font-size: 13px;
+                    font-weight: bold;
+                    text-align: center;
+                }
+                QPushButton#action_btn:hover {
+                    background-color: #FFE4E9;
+                    border-color: #FFC0CB;
+                }
+                QPushButton#action_btn:pressed {
+                    background-color: #FFC0CB;
+                    border-color: #FFB6C1;
+                }
+            """
         
         if selected:
             btn.setCheckable(True)
             btn.setChecked(True)
             style += f"""
-                QPushButton {{
+                QPushButton#action_btn {{
                     padding: {max(4, font_size // 3)}px {max(8, font_size)}px;
                     font-size: {font_size}px;
                 }}
-                QPushButton:checked {{
+                QPushButton#action_btn:checked {{
                     background-color: #FFB6C1;
                     color: white;
                     border-color: #FFB6C1;
                 }}
-                QPushButton:hover:!checked {{
+                QPushButton#action_btn:hover:!checked {{
                     background-color: #FFE4E9;
                     border-color: #FFC0CB;
                 }}

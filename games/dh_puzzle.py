@@ -185,15 +185,9 @@ class DHPuzzle(QWidget):
         """)
 
         main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(10)
-        main_layout.setContentsMargins(20, 15, 20, 15)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(20, 38, 20, 50)
 
-        title = QLabel("数字华容道")
-        title.setObjectName("title")
-        title.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title)
-
-        # 按钮区域放在上面（新游戏、难度选择、关闭）
         button_layout = QHBoxLayout()
         button_layout.setSpacing(8)
         button_layout.addStretch(1)  # 左侧拉伸，让内容居中
@@ -247,6 +241,7 @@ class DHPuzzle(QWidget):
         button_layout.addStretch(1)  # 右侧拉伸，让左右边距相等
 
         main_layout.addLayout(button_layout)
+        main_layout.addSpacing(20)
 
         info_layout = QHBoxLayout()
 
@@ -256,6 +251,7 @@ class DHPuzzle(QWidget):
         info_layout.addWidget(self.info_label)
 
         main_layout.addLayout(info_layout)
+        main_layout.addSpacing(20)
 
         grid_frame = QFrame()
         grid_frame.setObjectName("grid_frame")

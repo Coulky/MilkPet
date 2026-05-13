@@ -133,29 +133,13 @@ class DesktopPet(PetDisplay):
         # 获取背景图路径
         bg_path = self._get_bg_path()
         
-        menu_style = """
-            {0}
-            QFrame#menu_container {{
-                background-image: url("{3}");
-                background-color: rgba(43, 43, 54, 0.95);
-                border-radius: 15px;
-                border: 2px solid rgba(106, 106, 126, 0.9);
-            }}
-            QLabel#category_label {{
-                color: #8a8070;
-                font-size: {1}px;
-                font-weight: bold;
-                padding: 0px;
-                margin: 0px;
-                min-height: {2}px;
-                background: transparent;
-            }}
-            QWidget#category_container {{
-                background: transparent;
-            }}
-        """.format(self.resource_manager.MENU_BUTTON_STYLE, self._title_font_size, self._title_container_height, bg_path)
-        self.menu_widget.setStyleSheet(menu_style)
+        menu_style = self.resource_manager.get_menu_style(
+            bg_path=bg_path,
+            title_font_size=self._title_font_size,
+            title_height=self._title_container_height
+        )
         self.menu_widget.setObjectName("menu_container")
+        self.menu_widget.setStyleSheet(menu_style)
         
         # ========== 分类数据 ==========
         # 按钮项格式: {"name": "按钮名称", "callback": 触发方法, "special_style": 特殊样式(可选), "ref": 按钮引用名(可选)}
@@ -266,20 +250,24 @@ class DesktopPet(PetDisplay):
     
     def _setup_pet_stats_area(self, menu_layout):
         """设置宠物属性显示区域（经验等级 + 饱食度/饥渴值/心情进度条）"""
-        # 等级和经验显示
+        row = QWidget()
+        row_layout = QHBoxLayout(row)
+        row_layout.setContentsMargins(10, 0, 0, 0)
+        row_layout.setSpacing(2)
+
         self.level_label = QLabel("Lv.0")
         self.level_label.setObjectName("category_label")
         self.level_label.setAlignment(Qt.AlignCenter)
         self.level_label.setStyleSheet("""
             QLabel {
                 color: #8a8070;
-                font-size: 14px;
+                font-size: 18px;
                 font-weight: bold;
                 background: transparent;
                 padding: 2px 0px;
             }
         """)
-        menu_layout.addWidget(self.level_label)
+        row_layout.addWidget(self.level_label)
 
         self.exp_label = QLabel("EXP: 0/100")
         self.exp_label.setObjectName("category_label")
@@ -287,14 +275,16 @@ class DesktopPet(PetDisplay):
         self.exp_label.setStyleSheet("""
             QLabel {
                 color: #aaaaaa;
-                font-size: 10px;
+                font-size: 11px;
                 background: transparent;
-                padding: 0px 0px 4px 0px;
+                padding: 2px 0px;
             }
         """)
-        menu_layout.addWidget(self.exp_label)
+        row_layout.addWidget(self.exp_label)
 
-        # 属性进度条
+        menu_layout.addWidget(row)
+        menu_layout.setSpacing(10)
+
         self.stat_satiety = PetStatRow("饱食度", 100)
         self.stat_thirst = PetStatRow("饥渴值", 100)
         self.stat_mood = PetStatRow("心情", 100)
