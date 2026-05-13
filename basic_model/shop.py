@@ -180,6 +180,7 @@ class ShopWindow(QWidget):
     def _setup_ui(self):
         self.setWindowTitle("\u5546\u5e97")
         self.setFixedSize(720, 600)
+        self.setWindowIcon(self.resource_manager.logo_icon)
 
         self.setAttribute(Qt.WA_QuitOnClose, False)
 

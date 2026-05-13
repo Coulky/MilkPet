@@ -37,6 +37,10 @@ class GameSuccessWindow(QWidget):
     def _setup_ui(self):
         self.setWindowTitle("游戏完成")
         
+        from basic_model.resource_manager import ResourceManager
+        resource_manager = ResourceManager()
+        self.setWindowIcon(resource_manager.logo_icon)
+        
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WA_QuitOnClose, False)

@@ -29,7 +29,10 @@ from basic_model.shop import ShopWindow
 from basic_model.items import ItemFactory, ItemRarity
 from common.common_enum import ItemType
 from config.settings import GAME_EXP_REWARD
+from config.talk_config import (get_random_click_talk, get_random_auto_talk,
+                                AUTO_TALK_INTERVAL, TALK_DISPLAY_DURATION, TALK_OFFSET_Y)
 from basic_model.statistics import StatisticsManager
+from basic_model.talk_window import TalkWindow
 from widgets.pet_stat_bar import PetStatRow
 
 
@@ -54,9 +57,16 @@ class DesktopPet(PetDisplay):
         self.dragging = False
         self.drag_position = QPoint()
         self.allow_click = True
+        self.allow_talk = True
+        self.allow_move = False
         self.is_on_top = True
         self.dh_puzzle_window = None
         self.sudoku_window = None
+        
+        # 动画相关
+        self.animation_cooldown = 3000  # 点击动画冷却时间（毫秒），默认 3 秒
+        self.last_animation_time = 0  # 上次播放动画的时间戳
+        self.is_animating = False  # 是否正在播放动画
         
         # 背包和统计系统
         self.inventory_window: InventoryWindow = None
@@ -96,6 +106,9 @@ class DesktopPet(PetDisplay):
         
         # 设置右键菜单
         self._setup_menu()
+        
+        # 初始化对话系统
+        self._setup_talk_system()
         
     def _setup_menu(self):
         """设置右键菜单"""
@@ -164,6 +177,8 @@ class DesktopPet(PetDisplay):
                 "items": [
                     {"name": "取消置顶" if self.is_on_top else "置顶", "callback": self._toggle_top, "ref": "top_btn"},
                     {"name": "禁止点击交互" if self.allow_click else "允许点击交互", "callback": self._on_click_toggle, "ref": "click_btn"},
+                    {"name": "禁止发言" if self.allow_talk else "允许发言", "callback": self._on_talk_toggle, "ref": "talk_btn"},
+                    {"name": "禁止移动" if self.allow_move else "允许移动", "callback": self._on_move_toggle, "ref": "move_btn"},
                     {"name": "退出", "callback": self._on_quit, "special_style": "warning"},
                 ]
             },
@@ -247,6 +262,112 @@ class DesktopPet(PetDisplay):
         line.setFixedHeight(2)
         line.setStyleSheet("background-color: #FFB6C1; border-radius: 1px;")
         return line
+    
+    def _setup_talk_system(self):
+        """
+        初始化对话系统
+        
+        创建对话窗口和自动对话定时器
+        """
+        # 创建对话窗口
+        self.talk_window = TalkWindow(parent=self)
+        
+        # 自动对话定时器
+        self.auto_talk_timer = QTimer(self)
+        self.auto_talk_timer.timeout.connect(self._show_auto_talk)
+        self.auto_talk_timer.start(AUTO_TALK_INTERVAL * 1000)
+        
+        print(f"[OK] 对话系统已初始化，自动对话间隔: {AUTO_TALK_INTERVAL}秒")
+    
+    def _trigger_click_animation(self):
+        """
+        触发点击动画（带冷却时间控制）
+        
+        检查冷却时间，如果满足条件则播放点击动画
+        """
+        import time
+        current_time = int(time.time() * 1000)  # 当前时间（毫秒）
+        
+        # 检查冷却时间
+        if self.is_animating:
+            # 正在播放动画，跳过
+            return
+        
+        time_since_last = current_time - self.last_animation_time
+        if time_since_last < self.animation_cooldown and self.last_animation_time > 0:
+            # 冷却时间未到，跳过
+            print(f"[ANIM] 动画冷却中，剩余 {(self.animation_cooldown - time_since_last) / 1000:.1f} 秒")
+            return
+        
+        # 播放动画
+        self.is_animating = True
+        self.last_animation_time = current_time
+        
+        # 播放动画，完成后回调
+        self.play_animation(fps=8, on_finished=self._on_animation_finished)
+    
+    def _on_animation_finished(self):
+        """动画播放完成回调"""
+        self.is_animating = False
+        print("[ANIM] 动画完成，可以再次触发")
+    
+    def _show_click_talk(self):
+        """
+        显示点击对话（用户左键点击桌宠时调用）
+        
+        如果当前有对话框显示，先关闭再显示新的
+        """
+        if not self.allow_click:
+            return
+        
+        # 检查发言开关
+        if not self.allow_talk:
+            print("[TALK] 发言已禁用，跳过点击对话")
+            return
+        
+        # 关闭当前正在显示的对话（如果有）
+        if self.talk_window.is_showing():
+            self.talk_window.close_talk()
+        
+        # 获取随机点击对话
+        talk_text = get_random_click_talk()
+        
+        # 显示对话
+        self.talk_window.show_talk(
+            text=talk_text,
+            duration=TALK_DISPLAY_DURATION,
+            offset_y=TALK_OFFSET_Y
+        )
+        
+        print(f"[TALK] 点击对话: {talk_text}")
+    
+    def _show_auto_talk(self):
+        """
+        显示自动对话（定时触发）
+        
+        如果当前有对话框显示，跳过本次自动对话
+        """
+        # 如果当前已有对话显示，跳过
+        if self.talk_window.is_showing():
+            print("[TALK] 跳过自动对话（当前有对话显示）")
+            return
+        
+        # 检查发言开关
+        if not self.allow_talk:
+            print("[TALK] 发言已禁用，跳过自动对话")
+            return
+        
+        # 获取随机自动对话
+        talk_text = get_random_auto_talk()
+        
+        # 显示对话
+        self.talk_window.show_talk(
+            text=talk_text,
+            duration=TALK_DISPLAY_DURATION,
+            offset_y=TALK_OFFSET_Y
+        )
+        
+        print(f"[TALK] 自动对话: {talk_text}")
     
     def _setup_pet_stats_area(self, menu_layout):
         """设置宠物属性显示区域（经验等级 + 饱食度/饥渴值/心情进度条）"""
@@ -447,15 +568,24 @@ class DesktopPet(PetDisplay):
             return
         
         if event.button() == Qt.LeftButton:
-            self.dragging = True
-            self.drag_position = event.globalPos() - self.frameGeometry().topLeft()
+            # 检查是否允许移动
+            if self.allow_move:
+                self.dragging = True
+                self.drag_position = event.globalPos() - self.frameGeometry().topLeft()
+            
             event.accept()
             
             if self.menu_widget.isVisible():
                 self.menu_widget.hide()
             
-            # 记录互动"
+            # 记录互动
             self.stats_manager.record_interaction("pet")
+            
+            # 触发点击动画（带冷却时间控制）
+            self._trigger_click_animation()
+            
+            # 触发点击对话
+            self._show_click_talk()
         
         elif event.button() == Qt.RightButton:
             global_pos = event.globalPos()
@@ -464,7 +594,7 @@ class DesktopPet(PetDisplay):
             event.accept()
     
     def mouseMoveEvent(self, event):
-        if not self.allow_click:
+        if not self.allow_click or not self.allow_move:
             event.ignore()
             return
         
@@ -532,6 +662,60 @@ class DesktopPet(PetDisplay):
             if hasattr(self, 'click_btn'):
                 self.click_btn.setText("允许点击交互")
             print("[INFO] 点击交互已禁用")
+        
+        # 更新托盘菜单状态
+        if hasattr(self, 'tray_manager'):
+            self.tray_manager.update_tray_menu()
+        
+        self.menu_widget.hide()
+    
+    def _on_talk_toggle(self):
+        """切换发言开关"""
+        self.allow_talk = not self.allow_talk
+        
+        if self.allow_talk:
+            # 更新按钮文字
+            if hasattr(self, 'talk_btn'):
+                self.talk_btn.setText("禁止发言")
+            print("[INFO] 发言已启用")
+            
+            # 重新启动自动对话定时器
+            if hasattr(self, 'auto_talk_timer') and not self.auto_talk_timer.isActive():
+                self.auto_talk_timer.start(AUTO_TALK_INTERVAL * 1000)
+        else:
+            # 更新按钮文字
+            if hasattr(self, 'talk_btn'):
+                self.talk_btn.setText("允许发言")
+            print("[INFO] 发言已禁用")
+            
+            # 停止自动对话定时器
+            if hasattr(self, 'auto_talk_timer'):
+                self.auto_talk_timer.stop()
+            
+            # 关闭当前正在显示的对话（如果有）
+            if hasattr(self, 'talk_window') and self.talk_window.is_showing():
+                self.talk_window.close_talk()
+        
+        # 更新托盘菜单状态
+        if hasattr(self, 'tray_manager'):
+            self.tray_manager.update_tray_menu()
+        
+        self.menu_widget.hide()
+    
+    def _on_move_toggle(self):
+        """切换移动开关"""
+        self.allow_move = not self.allow_move
+        
+        if self.allow_move:
+            # 更新按钮文字
+            if hasattr(self, 'move_btn'):
+                self.move_btn.setText("禁止移动")
+            print("[INFO] 移动已启用")
+        else:
+            # 更新按钮文字
+            if hasattr(self, 'move_btn'):
+                self.move_btn.setText("允许移动")
+            print("[INFO] 移动已禁用")
         
         # 更新托盘菜单状态
         if hasattr(self, 'tray_manager'):

@@ -94,6 +94,10 @@ class BaseDialog(QWidget):
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WA_QuitOnClose, False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
+        
+        from basic_model.resource_manager import ResourceManager
+        resource_manager = ResourceManager()
+        self.setWindowIcon(resource_manager.logo_icon)
 
         container = QFrame(self)
         container.setObjectName("container")

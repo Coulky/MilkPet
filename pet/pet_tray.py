@@ -119,6 +119,16 @@ class PetTrayManager:
         self.on_click_toggle_action = QAction("禁止点击交互" if self.parent.allow_click else "允许点击交互", self.parent)
         self.on_click_toggle_action.triggered.connect(lambda: self._trigger_callback('_on_click_toggle'))
         sys_menu.addAction(self.on_click_toggle_action)
+
+        # 允许发言按钮（带状态显示）
+        self.allow_talk_action = QAction("禁止发言" if self.parent.allow_talk else "允许发言", self.parent)
+        self.allow_talk_action.triggered.connect(lambda: self._trigger_callback('_on_talk_toggle'))
+        sys_menu.addAction(self.allow_talk_action)
+
+        # 允许移动按钮（带状态显示）
+        self.allow_move_action = QAction("禁止移动" if self.parent.allow_move else "允许移动", self.parent)
+        self.allow_move_action.triggered.connect(lambda: self._trigger_callback('_on_move_toggle'))
+        sys_menu.addAction(self.allow_move_action)
         
         tray_menu.addSeparator()
 
@@ -135,6 +145,12 @@ class PetTrayManager:
         
         if hasattr(self, 'on_click_toggle_action'):
             self.on_click_toggle_action.setText("禁止点击交互" if self.parent.allow_click else "允许点击交互")
+        
+        if hasattr(self, 'allow_talk_action'):
+            self.allow_talk_action.setText("禁止发言" if self.parent.allow_talk else "允许发言")
+        
+        if hasattr(self, 'allow_move_action'):
+            self.allow_move_action.setText("禁止移动" if self.parent.allow_move else "允许移动")
     
     def _trigger_callback(self, callback_name):
         """

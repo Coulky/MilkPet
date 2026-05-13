@@ -83,6 +83,7 @@ class DHPuzzle(QWidget):
     def _setup_ui(self):
         self.setWindowTitle("数字华容道")
         self.setFixedSize(520, 680)
+        self.setWindowIcon(self.resource_manager.logo_icon)
 
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)

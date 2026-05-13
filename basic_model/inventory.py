@@ -216,6 +216,7 @@ class InventoryWindow(QWidget):
         
         self.setWindowTitle("背包")
         self.setFixedSize(720, 600)
+        self.setWindowIcon(self.resource_manager.logo_icon)
 
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)

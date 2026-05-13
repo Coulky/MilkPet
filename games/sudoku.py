@@ -95,6 +95,7 @@ class SudokuGame(QWidget):
     def _setup_ui(self):
         self.setWindowTitle("数独")
         self.setFixedSize(540, 800)
+        self.setWindowIcon(self.resource_manager.logo_icon)
 
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)
