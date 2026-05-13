@@ -49,7 +49,7 @@ class PetDisplay(QWidget):
         查找资源文件的路径
         
         参数:
-            filename: 资源文件名（如 'milk.png', 'logo.png'）
+            filename: 资源文件名（如 'milk.png', 'logo.ico'）
             
         返回:
             str: 资源文件的完整路径，如果不存在则返回 None
@@ -260,7 +260,7 @@ class PetDisplay(QWidget):
     
     def get_logo_path(self):
         """获取logo图标路径"""
-        return self._find_resource_path('logo.png')
+        return self._find_resource_path('logo.ico')
     
     def update_pet_image(self, image_path=None):
         """

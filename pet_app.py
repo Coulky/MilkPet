@@ -15,6 +15,12 @@ Milk Pet 应用 - 主入口
 import sys
 import os
 
+# Windows 任务栏图标修复：必须在所有其他导入之前设置 AppUserModelID
+if sys.platform == 'win32':
+    import ctypes
+    myappid = 'com.milkpet.desktop.pet'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
 
 def main():
     import io

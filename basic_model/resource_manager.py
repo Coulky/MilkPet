@@ -96,7 +96,7 @@ class ResourceManager:
     
     def _preload_logo(self):
         """预加载 Logo 图标"""
-        path = os.path.join(self._base_path, 'assets', 'images', 'logo.png')
+        path = os.path.join(self._base_path, 'assets', 'images', 'logo.ico')
         if os.path.exists(path):
             self.logo_icon = QIcon(path)
             print("[ResourceManager] ✓ Logo 图标已加载")

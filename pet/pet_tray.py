@@ -38,7 +38,7 @@ class PetTrayManager:
         """设置系统托盘"""
         self.tray_icon = QSystemTrayIcon(self.parent)
 
-        # 优先使用 logo.png 作为托盘图标
+        # 优先使用 logo.ico 作为托盘图标
         logo_path = self.parent.get_logo_path()
         
         if logo_path and os.path.exists(logo_path):
