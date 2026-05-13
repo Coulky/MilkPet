@@ -237,28 +237,13 @@ class DesktopPet(PetDisplay):
         
         # 渲染按钮
         for item in items:
-            # 创建按钮
-            btn = QPushButton(item["name"])
-            btn.setFixedWidth(self._button_container_width)
-            btn.setFixedHeight(32)
-            btn.clicked.connect(item["callback"])
-            
-            # 特殊样式
-            if item.get("special_style") == "warning":
-                btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #d4a5a5;
-                        color: #8a4a4a;
-                        border: none;
-                        padding: 8px 10px;
-                        font-weight: bold;
-                        font-size: 13px;
-                        border-radius: 6px;
-                    }
-                    QPushButton:hover {
-                        background-color: #e4b5b5;
-                    }
-                """)
+            btn = self.resource_manager.create_action_button(
+                text=item["name"],
+                callback=item["callback"],
+                size="medium",
+                special_style=item.get("special_style"),
+                parent=self.menu_widget
+            )
             
             # 保存按钮引用（用于更新文字）
             ref = item.get("ref")

@@ -229,7 +229,7 @@ class DHPuzzle(QWidget):
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
         self.difficulty_combo.setFixedWidth(45)
         self.difficulty_combo.setFixedHeight(30)
-        self.resource_manager.apply_combobox_style(self.difficulty_combo)
+        self.resource_manager.apply_combobox_style(self.difficulty_combo, size="medium")
         difficulty_h_layout.addWidget(self.difficulty_combo)
         
         difficulty_h_layout.addStretch(1)  # 右侧拉伸，让内容居中

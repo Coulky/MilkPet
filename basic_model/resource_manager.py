@@ -317,102 +317,138 @@ class ResourceManager:
             btn.clicked.connect(callback)
         return btn
 
+    COMBOBOX_SIZE_MAP = {
+        "large": (150, 36, 14),
+        "medium": (120, 30, 13),
+        "small": (90, 24, 11),
+    }
+
     COMBOBOX_STYLE = """
-        QComboBox {
+        QComboBox {{
             background-color: #fad8d1;
             color: #8a8070;
             border: 1px solid #FFB6C1;
             border-radius: 4px;
             padding: 2px;
             font-weight: bold;
-            font-size: 13px;
-        }
-        QComboBox:hover {
+            font-size: {font_size}px;
+        }}
+        QComboBox:hover {{
             background-color: #FFE8EC;
             border-color: #FFC0CB;
-        }
-        QComboBox::drop-down {
+        }}
+        QComboBox::drop-down {{
             border: none;
-            width: 20px;
-        }
-        QComboBox::down-arrow {
+            width: {arrow_w}px;
+        }}
+        QComboBox::down-arrow {{
             image: none;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-top: 6px solid #8a8070;
-            margin-right: 8px;
-        }
-        QComboBox QAbstractItemView {
+            border-left: {aw}px solid transparent;
+            border-right: {aw}px solid transparent;
+            border-top: {ah}px solid #8a8070;
+            margin-right: {amr}px;
+        }}
+        QComboBox QAbstractItemView {{
             background-color: #FFF5F7;
             color: #8a8070;
             selection-background-color: #fad8d1;
             selection-color: #8a8070;
             font-weight: bold;
+        }}
+    """
+
+    def _build_combobox_style(self, size="small"):
+        """根据尺寸构建下拉框样式"""
+        w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
+        aw = max(3, fs // 3)
+        ah = max(4, fs // 2 + 2)
+        amr = max(5, fs)
+        return self.COMBOBOX_STYLE.format(font_size=fs, arrow_w=aw * 3 + 10,
+                                          aw=aw, ah=ah, amr=amr)
+
+    def create_styled_combobox(self, parent=None, size="small"):
+        combo = QComboBox(parent)
+        style = self._build_combobox_style(size)
+        combo.setStyleSheet(style)
+        return combo
+
+    def apply_combobox_style(self, combo, size="small"):
+        style = self._build_combobox_style(size)
+        combo.setStyleSheet(style)
+
+    ACTION_BTN_WARNING_STYLE = """
+        QPushButton {
+            background-color: #d4a5a5;
+            color: #8a4a4a;
+            border: none;
+            padding: 8px 10px;
+            font-weight: bold;
+            font-size: 13px;
+            border-radius: 6px;
+        }
+        QPushButton:hover {
+            background-color: #e4b5b5;
         }
     """
 
-    def create_styled_combobox(self, parent=None):
-        """
-        创建统一样式的下拉选择框
-        
-        参数:
-            parent: 父窗口
-            
-        返回:
-            QComboBox: 样式化下拉框
-        """
-        combo = QComboBox(parent)
-        combo.setStyleSheet(self.COMBOBOX_STYLE)
-        return combo
+    BUTTON_SIZE_MAP = {
+        "large": (160, 40, 15),
+        "medium": (120, 32, 13),
+        "small": (90, 26, 11),
+    }
 
-    def apply_combobox_style(self, combo):
-        """为已有 QComboBox 应用统一样式"""
-        combo.setStyleSheet(self.COMBOBOX_STYLE)
-
-    CATEGORY_BTN_STYLE = """
-        QPushButton {{
-            background-color: #fad8d1;
-            color: #8a8070;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 5px 12px;
-            border-radius: 6px;
-            border: 1px solid #FFB6C1;
-        }}
-        QPushButton:checked {{
-            background-color: #FFB6C1;
-            color: white;
-            border-color: #FFB6C1;
-        }}
-        QPushButton:hover:!checked {{
-            background-color: #FFE4E9;
-            border-color: #FFC0CB;
-        }}
-    """
-
-    def create_category_button(self, text="", selected=False, callback=None, parent=None):
+    def create_action_button(self, text="", callback=None, size="small",
+                             special_style=None, selected=False, parent=None):
         """
-        创建分类/筛选按钮（支持选中状态）
+        创建通用操作按钮（支持选中状态 + 三种尺寸）
         
         参数:
             text: 按钮文字
-            selected: 是否选中（True=高亮样式，False=普通样式）
             callback: 点击回调
+            size: 尺寸 "large"(大) / "medium"(中) / "small"(小)
+            special_style: 特殊样式类型 ("warning"=红色警告样式)
+            selected: 是否选中（True=高亮粉色背景+白字）
             parent: 父窗口
             
         返回:
-            QPushButton: 可选中的分类按钮
+            QPushButton: 操作按钮
         """
+        btn_w, btn_h, font_size = self.BUTTON_SIZE_MAP.get(size, self.BUTTON_SIZE_MAP["medium"])
+        
         btn = QPushButton(text, parent)
-        btn.setObjectName("cat_btn")
-        btn.setCheckable(True)
-        btn.setChecked(selected)
-        btn.setStyleSheet(self.CATEGORY_BTN_STYLE)
+        btn.setFixedWidth(btn_w)
+        btn.setFixedHeight(btn_h)
+        
+        if special_style == "warning":
+            style = self.ACTION_BTN_WARNING_STYLE
+        else:
+            style = self.MENU_BUTTON_STYLE
+        
+        if selected:
+            btn.setCheckable(True)
+            btn.setChecked(True)
+            style += f"""
+                QPushButton {{
+                    padding: {max(4, font_size // 3)}px {max(8, font_size)}px;
+                    font-size: {font_size}px;
+                }}
+                QPushButton:checked {{
+                    background-color: #FFB6C1;
+                    color: white;
+                    border-color: #FFB6C1;
+                }}
+                QPushButton:hover:!checked {{
+                    background-color: #FFE4E9;
+                    border-color: #FFC0CB;
+                }}
+            """
+        else:
+            style = style.replace("font-size: 13px;", f"font-size: {font_size}px;")
+            style = style.replace("padding: 8px 10px;", f"padding: {max(4, font_size // 3)}px {max(8, font_size)}px;")
+        
+        btn.setStyleSheet(style)
+        
         if callback:
             btn.clicked.connect(callback)
+        
         return btn
-
-    def apply_category_style(self, btn):
-        """为已有按钮应用分类按钮统一样式"""
-        btn.setCheckable(True)
-        btn.setStyleSheet(self.CATEGORY_BTN_STYLE)

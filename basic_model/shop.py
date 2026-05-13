@@ -247,8 +247,9 @@ class ShopWindow(QWidget):
         self.cat_buttons = {}
         for cat_id, (cat_name, _) in CATEGORY_MAP.items():
             is_selected = (cat_id == "all")
-            btn = self.resource_manager.create_category_button(
+            btn = self.resource_manager.create_action_button(
                 text=cat_name,
+                size="small",
                 selected=is_selected,
                 callback=lambda checked, cid=cat_id: self._switch_category(cid),
                 parent=self
@@ -258,7 +259,7 @@ class ShopWindow(QWidget):
         category_bar.addStretch()
 
         sort_combo = QComboBox()
-        sort_combo.addItem("\u6309\u7c7b\u578b+\u4ef7\u683c")
+        sort_combo.addItem("\u7efc\u5408")
         sort_combo.addItem("\u6309\u7a00\u6709\u5ea6")
         sort_combo.addItem("\u6309\u7b49\u7ea7")
         sort_combo.addItem("\u4ec5\u6309\u4ef7\u683c")

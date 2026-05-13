@@ -284,8 +284,9 @@ class InventoryWindow(QWidget):
         self.filter_buttons = {}
         for cat_id, cat_name in categories:
             is_selected = (cat_id == "all")
-            btn = self.resource_manager.create_category_button(
+            btn = self.resource_manager.create_action_button(
                 text=cat_name,
+                size="small",
                 selected=is_selected,
                 callback=lambda checked, cid=cat_id: self._filter_items(cid),
                 parent=self
@@ -296,7 +297,7 @@ class InventoryWindow(QWidget):
         filter_bar.addStretch()
         
         sort_combo = QComboBox()
-        sort_combo.addItem("\u6309\u7c7b\u578b+\u4ef7\u683c")
+        sort_combo.addItem("\u7efc\u5408")
         sort_combo.addItem("\u6309\u7a00\u6709\u5ea6")
         sort_combo.addItem("\u6309\u540d\u79f0")
         sort_combo.addItem("\u6309\u6570\u91cf")
