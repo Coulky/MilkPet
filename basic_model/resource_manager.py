@@ -6,7 +6,7 @@
 import os
 import sys
 
-from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QSizePolicy
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QPainter, QColor
 from PyQt5.QtCore import Qt, QSize
 
@@ -339,7 +339,7 @@ class ResourceManager:
             border: 1px solid #FFB6C1;
             border-radius: 4px;
             padding: 2px;
-            padding-left: 5px;
+            text-align: center;
             font-weight: bold;
             font-size: {font_size}px;
         }}
@@ -376,15 +376,6 @@ class ResourceManager:
         return self.COMBOBOX_STYLE.format(font_size=fs, arrow_w=aw * 3 + 10,
                                           aw=aw, ah=ah, amr=amr)
 
-    def create_styled_combobox(self, parent=None, size="small"):
-        combo = QComboBox(parent)
-        w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
-        combo.setFixedWidth(w)
-        combo.setFixedHeight(h)
-        style = self._build_combobox_style(size)
-        combo.setStyleSheet(style)
-        return combo
-
     def create_styled_combo(self, options, default_index=0, label_text="", size="small",
                            callback=None, parent=None):
         combo = QComboBox(parent)
@@ -402,24 +393,17 @@ class ResourceManager:
             return combo
         container = QWidget(parent)
         container.setStyleSheet("background: transparent;")
+        container.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         layout = QHBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
         label = QLabel(label_text)
         label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
+        label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         layout.addWidget(label)
         layout.addWidget(combo)
         container.combo_box = combo
         return container
-
-    def apply_combobox_style(self, combo, size="small"):
-        w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
-        if not combo.minimumWidth():
-            combo.setFixedWidth(w)
-        if not combo.minimumHeight():
-            combo.setFixedHeight(h)
-        style = self._build_combobox_style(size)
-        combo.setStyleSheet(style)
 
     ACTION_BTN_WARNING_STYLE = """
         QPushButton {
