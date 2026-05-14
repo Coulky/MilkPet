@@ -385,6 +385,33 @@ class ResourceManager:
         combo.setStyleSheet(style)
         return combo
 
+    def create_styled_combo(self, options, default_index=0, label_text="", size="small",
+                           callback=None, parent=None):
+        combo = QComboBox(parent)
+        w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
+        combo.setFixedWidth(w)
+        combo.setFixedHeight(h)
+        style = self._build_combobox_style(size)
+        combo.setStyleSheet(style)
+        for display, value in options:
+            combo.addItem(display, value)
+        combo.setCurrentIndex(default_index)
+        if callback:
+            combo.currentIndexChanged.connect(callback)
+        if not label_text:
+            return combo
+        container = QWidget(parent)
+        container.setStyleSheet("background: transparent;")
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        label = QLabel(label_text)
+        label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
+        layout.addWidget(label)
+        layout.addWidget(combo)
+        container.combo_box = combo
+        return container
+
     def apply_combobox_style(self, combo, size="small"):
         w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
         if not combo.minimumWidth():

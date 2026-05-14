@@ -162,25 +162,15 @@ class DHPuzzle(QWidget):
         )
         btn_layout.addWidget(new_game_btn)
 
-        difficulty_container = QWidget()
-        difficulty_container.setStyleSheet("background: transparent;")
-        diff_layout = QHBoxLayout(difficulty_container)
-        diff_layout.setContentsMargins(0, 0, 0, 0)
-        diff_layout.setSpacing(2)
-
-        diff_label = QLabel("难度:")
-        diff_label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
-        diff_layout.addWidget(diff_label)
-
-        self.difficulty_combo = QComboBox()
-        self.difficulty_combo.addItem("3x3", 3)
-        self.difficulty_combo.addItem("4x4", 4)
-        self.difficulty_combo.addItem("5x5", 5)
-        self.difficulty_combo.setCurrentIndex(0)
-        self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
-        self.resource_manager.apply_combobox_style(self.difficulty_combo, size="medium")
-        diff_layout.addWidget(self.difficulty_combo)
-        btn_layout.addWidget(difficulty_container)
+        difficulty_widget = self.resource_manager.create_styled_combo(
+            options=[("3x3", 3), ("4x4", 4), ("5x5", 5)],
+            default_index=0,
+            label_text="难度:",
+            size="medium",
+            callback=self._on_difficulty_changed
+        )
+        self.difficulty_combo = difficulty_widget.combo_box
+        btn_layout.addWidget(difficulty_widget)
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",

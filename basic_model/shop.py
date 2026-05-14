@@ -255,13 +255,10 @@ class ShopWindow(QWidget):
             self.cat_buttons[cat_id] = btn
         category_bar.addStretch()
 
-        sort_combo = QComboBox()
-        sort_combo.addItem("\u7efc\u5408")
-        sort_combo.addItem("\u6309\u7a00\u6709\u5ea6")
-        sort_combo.addItem("\u6309\u7b49\u7ea7")
-        sort_combo.addItem("\u4ec5\u6309\u4ef7\u683c")
-        sort_combo.currentIndexChanged.connect(self._sort_items)
-        self.resource_manager.apply_combobox_style(sort_combo)
+        sort_combo = self.resource_manager.create_styled_combo(
+            options=[("综合", 0), ("按稀有度", 1), ("按等级", 2), ("仅按价格", 3)],
+            callback=self._sort_items
+        )
         category_bar.addWidget(sort_combo)
 
         main_layout.addLayout(category_bar)

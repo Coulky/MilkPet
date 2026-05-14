@@ -297,13 +297,10 @@ class InventoryWindow(QWidget):
 
         filter_bar.addStretch()
         
-        sort_combo = QComboBox()
-        sort_combo.addItem("\u7efc\u5408")
-        sort_combo.addItem("\u6309\u7a00\u6709\u5ea6")
-        sort_combo.addItem("\u6309\u540d\u79f0")
-        sort_combo.addItem("\u6309\u6570\u91cf")
-        sort_combo.currentIndexChanged.connect(self._sort_inventory)
-        self.resource_manager.apply_combobox_style(sort_combo)
+        sort_combo = self.resource_manager.create_styled_combo(
+            options=[("综合", 0), ("按稀有度", 1), ("按名称", 2), ("按数量", 3)],
+            callback=self._sort_inventory
+        )
         filter_bar.addWidget(sort_combo)
         
         main_layout.addLayout(filter_bar)
