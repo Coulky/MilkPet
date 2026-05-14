@@ -6,7 +6,7 @@
 import os
 import sys
 
-from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QSizePolicy
+from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QSizePolicy, QStyledItemDelegate
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QPainter, QColor
 from PyQt5.QtCore import Qt, QSize
 
@@ -339,7 +339,6 @@ class ResourceManager:
             border: 1px solid #FFB6C1;
             border-radius: 4px;
             padding: 2px;
-            text-align: center;
             font-weight: bold;
             font-size: {font_size}px;
         }}
@@ -356,7 +355,6 @@ class ResourceManager:
             border-left: {aw}px solid transparent;
             border-right: {aw}px solid transparent;
             border-top: {ah}px solid #8a8070;
-            margin-right: {amr}px;
         }}
         QComboBox QAbstractItemView {{
             background-color: #FFF5F7;
@@ -370,11 +368,11 @@ class ResourceManager:
     def _build_combobox_style(self, size="small"):
         """根据尺寸构建下拉框样式"""
         w, h, fs = self.COMBOBOX_SIZE_MAP.get(size, self.COMBOBOX_SIZE_MAP["small"])
+        arrow_w = h
         aw = max(3, fs // 3)
         ah = max(4, fs // 2 + 2)
-        amr = max(5, fs)
-        return self.COMBOBOX_STYLE.format(font_size=fs, arrow_w=aw * 3 + 10,
-                                          aw=aw, ah=ah, amr=amr)
+        return self.COMBOBOX_STYLE.format(font_size=fs, arrow_w=arrow_w,
+                                          aw=aw, ah=ah)
 
     def create_styled_combo(self, options, default_index=0, label_text="", size="small",
                            callback=None, parent=None):
@@ -387,6 +385,9 @@ class ResourceManager:
         for display, value in options:
             combo.addItem(display, value)
         combo.setCurrentIndex(default_index)
+        delegate = QStyledItemDelegate(combo)
+        combo.setItemDelegate(delegate)
+        combo.view().setItemAlignment(Qt.AlignCenter)
         if callback:
             combo.currentIndexChanged.connect(callback)
         if not label_text:
