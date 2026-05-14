@@ -29,7 +29,7 @@ from basic_model.shop import ShopWindow
 from basic_model.items import ItemFactory, ItemRarity
 from common.common_enum import ItemType
 from config.settings import GAME_EXP_REWARD
-from config.talk_config import (get_random_click_talk, get_random_auto_talk,
+from config.talk_settings import (get_random_click_talk, get_random_auto_talk,
                                 AUTO_TALK_INTERVAL, TALK_DISPLAY_DURATION, TALK_OFFSET_Y)
 from basic_model.statistics import StatisticsManager
 from basic_model.talk_window import TalkWindow

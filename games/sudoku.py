@@ -8,24 +8,10 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt5.QtCore import Qt, pyqtSignal, QSize, QTimer
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 
-from config.styles import Colors, ButtonStyles, Fonts, Rounded
+from config.styles import Colors, ButtonStyles, Fonts, Rounded, Layout
+from config.sudoku_settings import SUDOKU_COLORS as WHITE_THEME, puzzles as SUDOKU_PUZZLES
 from widgets.dialog import GameFailDialog
 
-
-WHITE_THEME = {
-    'primary': '#ffffff',
-    'text': '#333333',
-    'outer_border': '#313131',
-    'inner_border': '#e0e0e0',
-    'fill_text': '#2E59A2',
-    'initial_text': '#333333',
-    'same_num': '#92B2E3',
-    'selected_area': '#D5ECFF',
-    'selected_cell': '#B8D4F0',
-    'error': '#F44336',
-    'conflict': '#F6A2A2',
-    'note_color': '#888888',
-}
 
 DIFFICULTY_SETTINGS = {
     'easy': {'name': '简单', 'remove_count': 35},
@@ -49,6 +35,7 @@ class SudokuGame(QWidget):
 
             self.board = [[0]*9 for _ in range(9)]
             self.solution = [[0]*9 for _ in range(9)]
+            self.full_solution = [[0]*9 for _ in range(9)]
             self.inputs = [[None]*9 for _ in range(9)]
             self.initial = [[False]*9 for _ in range(9)]
             self.notes = [[set() for _ in range(9)] for _ in range(9)]
@@ -94,7 +81,6 @@ class SudokuGame(QWidget):
 
     def _setup_ui(self):
         self.setWindowTitle("数独")
-        self.setFixedSize(540, 800)
         self.setWindowIcon(self.resource_manager.logo_icon)
 
         flags = Qt.Window | Qt.FramelessWindowHint
@@ -102,10 +88,29 @@ class SudokuGame(QWidget):
         self.setAttribute(Qt.WA_QuitOnClose, False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
+        T = WHITE_THEME
+        CELL_SIZE = 50
+        C3_INNER_SIZE = CELL_SIZE * 9
+        OUTER_BORDER_W = 2
+        C3_PADDING = 1 + OUTER_BORDER_W
+        C3_W = C3_INNER_SIZE + C3_PADDING * 2
+        C3_H = C3_W
+        BUTTON_H = 67
+        DATA_H = 30
+        C4_CELL_SIZE = 40
+        C4_BTN_BORDER_W = 2
+        C4_BTN_GAP = 6
+        C4_USER_MARGIN = 1
+        C4_MARGIN = C4_USER_MARGIN + C4_BTN_BORDER_W
+        C4_W = C4_CELL_SIZE * 10 + 9 * C4_BTN_GAP + C4_MARGIN * 2
+        C4_H = C4_CELL_SIZE + C4_MARGIN * 2
+        WINDOW_W = C3_W + Layout.WINDOW_MARGIN * 2
+        WINDOW_H = Layout.WINDOW_MARGIN + BUTTON_H + Layout.CONTAINER_SPACING + DATA_H + Layout.CONTAINER_SPACING + C3_H + Layout.CONTAINER_SPACING + C4_H + Layout.WINDOW_MARGIN
+        self.setFixedSize(WINDOW_W, WINDOW_H)
+
         container = QFrame(self)
         container.setObjectName("container")
         bg_path = self._get_bg_path()
-        T = WHITE_THEME
         container.setStyleSheet(f"""
             QFrame#container {{
                 background-image: url("{bg_path}");
@@ -145,13 +150,13 @@ class SudokuGame(QWidget):
                 border-radius: 0px;
                 font-size: 20px;
                 font-weight: bold;
-                min-width: 50px;
-                min-height: 50px;
+                min-width: {CELL_SIZE}px;
+                min-height: {CELL_SIZE}px;
             }}
             QPushButton#cell_btn:hover {{ background-color: #f5f5f5; }}
             QPushButton#cell_btn:disabled {{
                 background-color: {T['primary']};
-                color: {T['initial_text']};
+                color: {T['outer_border']};
                 font-weight: bold;
             }}
             QPushButton#num_btn {{
@@ -161,8 +166,8 @@ class SudokuGame(QWidget):
                 border-radius: {Rounded.NORMAL}px;
                 font-size: 18px;
                 font-weight: bold;
-                min-width: 48px;
-                min-height: 42px;
+                min-width: {C4_CELL_SIZE}px;
+                min-height: {C4_CELL_SIZE}px;
             }}
             QPushButton#num_btn:hover {{ background-color: #e0e8f0; border-color: {T['fill_text']}; }}
             QPushButton#num_btn:checked {{
@@ -173,27 +178,28 @@ class SudokuGame(QWidget):
         """)
 
         main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(0)
-        main_layout.setContentsMargins(15, 38, 15, 50)
+        main_layout.setSpacing(Layout.CONTAINER_SPACING)
+        main_layout.setContentsMargins(0, Layout.WINDOW_MARGIN, 0, Layout.WINDOW_MARGIN)
 
-        top_bar = QHBoxLayout()
-        top_bar.setSpacing(8)
+        btn_container = QWidget()
+        btn_container.setStyleSheet("background: transparent;")
+        btn_container.setFixedWidth(C3_W)
+        btn_layout = QHBoxLayout(btn_container)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(8)
 
         new_game_btn = self.resource_manager.create_styled_button(
             text="新游戏",
             callback=self._new_game,
-            size=QSize(93, 67)
+            size=QSize(93, BUTTON_H)
         )
-        top_bar.addWidget(new_game_btn)
+        btn_layout.addWidget(new_game_btn)
 
         difficulty_container = QWidget()
         difficulty_container.setStyleSheet("background: transparent;")
-        difficulty_container.setFixedWidth(150)
-
         diff_layout = QHBoxLayout(difficulty_container)
         diff_layout.setContentsMargins(0, 0, 0, 0)
         diff_layout.setSpacing(2)
-        diff_layout.addStretch(1)
 
         diff_label = QLabel("难度:")
         diff_label.setStyleSheet(f"color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
@@ -207,28 +213,30 @@ class SudokuGame(QWidget):
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
         self.resource_manager.apply_combobox_style(self.difficulty_combo)
         diff_layout.addWidget(self.difficulty_combo)
-        top_bar.addWidget(difficulty_container)
+        btn_layout.addWidget(difficulty_container)
 
         self.note_btn = self.resource_manager.create_styled_button(
             text="笔记",
             callback=self._toggle_note_mode,
-            size=QSize(93, 67)
+            size=QSize(93, BUTTON_H)
         )
-        top_bar.addWidget(self.note_btn)
+        btn_layout.addWidget(self.note_btn)
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",
             callback=self.close,
-            size=QSize(93, 67)
+            size=QSize(93, BUTTON_H)
         )
-        top_bar.addWidget(close_btn)
+        btn_layout.addWidget(close_btn)
 
-        main_layout.addLayout(top_bar)
-        main_layout.addSpacing(20)
+        main_layout.addWidget(btn_container, alignment=Qt.AlignCenter)
 
-        status_bar = QHBoxLayout()
-        status_bar.setSpacing(16)
-        status_bar.addStretch(1)
+        data_container = QWidget()
+        data_container.setStyleSheet("background: transparent;")
+        data_container.setFixedHeight(DATA_H)
+        data_layout = QHBoxLayout(data_container)
+        data_layout.setContentsMargins(0, 0, 0, 0)
+        data_layout.setSpacing(16)
 
         lives_widget = QWidget()
         lives_widget.setStyleSheet("background: transparent;")
@@ -249,7 +257,7 @@ class SudokuGame(QWidget):
         self.lives_label.setObjectName("status_label")
         self.lives_label.setAlignment(Qt.AlignCenter)
         lives_h_layout.addWidget(self.lives_label)
-        status_bar.addWidget(lives_widget)
+        data_layout.addWidget(lives_widget)
 
         timer_widget = QWidget()
         timer_widget.setStyleSheet("background: transparent;")
@@ -265,42 +273,43 @@ class SudokuGame(QWidget):
         self.timer_label.setObjectName("timer_label")
         self.timer_label.setAlignment(Qt.AlignCenter)
         timer_h_layout.addWidget(self.timer_label)
-        status_bar.addWidget(timer_widget)
+        data_layout.addWidget(timer_widget)
 
-        status_bar.addStretch(1)
-        main_layout.addLayout(status_bar)
+        data_layout.addStretch(1)
+        main_layout.addWidget(data_container, alignment=Qt.AlignCenter)
 
-        self.info_label_widget = QLabel("")
-        self.info_label_widget.setVisible(False)
-
-        main_layout.addSpacing(20)
-
-        self.grid_widget = QWidget()
-        self.grid_layout = QGridLayout(self.grid_widget)
+        board_container = QWidget()
+        board_container.setStyleSheet("background: transparent;")
+        board_container.setFixedSize(C3_W, C3_H)
+        self.grid_widget = board_container
+        self.grid_layout = QGridLayout(board_container)
         self.grid_layout.setSpacing(0)
-        self.grid_layout.setContentsMargins(0, 0, 0, 0)
+        self.grid_layout.setContentsMargins(C3_PADDING, C3_PADDING, C3_PADDING, C3_PADDING)
 
         for i in range(9):
             for j in range(9):
                 btn = QPushButton("")
                 btn.setObjectName("cell_btn")
-                btn.setFixedSize(50, 50)
+                btn.setFixedSize(CELL_SIZE, CELL_SIZE)
                 btn.setCursor(Qt.PointingHandCursor)
                 btn.clicked.connect(self._on_cell_clicked(i, j))
                 self.grid_layout.addWidget(btn, i, j)
                 self.inputs[i][j] = btn
 
-        main_layout.addWidget(self.grid_widget, alignment=Qt.AlignCenter)
-        main_layout.addSpacing(20)
+        main_layout.addWidget(board_container, alignment=Qt.AlignCenter)
 
-        num_layout = QHBoxLayout()
-        num_layout.setSpacing(4)
+        num_container = QWidget()
+        num_container.setStyleSheet("background: transparent;")
+        num_container.setFixedHeight(C4_H)
+        num_layout = QHBoxLayout(num_container)
+        num_layout.setContentsMargins(C4_MARGIN, C4_MARGIN, C4_MARGIN, C4_MARGIN)
+        num_layout.setSpacing(C4_BTN_GAP)
 
         self.num_buttons = []
         for num in range(1, 10):
             num_btn = QPushButton(str(num))
             num_btn.setObjectName("num_btn")
-            num_btn.setFixedSize(48, 42)
+            num_btn.setFixedSize(C4_CELL_SIZE, C4_CELL_SIZE)
             num_btn.setCursor(Qt.PointingHandCursor)
             num_btn.setCheckable(True)
             num_btn.clicked.connect(lambda checked, n=num: self._on_number_selected(n))
@@ -309,12 +318,15 @@ class SudokuGame(QWidget):
 
         clear_btn = QPushButton("X")
         clear_btn.setObjectName("num_btn")
-        clear_btn.setFixedSize(48, 42)
+        clear_btn.setFixedSize(C4_CELL_SIZE, C4_CELL_SIZE)
         clear_btn.setCursor(Qt.PointingHandCursor)
         clear_btn.clicked.connect(self._on_clear_selected)
         num_layout.addWidget(clear_btn)
 
-        main_layout.addLayout(num_layout)
+        main_layout.addWidget(num_container, alignment=Qt.AlignCenter)
+
+        self.info_label_widget = QLabel("")
+        self.info_label_widget.setVisible(False)
 
         window_layout = QVBoxLayout(self)
         window_layout.setContentsMargins(0, 0, 0, 0)
@@ -406,7 +418,7 @@ class SudokuGame(QWidget):
         self.notes[row][col].clear()
         self.inputs[row][col].setText(str(num))
 
-        is_correct = (self.solution[row][col] == num)
+        is_correct = (self.full_solution[row][col] == num)
         base_style = self._get_cell_base_style(row, col)
 
         if is_correct:
@@ -544,7 +556,7 @@ class SudokuGame(QWidget):
                         conflicts.append((r, c))
 
         for r, c in conflicts:
-            is_correct = (self.solution[r][c] == self.board[r][c])
+            is_correct = (self.full_solution[r][c] == self.board[r][c])
             base_style = self._get_cell_base_style(r, c)
             if not is_correct:
                 self.inputs[r][c].setStyleSheet(
@@ -617,13 +629,13 @@ class SudokuGame(QWidget):
                     btn.setStyleSheet(
                         f"QPushButton#cell_btn {{"
                         f"  background-color: {T['primary']};"
-                        f"  color: {T['initial_text']};"
+                        f"  color: {T['outer_border']};"
                         f"  font-weight: bold;"
                         f"  {base_style}"
                         f"}}"
                     )
                 elif self.board[i][j] != 0:
-                    is_correct = (self.solution[i][j] == self.board[i][j])
+                    is_correct = (self.full_solution[i][j] == self.board[i][j])
                     if is_correct:
                         btn.setStyleSheet(
                             f"QPushButton#cell_btn {{"
@@ -673,27 +685,48 @@ class SudokuGame(QWidget):
                 same_box = (i // 3 == sr // 3 and j // 3 == sc // 3)
                 same_num = (sel_val != 0 and self.board[i][j] == sel_val and not (i == sr and j == sc))
 
+                has_error = (self.board[i][j] != 0 and not self.initial[i][j]
+                             and self.full_solution[i][j] != self.board[i][j])
+
                 if is_sel:
+                    text_color = T['error'] if has_error else T['text']
+                    bg_color = T['selected_cell']
                     btn.setStyleSheet(
                         f"QPushButton#cell_btn {{"
-                        f"  background-color: {T['selected_cell']} !important;"
-                        f"  color: {T['text']};"
+                        f"  background-color: {bg_color} !important;"
+                        f"  color: {text_color};"
+                        f"  font-weight: bold;"
                         f"  {base_style}"
                         f"}}"
                     )
                 elif same_row or same_col or same_box:
-                    btn.setStyleSheet(
-                        f"QPushButton#cell_btn {{"
-                        f"  background-color: {T['selected_area']} !important;"
-                        f"  color: {T['text']};"
-                        f"  {base_style}"
-                        f"}}"
-                    )
+                    if has_error:
+                        btn.setStyleSheet(
+                            f"QPushButton#cell_btn {{"
+                            f"  background-color: {T['selected_area']} !important;"
+                            f"  color: {T['error']} !important;"
+                            f"  font-weight: bold;"
+                            f"  {base_style}"
+                            f"}}"
+                        )
+                    else:
+                        is_correct_fill = (self.board[i][j] != 0 and not self.initial[i][j]
+                                           and self.full_solution[i][j] == self.board[i][j])
+                        text_color = T['fill_text'] if is_correct_fill else T['text']
+                        btn.setStyleSheet(
+                            f"QPushButton#cell_btn {{"
+                            f"  background-color: {T['selected_area']} !important;"
+                            f"  color: {text_color};"
+                            f"  {base_style}"
+                            f"}}"
+                        )
                 elif same_num:
+                    text_color = T['error'] if has_error else 'white'
                     btn.setStyleSheet(
                         f"QPushButton#cell_btn {{"
                         f"  background-color: {T['same_num']} !important;"
-                        f"  color: white;"
+                        f"  color: {text_color};"
+                        f"  font-weight: bold;"
                         f"  {base_style}"
                         f"}}"
                     )
@@ -718,32 +751,26 @@ class SudokuGame(QWidget):
             self._new_game()
 
     def _generate_puzzle(self):
-        base = 3
-        side = base * base
+        puzzle_ids = list(SUDOKU_PUZZLES.keys())
+        puzzle_id = random.choice(puzzle_ids)
+        one_d = SUDOKU_PUZZLES[puzzle_id]
 
-        def pattern(r, c):
-            return (base * (r % base) + r // base + c) % side
+        self.full_solution = [[0]*9 for _ in range(9)]
+        for idx in range(81):
+            self.full_solution[idx // 9][idx % 9] = one_d[idx]
 
-        def shuffle(s):
-            return random.sample(s, len(s))
-
-        r_base = range(base)
-        rows = [g * base + r for g in shuffle(r_base) for r in shuffle(r_base)]
-        cols = [g * base + c for g in shuffle(r_base) for c in shuffle(r_base)]
-        nums = shuffle(range(1, base * base + 1))
-
-        self.solution = [[nums[pattern(r, c)] for c in cols] for r in rows]
+        self.solution = [row[:] for row in self.full_solution]
 
         remove_count = DIFFICULTY_SETTINGS.get(self.current_difficulty, DIFFICULTY_SETTINGS['easy'])['remove_count']
-        squares = side * side
-        positions = list(range(squares))
+        positions = list(range(81))
         random.shuffle(positions)
         for p in positions[:remove_count]:
-            self.solution[p // side][p % side] = 0
+            self.solution[p // 9][p % 9] = 0
 
     def _new_game(self):
         self.board = [[0]*9 for _ in range(9)]
         self.solution = [[0]*9 for _ in range(9)]
+        self.full_solution = [[0]*9 for _ in range(9)]
         self.initial = [[False]*9 for _ in range(9)]
         self.notes = [[set() for _ in range(9)] for _ in range(9)]
         self.selected_cell = None
@@ -780,7 +807,7 @@ class SudokuGame(QWidget):
                     btn.setStyleSheet(
                         f"QPushButton#cell_btn {{"
                         f"  background-color: {T['primary']};"
-                        f"  color: {T['initial_text']};"
+                        f"  color: {T['outer_border']};"
                         f"  font-weight: bold;"
                         f"  {base_style}"
                         f"}}"

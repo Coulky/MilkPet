@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt5.QtCore import Qt, pyqtSignal, QPoint, QSize, QTimer
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 
-from config.styles import ButtonStyles
+from config.styles import ButtonStyles, Layout
 from widgets import GameSuccessWindow
 
 
@@ -82,12 +82,25 @@ class DHPuzzle(QWidget):
     
     def _setup_ui(self):
         self.setWindowTitle("数字华容道")
-        self.setFixedSize(520, 680)
         self.setWindowIcon(self.resource_manager.logo_icon)
 
         flags = Qt.Window | Qt.FramelessWindowHint
         self.setWindowFlags(flags)
-        self.setAttribute(Qt.WA_TranslucentBackground, True)  # 启用透明背景
+        self.setAttribute(Qt.WA_QuitOnClose, False)
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+
+        C3_INNER_SIZE = 400
+        C3_PADDING = 6
+        C3_W = C3_INNER_SIZE + C3_PADDING * 2
+        C3_H = C3_W
+        BUTTON_H = 67
+        DATA_H = 30
+        GRID_SPACING = 2
+        WINDOW_W = C3_W + Layout.WINDOW_MARGIN * 2
+        WINDOW_H = Layout.WINDOW_MARGIN + BUTTON_H + Layout.CONTAINER_SPACING + DATA_H + Layout.CONTAINER_SPACING + C3_H + Layout.WINDOW_MARGIN
+        self.GRID_PIXEL_SIZE = C3_INNER_SIZE
+        self.GRID_SPACING = GRID_SPACING
+        self.setFixedSize(WINDOW_W, WINDOW_H)
 
         container = QFrame(self)
         container.setObjectName("container")
@@ -123,160 +136,102 @@ class DHPuzzle(QWidget):
                 background-color: transparent;
                 border: none;
             }}
-            QLabel#title {{
-                color: #ffffff;
-                font-size: 20px;
-                font-weight: bold;
-                padding: 10px;
-                background: transparent;
-            }}
             QLabel#info {{
                 color: #aaaaaa;
                 font-size: 14px;
                 padding: 5px;
                 background: transparent;
             }}
-            QPushButton#control_btn {{
-                background-color: #5a7a9a;
-                font-size: 14px;
-                padding: 8px;
-                margin-top: 10px;
-                border-radius: 8px;
-            }}
-            QPushButton#control_btn:hover {{
-                background-color: #6a8aaa;
-            }}
-            QPushButton#close_btn {{
-                background-color: #8a4a4a;
-                font-size: 14px;
-                padding: 8px;
-                margin-top: 10px;
-                border-radius: 8px;
-            }}
-            QPushButton#close_btn:hover {{
-                background-color: #aa5a5a;
-            }}
-            QComboBox {{
-                background-color: #4a4a5e;
-                color: white;
-                border: 2px solid #6a6a7e;
-                border-radius: 5px;
-                padding: 5px;
-                min-width: 120px;
-            }}
-            QComboBox:hover {{
-                border-color: #8a8a9e;
-            }}
-            QComboBox::drop-down {{
-                border: none;
-                width: 30px;
-            }}
-            QComboBox::down-arrow {{
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 8px solid white;
-                margin-right: 10px;
-            }}
-            QComboBox QAbstractItemView {{
-                background-color: #3a3a4e;
-                color: white;
-                selection-background-color: #5a7a9a;
-            }}
         """)
 
         main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(0)
-        main_layout.setContentsMargins(20, 38, 20, 50)
+        main_layout.setSpacing(Layout.CONTAINER_SPACING)
+        main_layout.setContentsMargins(0, Layout.WINDOW_MARGIN, 0, Layout.WINDOW_MARGIN)
 
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(8)
-        button_layout.addStretch(1)  # 左侧拉伸，让内容居中
+        btn_container = QWidget()
+        btn_container.setStyleSheet("background: transparent;")
+        btn_container.setFixedWidth(C3_W)
+        btn_layout = QHBoxLayout(btn_container)
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(8)
 
         new_game_btn = self.resource_manager.create_styled_button(
             text="新游戏",
             callback=self._new_game,
-            size=QSize(140, 100)  # 放大一倍
+            size=QSize(93, BUTTON_H)
         )
-        button_layout.addWidget(new_game_btn)
+        btn_layout.addWidget(new_game_btn)
 
-        # 难度选择区域（使用容器包裹，设置固定宽度，内容居中）
-        from PyQt5.QtWidgets import QWidget
         difficulty_container = QWidget()
         difficulty_container.setStyleSheet("background: transparent;")
-        difficulty_container.setFixedWidth(180)  # 设置固定宽度
-        
-        difficulty_h_layout = QHBoxLayout(difficulty_container)
-        difficulty_h_layout.setContentsMargins(0, 0, 0, 0)  # 去掉容器边距
-        difficulty_h_layout.setSpacing(2)  # 标签与下拉框间距
-        
-        difficulty_h_layout.addStretch(1)  # 左侧拉伸
-        
+        diff_layout = QHBoxLayout(difficulty_container)
+        diff_layout.setContentsMargins(0, 0, 0, 0)
+        diff_layout.setSpacing(2)
+
         diff_label = QLabel("难度:")
         diff_label.setStyleSheet("color: #8a8070; font-size: 16px; font-weight: bold; background: transparent;")
-        difficulty_h_layout.addWidget(diff_label)
+        diff_layout.addWidget(diff_label)
 
         self.difficulty_combo = QComboBox()
         self.difficulty_combo.addItem("3x3", 3)
         self.difficulty_combo.addItem("4x4", 4)
         self.difficulty_combo.addItem("5x5", 5)
-        self.difficulty_combo.setCurrentIndex(0)  # 默认3×3
+        self.difficulty_combo.setCurrentIndex(0)
         self.difficulty_combo.currentIndexChanged.connect(self._on_difficulty_changed)
-        self.difficulty_combo.setFixedWidth(45)
-        self.difficulty_combo.setFixedHeight(30)
         self.resource_manager.apply_combobox_style(self.difficulty_combo, size="medium")
-        difficulty_h_layout.addWidget(self.difficulty_combo)
-        
-        difficulty_h_layout.addStretch(1)  # 右侧拉伸，让内容居中
-        
-        # 将容器添加到按钮布局
-        button_layout.addWidget(difficulty_container)
+        diff_layout.addWidget(self.difficulty_combo)
+        btn_layout.addWidget(difficulty_container)
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",
             callback=self.close,
-            size=QSize(100, 100)  # 放大一倍
+            size=QSize(93, BUTTON_H)
         )
-        button_layout.addWidget(close_btn)
-        
-        button_layout.addStretch(1)  # 右侧拉伸，让左右边距相等
+        btn_layout.addWidget(close_btn)
 
-        main_layout.addLayout(button_layout)
-        main_layout.addSpacing(20)
+        main_layout.addWidget(btn_container, alignment=Qt.AlignCenter)
 
-        info_layout = QHBoxLayout()
+        data_container = QWidget()
+        data_container.setStyleSheet("background: transparent;")
+        data_container.setFixedHeight(DATA_H)
+        data_layout = QHBoxLayout(data_container)
+        data_layout.setContentsMargins(0, 0, 0, 0)
+        data_layout.setSpacing(16)
 
-        self.info_label = QLabel("时间: 00:00 | 步数: 0")
-        self.info_label.setObjectName("info")
-        self.info_label.setAlignment(Qt.AlignCenter)
-        info_layout.addWidget(self.info_label)
+        self.time_label = QLabel("时间: 00:00")
+        self.time_label.setObjectName("info")
+        self.time_label.setAlignment(Qt.AlignCenter)
+        data_layout.addWidget(self.time_label)
 
-        main_layout.addLayout(info_layout)
-        main_layout.addSpacing(20)
+        self.steps_label = QLabel("步数: 0")
+        self.steps_label.setObjectName("info")
+        self.steps_label.setAlignment(Qt.AlignCenter)
+        data_layout.addWidget(self.steps_label)
 
-        grid_frame = QFrame()
-        grid_frame.setObjectName("grid_frame")
-        self.grid_frame = grid_frame
-        grid_frame.setFixedSize(self._calc_grid_size(), self._calc_grid_size())
-        
-        self.grid_layout = QGridLayout(grid_frame)
-        self.grid_layout.setSpacing(self.GRID_SPACING)
-        self.grid_layout.setContentsMargins(self.GRID_SPACING, self.GRID_SPACING, self.GRID_SPACING, self.GRID_SPACING)
-        
+        data_layout.addStretch(1)
+        main_layout.addWidget(data_container, alignment=Qt.AlignCenter)
+
+        board_container = QFrame()
+        board_container.setObjectName("grid_frame")
+        board_container.setStyleSheet("")
+        self.grid_frame = board_container
+        board_container.setFixedSize(C3_W, C3_H)
+
+        self.grid_layout = QGridLayout(board_container)
+        self.grid_layout.setSpacing(GRID_SPACING)
+        self.grid_layout.setContentsMargins(C3_PADDING, C3_PADDING, C3_PADDING, C3_PADDING)
+
         btn_size = self._calc_btn_size()
 
         for i in range(self.grid_size):
             for j in range(self.grid_size):
-                # 只创建空按钮，内容由 _new_game() 填充
                 btn = QPushButton("")
                 btn.setFixedSize(btn_size, btn_size)
-                
                 btn.clicked.connect(self._on_button_clicked(i, j))
-                
                 self.grid_layout.addWidget(btn, i, j)
                 self.buttons.append(btn)
 
-        main_layout.addWidget(grid_frame, 0, Qt.AlignCenter)
+        main_layout.addWidget(board_container, alignment=Qt.AlignCenter)
 
         window_layout = QVBoxLayout(self)
         window_layout.setContentsMargins(0, 0, 0, 0)
@@ -315,7 +270,7 @@ class DHPuzzle(QWidget):
             self.empty_pos = (row, col)
             self.move_count += 1
             
-            self.info_label.setText(f"步数: {self.move_count}")
+            self.steps_label.setText(f"步数: {self.move_count}")
             
             # 检查游戏是否完成（带状态保护）
             if not self.game_finished and self._check_win():
@@ -600,9 +555,9 @@ class DHPuzzle(QWidget):
         minutes = self.elapsed_time // 60
         seconds = self.elapsed_time % 60
         time_str = f"{minutes:02d}:{seconds:02d}"
-        
-        difficulty_name = self.difficulty_settings.get(self.grid_size, {}).get("name", "普通")
-        self.info_label.setText(f"{time_str} | 步数: {self.move_count} | {difficulty_name}")
+
+        self.time_label.setText(f"时间: {time_str}")
+        self.steps_label.setText(f"步数: {self.move_count}")
     
     def _on_difficulty_changed(self, index):
         """难度改变时重新开始游戏"""
@@ -613,8 +568,6 @@ class DHPuzzle(QWidget):
             self._new_game()
     
     def _rebuild_grid(self):
-        self.grid_frame.setFixedSize(self._calc_grid_size(), self._calc_grid_size())
-        
         while self.grid_layout.count():
             item = self.grid_layout.takeAt(0)
             if item.widget():

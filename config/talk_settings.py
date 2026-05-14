@@ -58,34 +58,18 @@ AUTO_TALKS = [
 # 对话系统配置
 # ============================================================
 
-# 自动对话间隔（秒），默认10分钟
 AUTO_TALK_INTERVAL = 600
 
-# 对话显示时长（秒），默认3秒
 TALK_DISPLAY_DURATION = 3
 
-# 对话窗口距离桌宠顶部的偏移量（像素），负数表示在上方
 TALK_OFFSET_Y = -10
 
-# 是否允许发言（默认开启）
 ALLOW_TALK_ENABLED = True
 
 
 def get_random_click_talk() -> str:
-    """
-    随机获取一条点击对话
-    
-    返回:
-        str: 随机的对话内容
-    """
     return random.choice(CLICK_TALKS)
 
 
 def get_random_auto_talk() -> str:
-    """
-    随机获取一条自动对话
-    
-    返回:
-        str: 随机的对话内容
-    """
     return random.choice(AUTO_TALKS)

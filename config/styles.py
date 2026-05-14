@@ -62,6 +62,14 @@ class Rounded:
     LARGE = 8
     EXTRA_LARGE = 15
 
+# ===== 布局配置 =====
+class Layout:
+    """布局间距配置"""
+
+    WINDOW_MARGIN = 50
+
+    CONTAINER_SPACING = 10
+
 # ===== 按钮样式 =====
 class ButtonStyles:
     """按钮样式配置"""
