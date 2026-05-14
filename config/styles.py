@@ -29,7 +29,7 @@ class Colors:
     # 文字颜色
     TEXT_WHITE = "#ffffff"
     TEXT_GRAY = "#aaaaaa"
-    TEXT_DARK = "#8a8070"
+    TEXT_DARK = "#8a8070" # 默认文字颜色
     TEXT_BLACK = "#333333"
     
     # 边框颜色
@@ -53,6 +53,7 @@ class Fonts:
     SIZE_NORMAL = 14
     SIZE_LARGE = 18
     SIZE_TITLE = 22
+    COLOR_DEFAULT = "#8a8070"
 
 # ===== 圆角配置 =====
 class Rounded:
@@ -97,6 +98,37 @@ class ButtonStyles:
         "padding": "10px",
         "font_size": 14
     }
+
+# ===== 数独颜色配置 =====
+class SudokuColors:
+    """数独游戏颜色配置"""
+
+    # --- 基础颜色 ---
+    PRIMARY = '#ffffff'
+    TEXT = '#333333'
+
+    # --- 边框颜色 ---
+    OUTER_BORDER = '#313131'
+    INNER_BORDER = '#8a8070'
+
+    # --- 数字颜色 ---
+    INITIAL_TEXT = '#313131'
+    FILL_TEXT = '#8a8070'
+    ERROR = '#F44336'
+    CONFLICT = '#F6A2A2'
+
+    # --- 高亮/选中颜色 ---
+    SAME_NUM = '#92B2E3'
+    SELECTED_AREA = '#D5ECFF'
+    SELECTED_CELL = '#B8D4F0'
+
+    # --- 其他 ---
+    NOTE_COLOR = '#888888'
+
+    # --- 备选数字（字体=边框色） ---
+    CANDIDATE_BG = '#f0f0f8'
+    CANDIDATE_COLOR = '#8a8070'
+    CANDIDATE_BORDER = '#8a8070'
     
     # 关闭按钮
     CLOSE_BUTTON = {

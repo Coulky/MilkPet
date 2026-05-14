@@ -814,6 +814,9 @@ class DesktopPet(PetDisplay):
                 lambda: self._on_game_finished('sudoku', won=True)
             )
             
+            # 连接放弃信号，关闭所有窗口
+            self.sudoku_window.abandon_clicked.connect(self._close_all_windows)
+            
             self.sudoku_window.show()
             self.sudoku_window.raise_()
             self.sudoku_window.activateWindow()

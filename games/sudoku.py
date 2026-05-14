@@ -8,9 +8,9 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
 from PyQt5.QtCore import Qt, pyqtSignal, QSize, QTimer
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 
-from config.styles import Colors, ButtonStyles, Fonts, Rounded, Layout
-from config.sudoku_settings import SUDOKU_COLORS as WHITE_THEME, puzzles as SUDOKU_PUZZLES
-from widgets.dialog import GameFailDialog
+from config.styles import Colors, ButtonStyles, Fonts, Rounded, Layout, SudokuColors
+from config.sudoku_settings import puzzles as SUDOKU_PUZZLES
+from widgets.dialog import GameFailDialog, CompleteDialog
 
 
 DIFFICULTY_SETTINGS = {
@@ -26,6 +26,7 @@ class SudokuGame(QWidget):
     """数独游戏 - 白色主题，参照JS项目配色，带生命值系统"""
 
     game_won = pyqtSignal(int, int, str)
+    abandon_clicked = pyqtSignal()
 
     def __init__(self):
         print("[DEBUG] SudokuGame: Starting initialization...")
@@ -88,7 +89,20 @@ class SudokuGame(QWidget):
         self.setAttribute(Qt.WA_QuitOnClose, False)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         CELL_SIZE = 50
         C3_INNER_SIZE = CELL_SIZE * 9
         OUTER_BORDER_W = 2
@@ -160,20 +174,20 @@ class SudokuGame(QWidget):
                 font-weight: bold;
             }}
             QPushButton#num_btn {{
-                background-color: #f0f0f8;
-                color: {T['fill_text']};
-                border: 2px solid {T['inner_border']};
+                background-color: {SudokuColors.CANDIDATE_BG};
+                color: {SudokuColors.CANDIDATE_COLOR};
+                border: 2px solid {SudokuColors.CANDIDATE_BORDER};
                 border-radius: {Rounded.NORMAL}px;
                 font-size: 18px;
                 font-weight: bold;
                 min-width: {C4_CELL_SIZE}px;
                 min-height: {C4_CELL_SIZE}px;
             }}
-            QPushButton#num_btn:hover {{ background-color: #e0e8f0; border-color: {T['fill_text']}; }}
+            QPushButton#num_btn:hover {{ background-color: #e0e8f0; border-color: {SudokuColors.CANDIDATE_COLOR}; }}
             QPushButton#num_btn:checked {{
                 background-color: {T['same_num']};
                 color: white;
-                border-color: {T['fill_text']};
+                border-color: {SudokuColors.CANDIDATE_COLOR};
             }}
         """)
 
@@ -188,28 +202,25 @@ class SudokuGame(QWidget):
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.setSpacing(8)
 
+        btn_layout.addStretch()
         new_game_btn = self.resource_manager.create_styled_button(
             text="新游戏",
             callback=self._new_game,
             size=QSize(93, BUTTON_H)
         )
         btn_layout.addWidget(new_game_btn)
+        btn_layout.addStretch()
 
         difficulty_widget = self.resource_manager.create_styled_combo(
             options=[("简单", "easy"), ("中等", "medium"), ("困难", "hard")],
             default_index=0,
             label_text="难度:",
+            size="medium",
             callback=self._on_difficulty_changed
         )
         self.difficulty_combo = difficulty_widget.combo_box
         btn_layout.addWidget(difficulty_widget)
-
-        self.note_btn = self.resource_manager.create_styled_button(
-            text="笔记",
-            callback=self._toggle_note_mode,
-            size=QSize(93, BUTTON_H)
-        )
-        btn_layout.addWidget(self.note_btn)
+        btn_layout.addStretch()
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",
@@ -217,6 +228,7 @@ class SudokuGame(QWidget):
             size=QSize(93, BUTTON_H)
         )
         btn_layout.addWidget(close_btn)
+        btn_layout.addStretch()
 
         main_layout.addWidget(btn_container, alignment=Qt.AlignCenter)
 
@@ -291,7 +303,7 @@ class SudokuGame(QWidget):
         num_container.setStyleSheet("background: transparent;")
         num_container.setFixedHeight(C4_H)
         num_layout = QHBoxLayout(num_container)
-        num_layout.setContentsMargins(C4_MARGIN, C4_MARGIN, C4_MARGIN, C4_MARGIN)
+        num_layout.setContentsMargins(C4_MARGIN, C4_MARGIN, C4_MARGIN, C4_MARGIN + 1)
         num_layout.setSpacing(C4_BTN_GAP)
 
         self.num_buttons = []
@@ -324,7 +336,20 @@ class SudokuGame(QWidget):
         self._apply_board_style()
 
     def _apply_board_style(self):
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         for i in range(9):
             for j in range(9):
                 btn = self.inputs[i][j]
@@ -352,7 +377,20 @@ class SudokuGame(QWidget):
                 btn.setStyleSheet(base_style)
 
     def _get_cell_base_style(self, row, col):
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         style_parts = []
         if row % 3 == 0:
             style_parts.append(f"border-top: 2px solid {T['outer_border']};")
@@ -377,10 +415,17 @@ class SudokuGame(QWidget):
         self._clear_highlights()
         self.selected_cell = (row, col)
         self._update_highlights()
+        self._update_num_button_states()
 
     def _on_number_selected(self, num):
         if not self.selected_cell or self.game_finished or self.game_over:
             return
+
+        for nb in self.num_buttons:
+            nb.setChecked(False)
+        self.num_buttons[num - 1].setChecked(True)
+        self.selected_number = num
+
         row, col = self.selected_cell
 
         if self.note_mode:
@@ -413,8 +458,8 @@ class SudokuGame(QWidget):
         if is_correct:
             self.inputs[row][col].setStyleSheet(
                 f"QPushButton#cell_btn {{"
-                f"  background-color: {WHITE_THEME['primary']};"
-                f"  color: {WHITE_THEME['fill_text']} !important;"
+                f"  background-color: {SudokuColors.PRIMARY};"
+                f"  color: {SudokuColors.FILL_TEXT} !important;"
                 f"  font-weight: bold;"
                 f"  {base_style}"
                 f"}}"
@@ -423,8 +468,8 @@ class SudokuGame(QWidget):
         else:
             self.inputs[row][col].setStyleSheet(
                 f"QPushButton#cell_btn {{"
-                f"  background-color: {WHITE_THEME['primary']};"
-                f"  color: {WHITE_THEME['error']} !important;"
+                f"  background-color: {SudokuColors.PRIMARY};"
+                f"  color: {SudokuColors.ERROR} !important;"
                 f"  font-weight: bold;"
                 f"  {base_style}"
                 f"}}"
@@ -433,7 +478,24 @@ class SudokuGame(QWidget):
 
         self._check_conflicts(row, col, num)
         self._check_win()
+        self._update_num_button_states()
         self._update_highlights()
+
+    def _update_num_button_states(self):
+        for num in range(1, 10):
+            count = sum(1 for i in range(9) for j in range(9) if self.board[i][j] == num)
+            if count >= 9:
+                self.num_buttons[num - 1].setEnabled(False)
+                self.num_buttons[num - 1].setStyleSheet(
+                    f"QPushButton#num_btn {{"
+                    f"  background-color: #e0e0e0;"
+                    f"  color: #aaaaaa;"
+                    f"  border: 2px solid #cccccc;"
+                    f"}}"
+                )
+            else:
+                self.num_buttons[num - 1].setEnabled(True)
+                self.num_buttons[num - 1].setStyleSheet("")
 
     def _remove_related_notes(self, row, col, num):
         for c in range(9):
@@ -481,7 +543,8 @@ class SudokuGame(QWidget):
             title="游戏失败",
             message=f"数独挑战失败！\n难度：{DIFFICULTY_SETTINGS[self.current_difficulty]['name']}\n\n是否使用复活币继续？",
             parent=self,
-            can_revive=has_revive_coin
+            can_revive=has_revive_coin,
+            auto_close=False
         )
         dialog.revive_clicked.connect(self._on_revive)
         dialog.abandon_clicked.connect(self._on_abandon)
@@ -523,10 +586,24 @@ class SudokuGame(QWidget):
             self.info_label_widget.setText("❌ 复活币不足！")
 
     def _on_abandon(self):
+        self.abandon_clicked.emit()
         self.close()
 
     def _check_conflicts(self, row, col, num):
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         conflicts = []
 
         for c in range(9):
@@ -550,7 +627,7 @@ class SudokuGame(QWidget):
             if not is_correct:
                 self.inputs[r][c].setStyleSheet(
                     f"QPushButton#cell_btn {{"
-                    f"  background-color: {WHITE_THEME['primary']};"
+                    f"  background-color: {SudokuColors.PRIMARY};"
                     f"  color: {T['conflict']} !important;"
                     f"  font-weight: bold;"
                     f"  {base_style}"
@@ -570,12 +647,13 @@ class SudokuGame(QWidget):
         base_style = self._get_cell_base_style(row, col)
         self.inputs[row][col].setStyleSheet(
             f"QPushButton#cell_btn {{"
-            f"  background-color: {WHITE_THEME['primary']};"
-            f"  color: {WHITE_THEME['text']};"
+            f"  background-color: {SudokuColors.PRIMARY};"
+            f"  color: {SudokuColors.TEXT};"
             f"  {base_style}"
             f"}}"
         )
         self._update_highlights()
+        self._update_num_button_states()
 
     def _render_notes(self, row, col):
         btn = self.inputs[row][col]
@@ -589,8 +667,8 @@ class SudokuGame(QWidget):
             btn.setText("\n".join(lines))
             btn.setStyleSheet(
                 f"QPushButton#cell_btn {{"
-                f"  background-color: {WHITE_THEME['primary']};"
-                f"  color: {WHITE_THEME['note_color']};"
+                f"  background-color: {SudokuColors.PRIMARY};"
+                f"  color: {SudokuColors.NOTE_COLOR};"
                 f"  {base_style}"
                 f"}}"
             )
@@ -602,14 +680,27 @@ class SudokuGame(QWidget):
             btn.setFont(normal_font)
             btn.setStyleSheet(
                 f"QPushButton#cell_btn {{"
-                f"  background-color: {WHITE_THEME['primary']};"
-                f"  color: {WHITE_THEME['text']};"
+                f"  background-color: {SudokuColors.PRIMARY};"
+                f"  color: {SudokuColors.TEXT};"
                 f"  {base_style}"
                 f"}}"
             )
 
     def _clear_highlights(self):
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         for i in range(9):
             for j in range(9):
                 btn = self.inputs[i][j]
@@ -660,7 +751,20 @@ class SudokuGame(QWidget):
     def _update_highlights(self):
         if not self.selected_cell or self.game_finished or self.game_over:
             return
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         sr, sc = self.selected_cell
         sel_val = self.board[sr][sc]
 
@@ -779,7 +883,20 @@ class SudokuGame(QWidget):
         self._generate_puzzle()
         self._apply_board_style()
 
-        T = WHITE_THEME
+        T = {
+            'primary': SudokuColors.PRIMARY,
+            'text': SudokuColors.TEXT,
+            'outer_border': SudokuColors.OUTER_BORDER,
+            'inner_border': SudokuColors.INNER_BORDER,
+            'initial_text': SudokuColors.INITIAL_TEXT,
+            'fill_text': SudokuColors.FILL_TEXT,
+            'error': SudokuColors.ERROR,
+            'conflict': SudokuColors.CONFLICT,
+            'same_num': SudokuColors.SAME_NUM,
+            'selected_area': SudokuColors.SELECTED_AREA,
+            'selected_cell': SudokuColors.SELECTED_CELL,
+            'note_color': SudokuColors.NOTE_COLOR,
+        }
         for i in range(9):
             for j in range(9):
                 value = self.solution[i][j]
@@ -807,6 +924,12 @@ class SudokuGame(QWidget):
 
         self.lives_label.setText(f"x{self.lives}")
         self.info_label_widget.setText("点击格子，选择数字")
+
+        # 重置备选数字按钮状态
+        for nb in self.num_buttons:
+            nb.setEnabled(True)
+            nb.setChecked(False)
+            nb.setStyleSheet("")
 
         # 启动计时器
         self._start_timer()
@@ -838,7 +961,7 @@ class SudokuGame(QWidget):
             if len(set(self.board[i])) != 9:
                 return False
         for j in range(9):
-            if len(set(self.board[i][j] for i in range(9)) != 9):
+            if len(set(self.board[i][j] for i in range(9))) != 9:
                 return False
         for bi in range(3):
             for bj in range(3):
@@ -861,6 +984,13 @@ class SudokuGame(QWidget):
         bonus = self.lives * 20
         score = score_map.get(self.current_difficulty, 100) + bonus
         self.game_won.emit(score, self.elapsed_time, diff_name)
+
+        dialog = CompleteDialog(
+            title=f"🎉 {diff_name}数独完成！",
+            message=f"用时: {self.elapsed_time // 60:02d}:{self.elapsed_time % 60:02d}\n得分: {score}\n剩余生命: {self.lives}",
+            parent=self
+        )
+        dialog.show()
         return True
 
     def _get_bg_path(self):

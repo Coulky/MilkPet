@@ -90,12 +90,12 @@ class DHPuzzle(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
 
         C3_INNER_SIZE = 400
-        C3_PADDING = 6
+        C3_PADDING = 4
         C3_W = C3_INNER_SIZE + C3_PADDING * 2
         C3_H = C3_W
         BUTTON_H = 67
         DATA_H = 30
-        GRID_SPACING = 2
+        GRID_SPACING = 3
         WINDOW_W = C3_W + Layout.WINDOW_MARGIN * 2
         WINDOW_H = Layout.WINDOW_MARGIN + BUTTON_H + Layout.CONTAINER_SPACING + DATA_H + Layout.CONTAINER_SPACING + C3_H + Layout.WINDOW_MARGIN
         self.GRID_PIXEL_SIZE = C3_INNER_SIZE
@@ -155,12 +155,14 @@ class DHPuzzle(QWidget):
         btn_layout.setContentsMargins(0, 0, 0, 0)
         btn_layout.setSpacing(8)
 
+        btn_layout.addStretch()
         new_game_btn = self.resource_manager.create_styled_button(
             text="新游戏",
             callback=self._new_game,
             size=QSize(93, BUTTON_H)
         )
         btn_layout.addWidget(new_game_btn)
+        btn_layout.addStretch()
 
         difficulty_widget = self.resource_manager.create_styled_combo(
             options=[("3x3", 3), ("4x4", 4), ("5x5", 5)],
@@ -171,6 +173,7 @@ class DHPuzzle(QWidget):
         )
         self.difficulty_combo = difficulty_widget.combo_box
         btn_layout.addWidget(difficulty_widget)
+        btn_layout.addStretch()
 
         close_btn = self.resource_manager.create_styled_button(
             text="关闭",
@@ -178,6 +181,7 @@ class DHPuzzle(QWidget):
             size=QSize(93, BUTTON_H)
         )
         btn_layout.addWidget(close_btn)
+        btn_layout.addStretch()
 
         main_layout.addWidget(btn_container, alignment=Qt.AlignCenter)
 

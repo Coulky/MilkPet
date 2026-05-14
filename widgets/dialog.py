@@ -66,7 +66,8 @@ class BaseDialog(QWidget):
     cancelled = pyqtSignal()
     secondary = pyqtSignal()
 
-    def __init__(self, title: str, message: str, dialog_type: str = "confirm", parent=None):
+    def __init__(self, title: str, message: str, dialog_type: str = "confirm", parent=None,
+                 auto_close: bool = True):
         super().__init__(parent)
 
         self.title_text = title
@@ -77,10 +78,11 @@ class BaseDialog(QWidget):
         self._setup_ui()
         self._center_on_screen()
 
-        self._auto_close_timer = QTimer(self)
-        self._auto_close_timer.setSingleShot(True)
-        self._auto_close_timer.timeout.connect(self.close)
-        self._auto_close_timer.start(2500)
+        if auto_close:
+            self._auto_close_timer = QTimer(self)
+            self._auto_close_timer.setSingleShot(True)
+            self._auto_close_timer.timeout.connect(self.close)
+            self._auto_close_timer.start(3000)
 
     def _get_bg_path(self):
         if getattr(sys, 'frozen', False):
@@ -263,9 +265,9 @@ class GameFailDialog(BaseDialog):
     abandon_clicked = pyqtSignal()
 
     def __init__(self, title: str, message: str, dialog_type: str = "game_fail",
-                 parent=None, can_revive: bool = True):
+                 parent=None, can_revive: bool = True, auto_close: bool = True):
         self.can_revive = can_revive
-        super().__init__(title, message, dialog_type, parent)
+        super().__init__(title, message, dialog_type, parent, auto_close)
 
     def _build_buttons(self, btn_layout, cfg):
         revive_btn = QPushButton("⭐ 复活")
