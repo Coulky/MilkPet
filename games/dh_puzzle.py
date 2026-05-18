@@ -17,7 +17,7 @@ class DHPuzzle(QWidget):
     """数字华容道游戏 - 独立窗口
     
     使用 Godot 项目中的 sliding_puzzle 资源图：
-    - 图片位置: assets/images/sliding_puzzle/{1-25}.png
+    - 图片位置: assets/sliding_puzzle/{1-25}.png
     - 对应 GD 文件: scripts/games/sliding_puzzle/SlidingPuzzle.gd
     """
     

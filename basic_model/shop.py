@@ -435,14 +435,14 @@ class ShopWindow(QWidget):
             base_path = sys._MEIPASS
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, 'assets', 'images', 'background.png').replace('\\', '/')
+        return os.path.join(base_path, 'assets', 'background.png').replace('\\', '/')
 
     def _get_btn_path(self):
         if getattr(sys, 'frozen', False):
             base_path = sys._MEIPASS
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, 'assets', 'images', 'button.png').replace('\\', '/')
+        return os.path.join(base_path, 'assets', 'button.png').replace('\\', '/')
 
     def closeEvent(self, event):
         self.closed.emit()

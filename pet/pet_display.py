@@ -61,7 +61,7 @@ class PetDisplay(QWidget):
             current_file = os.path.abspath(__file__)
             base_path = os.path.dirname(os.path.dirname(current_file))
         
-        path = os.path.join(base_path, 'assets', 'images', filename)
+        path = os.path.join(base_path, 'assets', filename)
         
         if os.path.exists(path):
             return path
@@ -86,7 +86,7 @@ class PetDisplay(QWidget):
             current_file = os.path.abspath(__file__)
             base_path = os.path.dirname(os.path.dirname(current_file))
         
-        pet_folder = os.path.join(base_path, 'assets', 'images', 'pet')
+        pet_folder = os.path.join(base_path, 'assets', 'pet')
         
         if not os.path.exists(pet_folder):
             print(f"[WARN] 未找到 pet 动画文件夹: {pet_folder}")

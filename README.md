@@ -72,7 +72,7 @@ MilkPet/
 │   ├── game_success_window.py  # 游戏胜利窗口
 │   └── pet_stat_bar.py     # 属性条组件
 │
-└── assets/images/          # 图片资源
+└── assets/              # 图片资源
     ├── logo.ico            # 应用图标
     ├── items/              # 物品图标
     ├── sliding_puzzle/     # 拼图资源
@@ -131,7 +131,7 @@ dist/MilkPet/                    # EXE 输出目录
 ├── MilkPet.exe                  # 主程序（~18 MB）
 └── _internal/                   # 运行时依赖文件
     ├── python314.dll            # Python 运行时
-    ├── assets/images/           # 图片资源
+    ├── assets/               # 图片资源
     └── ...                      # 其他依赖文件
 
 installer/                       # 安装包输出目录

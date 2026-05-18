@@ -4,8 +4,8 @@ Milk Pet 应用 - 主入口
 
 模块说明：
 - desktop_pet.py: 桌宠核心类（对应 scripts/games/PetMain.gd）
-- games/dh_puzzle.py: 数字华容道游戏（使用 assets/images/sliding_puzzle/ 资源）
-- games/sudoku.py: 数独游戏（使用 assets/images/sudoku/ 资源）
+- games/dh_puzzle.py: 数字华容道游戏（使用 assets/sliding_puzzle/ 资源）
+- games/sudoku.py: 数独游戏（使用 assets/sudoku/ 资源）
 
 运行方式：
 1. 直接运行: python pet_app.py

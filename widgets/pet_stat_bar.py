@@ -58,7 +58,7 @@ class PetStatBar(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
     def _load_progress_image(self):
-        img_path = os.path.join(_get_assets_dir(), 'assets', 'images', 'progress_bar.png')
+        img_path = os.path.join(_get_assets_dir(), 'assets', 'progress_bar.png')
         if os.path.exists(img_path):
             self._progress_pixmap = QPixmap(img_path)
 

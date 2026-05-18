@@ -69,7 +69,7 @@ class ResourceManager:
         """预加载华容道数字图片 (1-25)"""
         print("[ResourceManager] 加载华容道图片...")
         
-        images_dir = os.path.join(self._base_path, 'assets', 'images', 'sliding_puzzle')
+        images_dir = os.path.join(self._base_path, 'assets', 'sliding_puzzle')
         
         for i in range(1, 26):
             path = os.path.join(images_dir, f'{i}.png')
@@ -82,35 +82,35 @@ class ResourceManager:
     
     def _preload_background(self):
         """预加载背景图片"""
-        path = os.path.join(self._base_path, 'assets', 'images', 'background.png')
+        path = os.path.join(self._base_path, 'assets', 'background.png')
         if os.path.exists(path):
             self.background_image = QPixmap(path)
             print("[ResourceManager] ✓ 背景图片已加载")
     
     def _preload_pet_image(self):
         """预加载桌宠图片"""
-        path = os.path.join(self._base_path, 'assets', 'images', 'milk.png')
+        path = os.path.join(self._base_path, 'assets', 'milk.png')
         if os.path.exists(path):
             self.pet_image = QPixmap(path)
             print("[ResourceManager] ✓ 桌宠图片已加载")
     
     def _preload_logo(self):
         """预加载 Logo 图标"""
-        path = os.path.join(self._base_path, 'assets', 'images', 'logo.ico')
+        path = os.path.join(self._base_path, 'assets', 'logo.ico')
         if os.path.exists(path):
             self.logo_icon = QIcon(path)
             print("[ResourceManager] ✓ Logo 图标已加载")
     
     def _preload_button(self):
         """预加载按钮背景图片"""
-        path = os.path.join(self._base_path, 'assets', 'images', 'button.png')
+        path = os.path.join(self._base_path, 'assets', 'button.png')
         if os.path.exists(path):
             self.button_pixmap = QPixmap(path)
             print("[ResourceManager] ✓ 按钮图片已加载")
 
     def _preload_coin_icon(self):
         """预加载喵币图标"""
-        path = os.path.join(self._base_path, 'assets', 'images', 'coin_icon.png')
+        path = os.path.join(self._base_path, 'assets', 'coin_icon.png')
         if os.path.exists(path):
             self.coin_icon = QIcon(path)
             print("[ResourceManager] ✓ 喵币图标已加载")
@@ -121,7 +121,7 @@ class ResourceManager:
     
     def get_background_path(self):
         """获取背景图片路径"""
-        return os.path.join(self._base_path, 'assets', 'images', 'background.png').replace('\\', '/')
+        return os.path.join(self._base_path, 'assets', 'background.png').replace('\\', '/')
     
     def get_pet_image(self):
         """获取桌宠图片"""

@@ -53,7 +53,7 @@ class TalkWindow(QWidget):
             # 从 basic_model 目录向上两级到达项目根目录
             base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
-        path = os.path.join(base_path, 'assets', 'images', filename)
+        path = os.path.join(base_path, 'assets', filename)
         
         if os.path.exists(path):
             return path
