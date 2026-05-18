@@ -110,6 +110,11 @@ class PetTrayManager:
 
         sys_menu = tray_menu.addMenu("系统")
 
+        # 设置按钮
+        settings_action = QAction("设置", self.parent)
+        settings_action.triggered.connect(lambda: self._trigger_callback('_on_settings'))
+        sys_menu.addAction(settings_action)
+        
         # 置顶按钮（带状态显示）
         self.toggle_top_action = QAction("取消置顶" if self.parent.is_on_top else "置顶", self.parent)
         self.toggle_top_action.triggered.connect(lambda: self._trigger_callback('_toggle_top'))

@@ -86,6 +86,7 @@ class GameStats:
     current_streak: int = 0     # 当前连胜
     best_streak: int = 0        # 最佳连胜
     average_moves: float = 0.0  # 平均步数/操作数
+    revives_used: int = 0        # 复活使用总次数
     
     @property
     def win_rate(self) -> float:
@@ -123,6 +124,10 @@ class GameStats:
             self.losses += 1
             self.current_streak = 0
     
+    def record_revive(self):
+        """记录复活使用"""
+        self.revives_used += 1
+    
     def to_dict(self) -> Dict:
         """转换为字典"""
         return asdict(self)
@@ -146,6 +151,7 @@ class PlayerStats:
     gold_earned: int = 0                 # 获得金币
     gold_spent: int = 0                  # 消费金币
     achievements_unlocked: int = 0       # 解锁成就数
+    revive_coins_used: int = 0          # 使用复活币次数
     first_login_date: Optional[str] = None  # 首次登录日期
     last_login_date: Optional[str] = None   # 最后登录日期
     
@@ -332,6 +338,23 @@ class StatisticsManager:
         # 自动保存
         self.save_data()
     
+    def record_revive(self, game_id: str):
+        """记录复活使用（游戏次数 + 复活币消耗）"""
+        if game_id not in self.game_stats:
+            self.game_stats[game_id] = GameStats(
+                game_id=game_id,
+                game_name=game_id
+            )
+        
+        stats = self.game_stats[game_id]
+        stats.record_revive()
+        
+        # 记录玩家使用复活币次数
+        self.player_stats.revive_coins_used += 1
+        
+        # 自动保存
+        self.save_data()
+    
     def _check_game_achievements(self, game_id: str, won: bool, **kwargs):
         """检查游戏相关成就"""
         stats = self.game_stats[game_id]
@@ -481,18 +504,23 @@ class StatisticsManager:
     def save_data(self):
         """保存数据到文件（加密）"""
         try:
-            data = {
-                'version': '1.0',
-                'last_saved': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'game_stats': {k: v.to_dict() for k, v in self.game_stats.items()},
-                'player_stats': self.player_stats.to_dict(),
-                'achievements': {k: v.to_dict() for k, v in self.achievements.items()},
-                'inventory': dict(self.inventory_data),
-                'player_score': self.player_score,
-                'pet_stats': self.pet_stats.to_dict(),
-            }
+            # 先加载现有数据，保留非游戏相关的设置
+            existing_data = self.storage.load_encrypted_data()
             
-            self.storage.save_encrypted_data(data)
+            if not existing_data:
+                existing_data = {}
+            
+            # 只更新游戏统计相关字段，保留其他字段（如settings, custom_dialogs等）
+            existing_data['version'] = '1.0'
+            existing_data['last_saved'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            existing_data['game_stats'] = {k: v.to_dict() for k, v in self.game_stats.items()}
+            existing_data['player_stats'] = self.player_stats.to_dict()
+            existing_data['achievements'] = {k: v.to_dict() for k, v in self.achievements.items()}
+            existing_data['inventory'] = dict(self.inventory_data)
+            existing_data['player_score'] = self.player_score
+            existing_data['pet_stats'] = self.pet_stats.to_dict()
+            
+            self.storage.save_encrypted_data(existing_data)
             
         except Exception as e:
             print(f"[ERROR] 保存数据失败: {e}")

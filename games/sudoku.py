@@ -27,6 +27,7 @@ class SudokuGame(QWidget):
 
     game_won = pyqtSignal(int, int, str)
     abandon_clicked = pyqtSignal()
+    revive_used = pyqtSignal()  # 复活使用信号
 
     def __init__(self):
         print("[DEBUG] SudokuGame: Starting initialization...")
@@ -582,6 +583,7 @@ class SudokuGame(QWidget):
             self.info_label_widget.setText("✨ 复活成功！继续游戏吧！")
             self._start_timer()
             self._clear_highlights()
+            self.revive_used.emit()
         else:
             self.info_label_widget.setText("❌ 复活币不足！")
 

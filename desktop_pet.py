@@ -175,6 +175,7 @@ class DesktopPet(PetDisplay):
             {
                 "label": "系统",
                 "items": [
+                    {"name": "设置", "callback": self._on_settings},
                     {"name": "取消置顶" if self.is_on_top else "置顶", "callback": self._toggle_top, "ref": "top_btn"},
                     {"name": "禁止点击交互" if self.allow_click else "允许点击交互", "callback": self._on_click_toggle, "ref": "click_btn"},
                     {"name": "禁止发言" if self.allow_talk else "允许发言", "callback": self._on_talk_toggle, "ref": "talk_btn"},
@@ -737,6 +738,8 @@ class DesktopPet(PetDisplay):
             windows_to_close.append(('inventory', self.inventory_window))
         if self.shop_window:
             windows_to_close.append(('shop', self.shop_window))
+        if hasattr(self, 'settings_window') and self.settings_window:
+            windows_to_close.append(('settings', self.settings_window))
         
         for name, window in windows_to_close:
             try:
@@ -771,6 +774,8 @@ class DesktopPet(PetDisplay):
         self.sudoku_window = None
         self.inventory_window = None
         self.shop_window = None
+        if hasattr(self, 'settings_window'):
+            self.settings_window = None
         
         print("[DEBUG] All windows closed, references cleared")
     
@@ -816,6 +821,11 @@ class DesktopPet(PetDisplay):
             
             # 连接放弃信号，关闭所有窗口
             self.sudoku_window.abandon_clicked.connect(self._close_all_windows)
+            
+            # 连接复活使用信号，记录统计
+            self.sudoku_window.revive_used.connect(
+                lambda: self.stats_manager.record_revive('sudoku')
+            )
             
             self.sudoku_window.show()
             self.sudoku_window.raise_()
@@ -1101,93 +1111,14 @@ class DesktopPet(PetDisplay):
         print("[INFO] Settings clicked")
         self.menu_widget.hide()
         
-        from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSlider
+        if hasattr(self, 'settings_window') and self.settings_window is not None:
+            if self.settings_window.isVisible():
+                self.settings_window.activateWindow()
+                return
         
-        dialog = QDialog(self)
-        dialog.setWindowTitle("⚙️ 设置")
-        dialog.setFixedSize(400, 300)
-        dialog.setStyleSheet("""
-            QDialog {
-                background-color: #2b2b36;
-            }
-            QLabel {
-                color: white;
-                font-size: 14px;
-            }
-            QSlider::groove:horizontal {
-                height: 8px;
-                background: #3a3a46;
-                border-radius: 4px;
-            }
-            QSlider::handle:horizontal {
-                width: 18px;
-                margin: -5px 0;
-                background: #5a7a9a;
-                border-radius: 9px;
-            }
-            QPushButton {
-                background-color: #5a7a9a;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 20px;
-                font-size: 13px;
-            }
-            QPushButton:hover {
-                background-color: #6a8aaa;
-            }
-        """)
-        
-        layout = QVBoxLayout(dialog)
-
-        title = QLabel("⚙️ 设置")
-        title.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFD700;")
-        title.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title)
-        
-        # 音量设置（示例）
-        vol_layout = QHBoxLayout()
-        vol_label = QLabel("🔊 音量:")
-        vol_slider = QSlider(Qt.Horizontal)
-        vol_slider.setRange(0, 100)
-        vol_slider.setValue(70)
-        vol_layout.addWidget(vol_label)
-        vol_layout.addWidget(vol_slider)
-        layout.addLayout(vol_layout)
-        
-        # 自动保存设置
-        save_layout = QHBoxLayout()
-        save_label = QLabel("💾 自动保存:")
-        save_slider = QSlider(Qt.Horizontal)
-        save_slider.setRange(1, 30)
-        save_slider.setValue(5)
-        save_layout.addWidget(save_label)
-        save_layout.addWidget(save_slider)
-        layout.addLayout(save_layout)
-        
-        layout.addStretch()
-        
-        btn_layout = QHBoxLayout()
-
-        reset_data_btn = QPushButton("🗑️ 重置所有数据")
-        reset_data_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #8a4a4a;
-            }
-            QPushButton:hover {
-                background-color: #aa5a5a;
-            }
-        """)
-        reset_data_btn.clicked.connect(lambda: self._reset_data_confirm(dialog))
-        btn_layout.addWidget(reset_data_btn)
-
-        close_btn = QPushButton("关闭")
-        close_btn.clicked.connect(dialog.reject)
-        btn_layout.addWidget(close_btn)
-        
-        layout.addLayout(btn_layout)
-        
-        dialog.exec_()
+        from basic_model.settings import SettingsWindow
+        self.settings_window = SettingsWindow(parent=self)
+        self.settings_window.show()
     
     def _reset_data_confirm(self, parent):
         """确认重置数据"""
