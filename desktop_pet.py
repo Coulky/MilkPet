@@ -643,6 +643,9 @@ class DesktopPet(PetDisplay):
         if hasattr(self, 'tray_manager'):
             self.tray_manager.update_tray_menu()
         
+        # 保存交互设置到文件（保持同步）
+        self._save_interaction_settings()
+        
         self.menu_widget.hide()
     
     def _on_click_toggle(self):
@@ -667,6 +670,9 @@ class DesktopPet(PetDisplay):
         # 更新托盘菜单状态
         if hasattr(self, 'tray_manager'):
             self.tray_manager.update_tray_menu()
+        
+        # 保存交互设置到文件（保持同步）
+        self._save_interaction_settings()
         
         self.menu_widget.hide()
     
@@ -701,6 +707,9 @@ class DesktopPet(PetDisplay):
         if hasattr(self, 'tray_manager'):
             self.tray_manager.update_tray_menu()
         
+        # 保存交互设置到文件（保持同步）
+        self._save_interaction_settings()
+        
         self.menu_widget.hide()
     
     def _on_move_toggle(self):
@@ -722,43 +731,46 @@ class DesktopPet(PetDisplay):
         if hasattr(self, 'tray_manager'):
             self.tray_manager.update_tray_menu()
         
+        # 保存交互设置到文件（保持同步）
+        self._save_interaction_settings()
+        
         self.menu_widget.hide()
     
     def _close_all_windows(self):
-        """关闭所有已打开的功能窗口"""
+        """关闭所有已打开的1级和2级窗口"""
         print("[DEBUG] Closing all windows...")
         
-        windows_to_close = []
-        
+        # 1级窗口列表（数独、数字华容道、背包、商店、设置）
+        level_1_windows = []
         if self.dh_puzzle_window:
-            windows_to_close.append(('dh_puzzle', self.dh_puzzle_window))
+            level_1_windows.append(('dh_puzzle', self.dh_puzzle_window))
         if self.sudoku_window:
-            windows_to_close.append(('sudoku', self.sudoku_window))
+            level_1_windows.append(('sudoku', self.sudoku_window))
         if self.inventory_window:
-            windows_to_close.append(('inventory', self.inventory_window))
+            level_1_windows.append(('inventory', self.inventory_window))
         if self.shop_window:
-            windows_to_close.append(('shop', self.shop_window))
+            level_1_windows.append(('shop', self.shop_window))
         if hasattr(self, 'settings_window') and self.settings_window:
-            windows_to_close.append(('settings', self.settings_window))
+            level_1_windows.append(('settings', self.settings_window))
         
-        for name, window in windows_to_close:
+        # 关闭所有1级和2级窗口
+        all_windows = level_1_windows
+        
+        for name, window in all_windows:
             try:
                 print(f"[DEBUG] Closing {name} window...")
                 
-                # 断开所有信号连接
                 try:
                     window.blockSignals(True)
                 except:
                     pass
                 
-                # 隐藏窗口
                 try:
                     if window.isVisible():
                         window.hide()
                 except Exception as hide_err:
                     print(f"[WARN] Error hiding {name}: {hide_err}")
                 
-                # 关闭窗口
                 try:
                     window.close()
                 except Exception as close_err:
@@ -780,11 +792,19 @@ class DesktopPet(PetDisplay):
         print("[DEBUG] All windows closed, references cleared")
     
     def _on_dh_puzzle(self):
-        """打开华容道游戏"""
+        """打开华容道游戏（1级窗口）"""
         self.menu_widget.hide()
 
+        # 如果已打开且可见，只激活
+        if self.dh_puzzle_window and self.dh_puzzle_window.isVisible():
+            self.dh_puzzle_window.raise_()
+            self.dh_puzzle_window.activateWindow()
+            return
+
         try:
+            # 关闭所有1级和2级窗口
             self._close_all_windows()
+
             self.dh_puzzle_window = DHPuzzle()
 
             # 连接游戏结束信号用于统计和得分
@@ -793,6 +813,8 @@ class DesktopPet(PetDisplay):
             )
 
             self.dh_puzzle_window.show()
+            self.dh_puzzle_window.raise_()
+            self.dh_puzzle_window.activateWindow()
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -804,11 +826,18 @@ class DesktopPet(PetDisplay):
             )
     
     def _on_sudoku(self):
-        """打开数独游戏"""
+        """打开数独游戏（1级窗口）"""
         print("Sudoku clicked")
         self.menu_widget.hide()
-        
+
+        # 如果已打开且可见，只激活
+        if self.sudoku_window and self.sudoku_window.isVisible():
+            self.sudoku_window.raise_()
+            self.sudoku_window.activateWindow()
+            return
+
         try:
+            # 关闭所有1级和2级窗口
             self._close_all_windows()
             
             print("[DEBUG] Creating SudokuGame window...")
@@ -870,39 +899,44 @@ class DesktopPet(PetDisplay):
                     print(f"🎉 升级! Lv.{old_level} -> Lv.{new_level}")
 
     def _on_backpack(self):
-        """打开背包"""
+        """打开背包（1级窗口）"""
         print("Opening inventory")
         self.menu_widget.hide()
 
-        # 创建或显示背包窗口
-        if not self.inventory_window or not self.inventory_window.isVisible():
-            self._close_all_windows()
-            self.inventory_window = InventoryWindow(parent=None)
-
-            # 加载背包数据
-            saved_inventory = self.stats_manager.get_inventory_data()
-            if saved_inventory:
-                self.inventory_window.load_inventory_data(saved_inventory)
-
-            # 连接信号
-            self.inventory_window.item_used.connect(self._on_item_used)
-            self.inventory_window.closed.connect(self._on_inventory_closed)
-
-            # 添加新手礼包（首次）
-            if self.stats_manager.player_stats.sessions_count <= 1:
-                starter_items = [
-                    ("dried_fish", 5),
-                    ("fresh_milk", 3),
-                    ("cat_teaser", 3),
-                    ("revive_coin", 1),
-                ]
-                for item_id, qty in starter_items:
-                    self.inventory_window.add_item(item_id, qty)
-            
-            self.inventory_window.show()
-        else:
+        # 如果已打开且可见，只激活
+        if self.inventory_window and self.inventory_window.isVisible():
             self.inventory_window.raise_()
             self.inventory_window.activateWindow()
+            return
+
+        # 关闭所有1级和2级窗口
+        self._close_all_windows()
+        
+        self.inventory_window = InventoryWindow(parent=None)
+
+        # 加载背包数据
+        saved_inventory = self.stats_manager.get_inventory_data()
+        if saved_inventory:
+            self.inventory_window.load_inventory_data(saved_inventory)
+
+        # 连接信号
+        self.inventory_window.item_used.connect(self._on_item_used)
+        self.inventory_window.closed.connect(self._on_inventory_closed)
+
+        # 添加新手礼包（首次）
+        if self.stats_manager.player_stats.sessions_count <= 1:
+            starter_items = [
+                ("dried_fish", 5),
+                ("fresh_milk", 3),
+                ("cat_teaser", 3),
+                ("revive_coin", 1),
+            ]
+            for item_id, qty in starter_items:
+                self.inventory_window.add_item(item_id, qty)
+        
+        self.inventory_window.show()
+        self.inventory_window.raise_()
+        self.inventory_window.activateWindow()
     
     def _on_item_used(self, item_id: str):
         "道具被使用时调用"
@@ -950,30 +984,35 @@ class DesktopPet(PetDisplay):
             self.stats_manager.set_inventory_data(inventory_data)
     
     def _on_shop(self):
-        """打开商店"""
+        """打开商店（1级窗口）"""
         print("Opening shop")
         self.menu_widget.hide()
 
+        # 如果已打开且可见，只激活
+        if self.shop_window and self.shop_window.isVisible():
+            self.shop_window.raise_()
+            self.shop_window.activateWindow()
+            return
+
         try:
-            # 创建或显示商店窗口
-            if not self.shop_window or not self.shop_window.isVisible():
-                self._close_all_windows()
-                owned_items = self.stats_manager.get_inventory_data() or {}
-                self.shop_window = ShopWindow(
-                    player_score=self.player_score,
-                    player_level=self.stats_manager.pet_stats.get_level(),
-                    owned_items=owned_items,
-                    parent=None
-                )
+            # 关闭所有1级和2级窗口
+            self._close_all_windows()
+            
+            owned_items = self.stats_manager.get_inventory_data() or {}
+            self.shop_window = ShopWindow(
+                player_score=self.player_score,
+                player_level=self.stats_manager.pet_stats.get_level(),
+                owned_items=owned_items,
+                parent=None
+            )
 
-                # 连接购买信号
-                self.shop_window.item_purchased.connect(self._on_item_purchased)
-                self.shop_window.closed.connect(self._on_shop_closed)
+            # 连接购买信号
+            self.shop_window.item_purchased.connect(self._on_item_purchased)
+            self.shop_window.closed.connect(self._on_shop_closed)
 
-                self.shop_window.show()
-            else:
-                self.shop_window.raise_()
-                self.shop_window.activateWindow()
+            self.shop_window.show()
+            self.shop_window.raise_()
+            self.shop_window.activateWindow()
         except Exception as e:
             print(f"[ERROR] Error opening shop: {e}")
             import traceback
@@ -1106,19 +1145,77 @@ class DesktopPet(PetDisplay):
         
         stats_dialog.exec_()
     
+    def _save_interaction_settings(self):
+        """保存交互设置到文件（保持与设置窗口同步）"""
+        try:
+            from basic_model.secure_storage import SecureStorage
+            storage = SecureStorage()
+            data = storage.load_encrypted_data()
+            
+            if not data:
+                data = {}
+            
+            if 'settings' not in data:
+                data['settings'] = {}
+            
+            # 更新交互设置
+            data['settings']['is_on_top'] = self.is_on_top
+            data['settings']['allow_click'] = self.allow_click
+            data['settings']['allow_talk'] = self.allow_talk
+            data['settings']['allow_move'] = self.allow_move
+            
+            # 保存到文件
+            storage.save_encrypted_data(data)
+            
+        except Exception as e:
+            print(f"[ERROR] 保存交互设置失败: {e}")
+    
+    def _on_interaction_setting_changed(self, setting_type: str, value: bool):
+        """处理交互设置变更"""
+        print(f"[INFO] Interaction setting changed: {setting_type}={value}")
+        
+        if setting_type == 'is_on_top':
+            if value != self.is_on_top:
+                self._toggle_top()
+        elif setting_type == 'allow_click':
+            if value != self.allow_click:
+                self._on_click_toggle()
+        elif setting_type == 'allow_talk':
+            if value != self.allow_talk:
+                self._on_talk_toggle()
+        elif setting_type == 'allow_move':
+            if value != self.allow_move:
+                self._on_move_toggle()
+    
     def _on_settings(self):
-        """设置页面"""
+        """打开设置窗口（1级窗口）"""
         print("[INFO] Settings clicked")
         self.menu_widget.hide()
-        
-        if hasattr(self, 'settings_window') and self.settings_window is not None:
-            if self.settings_window.isVisible():
-                self.settings_window.activateWindow()
-                return
+
+        # 如果已打开且可见，只激活
+        if hasattr(self, 'settings_window') and self.settings_window and self.settings_window.isVisible():
+            self.settings_window.raise_()
+            self.settings_window.activateWindow()
+            return
+
+        # 关闭所有1级和2级窗口
+        self._close_all_windows()
         
         from basic_model.settings import SettingsWindow
-        self.settings_window = SettingsWindow(parent=self)
+        self.settings_window = SettingsWindow(parent=None)
+        
+        # 同步当前交互设置到设置窗口
+        self.settings_window.settings['is_on_top'] = self.is_on_top
+        self.settings_window.settings['allow_click'] = self.allow_click
+        self.settings_window.settings['allow_talk'] = self.allow_talk
+        self.settings_window.settings['allow_move'] = self.allow_move
+        
+        # 连接交互设置变更信号
+        self.settings_window.interaction_changed.connect(self._on_interaction_setting_changed)
+        
         self.settings_window.show()
+        self.settings_window.raise_()
+        self.settings_window.activateWindow()
     
     def _reset_data_confirm(self, parent):
         """确认重置数据"""

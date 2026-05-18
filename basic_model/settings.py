@@ -25,6 +25,7 @@ class SettingsWindow(QWidget):
     """设置窗口 - 容器1(左侧导航) + 容器2(右侧内容)"""
     
     settings_saved = pyqtSignal(dict)
+    interaction_changed = pyqtSignal(str, bool)  # (setting_type, value)
     
     MAX_CUSTOM_DIALOGS = 10
     
@@ -50,8 +51,22 @@ class SettingsWindow(QWidget):
             else:
                 self.settings = {
                     'pet_name': '小奶',
-                    'user_title': '主人'
+                    'user_title': '主人',
+                    'is_on_top': True,
+                    'allow_click': True,
+                    'allow_talk': True,
+                    'allow_move': False
                 }
+            
+            # 确保交互设置存在（向后兼容）
+            if 'is_on_top' not in self.settings:
+                self.settings['is_on_top'] = True
+            if 'allow_click' not in self.settings:
+                self.settings['allow_click'] = True
+            if 'allow_talk' not in self.settings:
+                self.settings['allow_talk'] = True
+            if 'allow_move' not in self.settings:
+                self.settings['allow_move'] = False
             
             if data and 'custom_dialogs' in data:
                 self.custom_dialogs = data['custom_dialogs']
@@ -69,7 +84,11 @@ class SettingsWindow(QWidget):
             print(f"[WARN] 加载设置失败: {e}")
             self.settings = {
                 'pet_name': '小奶',
-                'user_title': '主人'
+                'user_title': '主人',
+                'is_on_top': True,
+                'allow_click': True,
+                'allow_talk': True,
+                'allow_move': False
             }
             self.custom_dialogs = []
             self.use_custom_only = False
@@ -79,43 +98,24 @@ class SettingsWindow(QWidget):
             from basic_model.secure_storage import SecureStorage
             storage = SecureStorage()
             
-            save_path = storage.get_storage_path()
-            print(f"[DEBUG] 存储路径: {save_path}")
-            print(f"[DEBUG] 文件是否存在: {__import__('os').path.exists(save_path)}")
-            
             data = storage.load_encrypted_data()
             if not data:
                 data = {}
-                print("[DEBUG] 创建新的数据字典")
             
             data['settings'] = self.settings
             data['custom_dialogs'] = self.custom_dialogs
             data['use_custom_only'] = self.use_custom_only
             
-            print(f"[DEBUG] 准备保存的数据:")
-            print(f"  - settings: {self.settings}")
-            print(f"  - custom_dialogs: {len(self.custom_dialogs)} 条")
-            print(f"  - use_custom_only: {self.use_custom_only}")
-            
             save_result = storage.save_encrypted_data(data)
-            print(f"[DEBUG] save_encrypted_data 返回值: {save_result}")
             
             if not save_result:
-                print("[ERROR] 保存失败！")
                 return False
             
             # 验证：立即读取刚保存的数据
-            print("[DEBUG] 验证保存结果...")
             verify_data = storage.load_encrypted_data()
             
             if verify_data is None:
-                print("[ERROR] 验证失败！无法读取刚保存的数据")
                 return False
-            
-            print(f"[DEBUG] 验证成功，读取到的数据:")
-            print(f"  - settings: {verify_data.get('settings', 'MISSING')}")
-            print(f"  - custom_dialogs: {len(verify_data.get('custom_dialogs', []))} 条")
-            print(f"  - use_custom_only: {verify_data.get('use_custom_only', 'MISSING')}")
             
             try:
                 from config.talk_settings import refresh_talk_cache
@@ -371,7 +371,6 @@ class SettingsWindow(QWidget):
         old_user_title = self.settings.get('user_title', '主人')
         
         if pet_name != old_pet_name or user_title != old_user_title:
-            print(f"[INFO] 称呼设置改变: {old_pet_name}->{pet_name}, {old_user_title}->{user_title}")
             self.settings['pet_name'] = pet_name
             self.settings['user_title'] = user_title
             self._save_all()
@@ -497,56 +496,40 @@ class SettingsWindow(QWidget):
         hint_label.setStyleSheet("color: #aaaaaa; font-size: 15px; font-weight: bold;")
         layout.addWidget(hint_label)
         
-        if self.parent() and hasattr(self.parent(), 'is_on_top'):
-            parent = self.parent()
-            
-            top_check = QCheckBox("\u7f6e\u9876\u663e\u793a")
-            top_check.setChecked(parent.is_on_top)
-            top_check.stateChanged.connect(lambda state: self._on_interaction_changed('top', state == Qt.Checked))
-            layout.addWidget(top_check)
-            
-            click_check = QCheckBox("\u5141\u8bb8\u70b9\u51fb\u4ea4\u4e92")
-            click_check.setChecked(parent.allow_click)
-            click_check.stateChanged.connect(lambda state: self._on_interaction_changed('click', state == Qt.Checked))
-            layout.addWidget(click_check)
-            
-            talk_check = QCheckBox("\u5141\u8bb8\u53d1\u8a00")
-            talk_check.setChecked(parent.allow_talk)
-            talk_check.stateChanged.connect(lambda state: self._on_interaction_changed('talk', state == Qt.Checked))
-            layout.addWidget(talk_check)
-            
-            move_check = QCheckBox("\u5140\u8bb8\u79fb\u52a8")
-            move_check.setChecked(parent.allow_move)
-            move_check.stateChanged.connect(lambda state: self._on_interaction_changed('move', state == Qt.Checked))
-            layout.addWidget(move_check)
-        else:
-            no_parent = QLabel("\u65e0\u6cd5\u83b7\u53d6\u72b6\u6001\uff0c\u8bf7\u786e\u4fdd\u8bbe\u7f6e\u7a97\u53e3\u6709\u7236\u7a97\u53e3")
-            no_parent.setStyleSheet("color: #888888; font-size: 13px;")
-            layout.addWidget(no_parent)
+        top_check = QCheckBox("\u7f6e\u9876\u663e\u793a")
+        top_check.setChecked(self.settings.get('is_on_top', True))
+        top_check.stateChanged.connect(lambda state: self._on_interaction_changed('is_on_top', state == Qt.Checked))
+        layout.addWidget(top_check)
+        
+        click_check = QCheckBox("\u5141\u8bb8\u70b9\u51fb\u4ea4\u4e92")
+        click_check.setChecked(self.settings.get('allow_click', True))
+        click_check.stateChanged.connect(lambda state: self._on_interaction_changed('allow_click', state == Qt.Checked))
+        layout.addWidget(click_check)
+        
+        talk_check = QCheckBox("\u5141\u8bb8\u53d1\u8a00")
+        talk_check.setChecked(self.settings.get('allow_talk', True))
+        talk_check.stateChanged.connect(lambda state: self._on_interaction_changed('allow_talk', state == Qt.Checked))
+        layout.addWidget(talk_check)
+        
+        move_check = QCheckBox("\u5141\u8bb1\u79fb\u52a8")
+        move_check.setChecked(self.settings.get('allow_move', False))
+        move_check.stateChanged.connect(lambda state: self._on_interaction_changed('allow_move', state == Qt.Checked))
+        layout.addWidget(move_check)
         
         layout.addStretch()
         
         return page
     
     def _on_interaction_changed(self, setting_type: str, value: bool):
-        """交互设置改变时通知父窗口"""
-        if not self.parent() or not hasattr(self.parent(), f'_on_{setting_type}_changed'):
-            return
+        """交互设置改变时保存并通知"""
+        # 保存到 settings 字典
+        self.settings[setting_type] = value
         
-        parent = self.parent()
+        # 保存到文件
+        self._save_all()
         
-        if setting_type == 'top' and hasattr(parent, '_toggle_top'):
-            if value != parent.is_on_top:
-                parent._toggle_top()
-        elif setting_type == 'click' and hasattr(parent, '_on_click_toggle'):
-            if value != parent.allow_click:
-                parent._on_click_toggle()
-        elif setting_type == 'talk' and hasattr(parent, '_on_talk_toggle'):
-            if value != parent.allow_talk:
-                parent._on_talk_toggle()
-        elif setting_type == 'move' and hasattr(parent, '_on_move_toggle'):
-            if value != parent.allow_move:
-                parent._on_move_toggle()
+        # 发射信号，携带设置类型和值
+        self.interaction_changed.emit(setting_type, value)
     
     def _switch_page(self, page_idx: int):
         self.current_page = page_idx
@@ -555,7 +538,76 @@ class SettingsWindow(QWidget):
                 btn.setChecked(True)
             else:
                 btn.setChecked(False)
+        
+        # 切换页面时同步最新数据（防止外部修改导致不一致）
+        self._sync_settings_from_file()
+        
         self.content_stack.setCurrentIndex(page_idx)
+    
+    def showEvent(self, event):
+        """窗口显示时同步最新数据"""
+        super().showEvent(event)
+        # 每次显示时都同步最新数据
+        self._sync_settings_from_file()
+    
+    def _sync_settings_from_file(self):
+        """从文件同步最新设置（解决多地方操作导致的数据不一致）"""
+        try:
+            from basic_model.secure_storage import SecureStorage
+            storage = SecureStorage()
+            data = storage.load_encrypted_data()
+            
+            if data and 'settings' in data:
+                file_settings = data['settings']
+                
+                # 同步交互设置（如果文件中有更新的值）
+                for key in ['is_on_top', 'allow_click', 'allow_talk', 'allow_move']:
+                    if key in file_settings and file_settings[key] != self.settings.get(key):
+                        print(f"[INFO] 同步设置 {key}: {self.settings.get(key)} -> {file_settings[key]}")
+                        self.settings[key] = file_settings[key]
+                
+                # 如果当前在交互设置页面，更新复选框状态
+                if hasattr(self, 'current_page') and self.current_page == 2:  # 交互设置是第3页(索引2)
+                    self._update_interaction_checkboxes()
+                    
+        except Exception as e:
+            print(f"[WARN] 同步设置失败: {e}")
+    
+    def _update_interaction_checkboxes(self):
+        """更新交互设置页面的复选框状态"""
+        try:
+            # 获取交互设置页面
+            interaction_page = self.content_stack.widget(2)
+            if not interaction_page:
+                return
+            
+            layout = interaction_page.layout()
+            if not layout:
+                return
+            
+            # 遍历所有复选框并更新状态
+            setting_map = {
+                '置顶显示': 'is_on_top',
+                '允许点击交互': 'allow_click',
+                '允许发言': 'allow_talk',
+                '允许移动': 'allow_move'
+            }
+            
+            for i in range(layout.count()):
+                widget = layout.itemAt(i).widget()
+                if isinstance(widget, QCheckBox):
+                    text = widget.text()
+                    if text in setting_map:
+                        key = setting_map[text]
+                        new_value = self.settings.get(key, True)
+                        
+                        # 断开信号以避免触发保存
+                        widget.blockSignals(True)
+                        widget.setChecked(new_value)
+                        widget.blockSignals(False)
+                        
+        except Exception as e:
+            print(f"[WARN] 更新复选框状态失败: {e}")
     
     def _on_only_custom_changed(self, state):
         self.use_custom_only = (state == Qt.Checked)
